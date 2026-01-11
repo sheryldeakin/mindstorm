@@ -19,6 +19,7 @@ const appLinks = [
   { label: "Journal", to: "/journal" },
   { label: "Entry", to: "/entry" },
   { label: "Patterns", to: "/patterns" },
+  { label: "Cycles", to: "/cycles" },
 ];
 
 const Navbar = ({ variant = "landing" }: NavbarProps) => {
@@ -63,7 +64,7 @@ const Navbar = ({ variant = "landing" }: NavbarProps) => {
               <Button variant="ghost" size="sm" className="hidden md:inline-flex">
                 View demo
               </Button>
-              <Link to="/journal">
+              <Link to="/login">
                 <Button size="sm">Start free journal</Button>
               </Link>
             </>
