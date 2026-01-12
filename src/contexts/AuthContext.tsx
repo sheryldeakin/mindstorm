@@ -7,85 +7,88 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import type { Session, User } from "@supabase/supabase-js";
-import { isSupabaseConfigured, supabase } from "../lib/supabaseClient";
+import { apiFetch, getToken, setToken } from "../lib/apiClient";
 
 type AuthStatus = "loading" | "authed" | "anon";
 
+type AuthUser = {
+  id: string;
+  email: string;
+  name?: string;
+};
+
 interface AuthContextValue {
-  user: User | null;
-  session: Session | null;
+  user: AuthUser | null;
   status: AuthStatus;
   isConfigured: boolean;
-  signInWithOtp: (email: string) => Promise<void>;
-  signInWithProvider: (provider: "google" | "apple") => Promise<void>;
-  signOut: () => Promise<void>;
+  login: (email: string, password: string) => Promise<void>;
+  register: (email: string, password: string, name?: string) => Promise<void>;
+  signOut: () => void;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [status, setStatus] = useState<AuthStatus>("loading");
 
   useEffect(() => {
-    if (!supabase || !isSupabaseConfigured) {
+    const token = getToken();
+    if (!token) {
       setStatus("anon");
       return;
     }
 
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session ?? null);
-      setUser(data.session?.user ?? null);
-      setStatus(data.session ? "authed" : "anon");
-    });
-
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, nextSession) => {
-      setSession(nextSession);
-      setUser(nextSession?.user ?? null);
-      setStatus(nextSession ? "authed" : "anon");
-    });
-
-    return () => {
-      listener?.subscription.unsubscribe();
-    };
+    apiFetch<{ user: AuthUser }>("/auth/me")
+      .then(({ user: me }) => {
+        setUser(me);
+        setStatus("authed");
+      })
+      .catch(() => {
+        setToken(null);
+        setUser(null);
+        setStatus("anon");
+      });
   }, []);
 
-  const signInWithOtp = useCallback(async (email: string) => {
-    if (!supabase) throw new Error("Supabase is not configured.");
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: { emailRedirectTo: `${window.location.origin}/journal` },
+  const login = useCallback(async (email: string, password: string) => {
+    const { token, user: loggedIn } = await apiFetch<{ token: string; user: AuthUser }>("/auth/login", {
+      method: "POST",
+      body: JSON.stringify({ email, password }),
     });
-    if (error) throw error;
+
+    setToken(token);
+    setUser(loggedIn);
+    setStatus("authed");
   }, []);
 
-  const signInWithProvider = useCallback(async (provider: "google" | "apple") => {
-    if (!supabase) throw new Error("Supabase is not configured.");
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider,
-      options: { redirectTo: `${window.location.origin}/journal` },
+  const register = useCallback(async (email: string, password: string, name?: string) => {
+    const { token, user: registered } = await apiFetch<{ token: string; user: AuthUser }>("/auth/register", {
+      method: "POST",
+      body: JSON.stringify({ email, password, name }),
     });
-    if (error) throw error;
+
+    setToken(token);
+    setUser(registered);
+    setStatus("authed");
   }, []);
 
-  const signOut = useCallback(async () => {
-    if (!supabase) return;
-    await supabase.auth.signOut();
+  const signOut = useCallback(() => {
+    setToken(null);
+    setUser(null);
+    setStatus("anon");
   }, []);
 
   const value = useMemo(
     () => ({
       user,
-      session,
       status,
-      isConfigured: isSupabaseConfigured,
-      signInWithOtp,
-      signInWithProvider,
+      isConfigured: Boolean(import.meta.env.VITE_API_URL),
+      login,
+      register,
       signOut,
     }),
-    [session, signInWithOtp, signInWithProvider, signOut, status, user],
+    [login, register, signOut, status, user],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

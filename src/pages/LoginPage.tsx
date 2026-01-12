@@ -8,12 +8,6 @@ import { useAuth } from "../contexts/AuthContext";
 import useEntries from "../hooks/useEntries";
 import useInsights from "../hooks/useInsights";
 
-const providerButtons = [
-  { id: "google", label: "Continue with Google" as const },
-  { id: "apple", label: "Sign in with Apple" as const },
-  { id: "email", label: "Use email + magic link" as const },
-];
-
 const trackingChecklist = [
   "Save daily entries with mood, triggers, and coping notes.",
   "Auto-build therapy-ready briefs you can export or share.",
@@ -21,12 +15,14 @@ const trackingChecklist = [
 ];
 
 const LoginPage = () => {
-  const { signInWithOtp, signInWithProvider, status, isConfigured } = useAuth();
+  const { login, register, status, isConfigured } = useAuth();
+  const [mode, setMode] = useState<"login" | "register">("login");
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [selectedProvider, setSelectedProvider] = useState<string>("email");
+  const [password, setPassword] = useState("");
   const [actionMessage, setActionMessage] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
-  const [pendingAction, setPendingAction] = useState<string | null>(null);
+  const [pendingAction, setPendingAction] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -39,19 +35,16 @@ const LoginPage = () => {
 
   const friendlyName = useMemo(() => {
     if (!email) return "you";
-    const name = email.split("@")[0];
-    if (!name) return "you";
-    return name.charAt(0).toUpperCase() + name.slice(1);
+    const derivedName = email.split("@")[0];
+    if (!derivedName) return "you";
+    return derivedName.charAt(0).toUpperCase() + derivedName.slice(1);
   }, [email]);
 
-  const { data: entries, loading: entriesLoading, error: entriesError, empty: entriesEmpty } = useEntries({
-    limit: 10,
-  });
+  const { data: entries, loading: entriesLoading, error: entriesError } = useEntries({ limit: 10 });
   const {
     data: insights,
     loading: insightsLoading,
     error: insightsError,
-    empty: insightsEmpty,
   } = useInsights({ limit: 4 });
 
   const entryPreview = entries[0];
@@ -82,40 +75,33 @@ const LoginPage = () => {
     },
   ];
 
-  const handleEmailLogin = async () => {
+  const handleSubmit = async () => {
     setActionError(null);
     setActionMessage(null);
 
-    if (!email) {
-      setActionError("Enter an email to get your magic link.");
+    if (!email || !password) {
+      setActionError("Email and password are required.");
+      return;
+    }
+
+    if (mode === "register" && password.length < 8) {
+      setActionError("Use at least 8 characters for your password.");
       return;
     }
 
     try {
-      setPendingAction("email");
-      await signInWithOtp(email);
-      setActionMessage("Check your email for a secure magic link. Once you click it, we’ll redirect you here.");
+      setPendingAction(true);
+      if (mode === "login") {
+        await login(email, password);
+      } else {
+        await register(email, password, name);
+        setActionMessage("Account created. Redirecting to your journal...");
+      }
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Unable to send magic link right now.";
+      const message = error instanceof Error ? error.message : "Unable to sign in right now.";
       setActionError(message);
     } finally {
-      setPendingAction(null);
-    }
-  };
-
-  const handleProviderLogin = async (provider: "google" | "apple") => {
-    setSelectedProvider(provider);
-    setActionError(null);
-    setActionMessage(null);
-    try {
-      setPendingAction(provider);
-      setActionMessage("Redirecting to continue signing in...");
-      await signInWithProvider(provider);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Unable to start login with that provider.";
-      setActionError(message);
-      setActionMessage(null);
-      setPendingAction(null);
+      setPendingAction(false);
     }
   };
 
@@ -129,12 +115,11 @@ const LoginPage = () => {
               Sign in to start your free journal.
             </h1>
             <p className="text-lg text-brand/80">
-              Choose how you want to log in. Once inside, we&apos;ll start tracking patterns tailored to {friendlyName}.
+              Create a secure password login and we&apos;ll start tracking patterns tailored to {friendlyName}.
             </p>
             {!isConfigured && (
               <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
-                Supabase environment variables are missing. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to enable
-                login and live data.
+                API environment variables are missing. Set VITE_API_URL to enable login and live data.
               </div>
             )}
             <div className="space-y-3 rounded-3xl border border-brand/10 bg-white/80 p-5 shadow-sm">
@@ -214,7 +199,7 @@ const LoginPage = () => {
                     </div>
                   ) : insightsError ? (
                     <p className="text-sm text-rose-600">Couldn&apos;t load insights: {insightsError}</p>
-                  ) : insightsEmpty ? (
+                  ) : insights.length === 0 ? (
                     <p className="text-sm text-slate-600">We&apos;ll surface insights after a few entries.</p>
                   ) : (
                     <div className="mt-2 space-y-1">
@@ -238,36 +223,51 @@ const LoginPage = () => {
           <Card className="border-brand/20 bg-white/95 shadow-lg shadow-brand/10">
             <CardHeader className="space-y-2">
               <p className="text-sm uppercase tracking-[0.3em] text-brandLight">Sign in</p>
-              <h2 className="text-2xl font-semibold text-slate-900">Choose how to log in</h2>
+              <h2 className="text-2xl font-semibold text-slate-900">
+                {mode === "login" ? "Welcome back" : "Create your account"}
+              </h2>
               <p className="text-sm text-slate-600">
-                Pick a provider and we&apos;ll sync your tracking to your account. No credit card required.
+                {mode === "login"
+                  ? "Use your email and password to continue your journal."
+                  : "Start tracking with a secure email + password login."}
               </p>
             </CardHeader>
             <CardContent className="space-y-5">
               <div className="grid gap-3">
-                {providerButtons.map((provider) => (
+                <div className="flex gap-2 rounded-2xl border border-slate-200 bg-slate-50/80 p-2">
                   <Button
-                    key={provider.id}
                     type="button"
-                    variant={selectedProvider === provider.id ? "primary" : "secondary"}
-                    className="w-full justify-center"
-                    onClick={() => {
-                      if (provider.id === "email") {
-                        setSelectedProvider("email");
-                        return;
-                      }
-                      handleProviderLogin(provider.id);
-                    }}
-                    disabled={pendingAction !== null && pendingAction !== provider.id}
+                    variant={mode === "login" ? "primary" : "secondary"}
+                    className="flex-1"
+                    onClick={() => setMode("login")}
                   >
-                    {pendingAction === provider.id ? "Redirecting..." : provider.label}
+                    Sign in
                   </Button>
-                ))}
+                  <Button
+                    type="button"
+                    variant={mode === "register" ? "primary" : "secondary"}
+                    className="flex-1"
+                    onClick={() => setMode("register")}
+                  >
+                    Create account
+                  </Button>
+                </div>
               </div>
               <div className="space-y-3 rounded-2xl border border-slate-200 bg-slate-50/80 p-4">
-                <label className="text-xs font-semibold uppercase tracking-[0.2em] text-brand/70">
-                  Email for your magic link
-                </label>
+                {mode === "register" && (
+                  <>
+                    <label className="text-xs font-semibold uppercase tracking-[0.2em] text-brand/70">Name</label>
+                    <Input
+                      type="text"
+                      name="name"
+                      placeholder="Your name"
+                      value={name}
+                      onChange={(event) => setName(event.target.value)}
+                      autoComplete="name"
+                    />
+                  </>
+                )}
+                <label className="text-xs font-semibold uppercase tracking-[0.2em] text-brand/70">Email</label>
                 <Input
                   type="email"
                   name="email"
@@ -277,16 +277,23 @@ const LoginPage = () => {
                   autoComplete="email"
                   required
                 />
-                <Button
-                  type="button"
-                  className="w-full"
-                  onClick={handleEmailLogin}
-                  disabled={pendingAction !== null && pendingAction !== "email"}
-                >
-                  {pendingAction === "email" ? "Sending..." : "Send login link"}
+                <label className="text-xs font-semibold uppercase tracking-[0.2em] text-brand/70">Password</label>
+                <Input
+                  type="password"
+                  name="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  autoComplete={mode === "login" ? "current-password" : "new-password"}
+                  required
+                />
+                <Button type="button" className="w-full" onClick={handleSubmit} disabled={pendingAction}>
+                  {pendingAction ? "Working..." : mode === "login" ? "Sign in" : "Create account"}
                 </Button>
                 <p className="text-xs text-slate-500">
-                  We&apos;ll email a secure link. If you prefer a password, choose Apple or Google above.
+                  {mode === "login"
+                    ? "Use the same credentials you signed up with."
+                    : "Passwords are stored securely. Use at least 8 characters."}
                 </p>
               </div>
               {actionMessage && (

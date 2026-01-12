@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
-import { isSupabaseConfigured, supabase } from "../lib/supabaseClient";
+import { apiFetch } from "../lib/apiClient";
 import type { JournalEntry } from "../types/journal";
 
 interface CreateEntryInput {
@@ -8,6 +8,9 @@ interface CreateEntryInput {
   summary: string;
   tags: string[];
   emotions?: JournalEntry["emotions"];
+  date?: string;
+  triggers?: string[];
+  themes?: string[];
 }
 
 const useCreateEntry = () => {
@@ -17,7 +20,7 @@ const useCreateEntry = () => {
   const [success, setSuccess] = useState(false);
 
   const createEntry = useCallback(
-    async ({ title, summary, tags, emotions = [] }: CreateEntryInput) => {
+    async ({ title, summary, tags, emotions = [], date, triggers = [], themes = [] }: CreateEntryInput) => {
       setLoading(true);
       setError(null);
       setSuccess(false);
@@ -28,36 +31,19 @@ const useCreateEntry = () => {
         return;
       }
 
-      if (!supabase || !isSupabaseConfigured) {
+      try {
+        await apiFetch<{ entry: JournalEntry }>("/entries", {
+          method: "POST",
+          body: JSON.stringify({ title, summary, tags, emotions, date, triggers, themes }),
+        });
+
+        await apiFetch("/insights/refresh", { method: "POST" });
+        setSuccess(true);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to save entry.");
+      } finally {
         setLoading(false);
-        setError("Supabase is not configured. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.");
-        return;
       }
-
-      const entryDate = new Date();
-      const friendlyDate = entryDate.toLocaleDateString(undefined, {
-        weekday: "short",
-        day: "numeric",
-        month: "short",
-      });
-
-      const { error: insertError } = await supabase.from("entries").insert({
-        user_id: user.id,
-        date: friendlyDate,
-        title,
-        summary,
-        tags,
-        emotions,
-      });
-
-      if (insertError) {
-        setError(insertError.message);
-        setLoading(false);
-        return;
-      }
-
-      setSuccess(true);
-      setLoading(false);
     },
     [user],
   );

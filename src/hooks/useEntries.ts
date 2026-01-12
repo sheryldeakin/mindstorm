@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
-import type { PostgrestError } from "@supabase/supabase-js";
 import { useAuth } from "../contexts/AuthContext";
-import { isSupabaseConfigured, supabase } from "../lib/supabaseClient";
+import { apiFetch } from "../lib/apiClient";
 import type { JournalEntry } from "../types/journal";
 
 interface UseEntriesOptions {
   limit?: number;
+  offset?: number;
 }
 
 interface UseEntriesResult {
@@ -13,15 +13,15 @@ interface UseEntriesResult {
   loading: boolean;
   error: string | null;
   empty: boolean;
-  rawError?: PostgrestError | null;
+  total?: number;
 }
 
-const useEntries = ({ limit }: UseEntriesOptions = {}): UseEntriesResult => {
+const useEntries = ({ limit, offset }: UseEntriesOptions = {}): UseEntriesResult => {
   const { user, status } = useAuth();
   const [data, setData] = useState<JournalEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [rawError, setRawError] = useState<PostgrestError | null>(null);
+  const [total, setTotal] = useState<number | undefined>(undefined);
 
   useEffect(() => {
     if (status === "loading") return;
@@ -29,13 +29,6 @@ const useEntries = ({ limit }: UseEntriesOptions = {}): UseEntriesResult => {
     if (!user) {
       setData([]);
       setError(null);
-      setRawError(null);
-      setLoading(false);
-      return;
-    }
-
-    if (!supabase || !isSupabaseConfigured) {
-      setError("Supabase is not configured. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.");
       setLoading(false);
       return;
     }
@@ -43,24 +36,24 @@ const useEntries = ({ limit }: UseEntriesOptions = {}): UseEntriesResult => {
     let isCancelled = false;
     setLoading(true);
     setError(null);
-    setRawError(null);
 
-    supabase
-      .from("entries")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("date", { ascending: false })
-      .limit(limit ?? 20)
-      .then(({ data: rows, error: queryError }) => {
-        if (isCancelled) return;
-        if (queryError) {
-          setError(queryError.message);
-          setRawError(queryError);
-          setData([]);
-          return;
+    const params = new URLSearchParams();
+    if (limit) params.set("limit", String(limit));
+    if (offset) params.set("offset", String(offset));
+    const query = params.toString();
+
+    apiFetch<{ entries: JournalEntry[]; total?: number }>(query ? `/entries?${query}` : "/entries")
+      .then(({ entries, total }) => {
+        if (!isCancelled) setData(entries);
+        if (!isCancelled && typeof total === "number") {
+          setTotal(total);
         }
-        if (rows) {
-          setData(rows as JournalEntry[]);
+      })
+      .catch((err) => {
+        if (!isCancelled) {
+          setError(err instanceof Error ? err.message : "Failed to load entries.");
+          setData([]);
+          setTotal(undefined);
         }
       })
       .finally(() => {
@@ -70,7 +63,7 @@ const useEntries = ({ limit }: UseEntriesOptions = {}): UseEntriesResult => {
     return () => {
       isCancelled = true;
     };
-  }, [limit, status, user]);
+  }, [limit, offset, status, user]);
 
   return useMemo(
     () => ({
@@ -78,9 +71,9 @@ const useEntries = ({ limit }: UseEntriesOptions = {}): UseEntriesResult => {
       loading,
       error,
       empty: !loading && !error && data.length === 0,
-      rawError,
+      total,
     }),
-    [data, error, loading, rawError],
+    [data, error, loading, total],
   );
 };
 

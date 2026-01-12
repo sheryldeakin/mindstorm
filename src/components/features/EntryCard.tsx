@@ -1,6 +1,8 @@
+import { Link } from "react-router-dom";
 import type { JournalEntry } from "../../types/journal";
 import { Card } from "../ui/Card";
 import Badge from "../ui/Badge";
+import Button from "../ui/Button";
 
 interface EntryCardProps {
   entry: JournalEntry;
@@ -20,6 +22,13 @@ const EntryCard = ({ entry }: EntryCardProps) => (
           {emotion.label} - {emotion.intensity}%
         </Badge>
       ))}
+    </div>
+    <div className="mt-6 flex justify-end">
+      <Link to={`/entry/${entry.id}`}>
+        <Button variant="secondary" size="sm">
+          Open entry
+        </Button>
+      </Link>
     </div>
   </Card>
 );

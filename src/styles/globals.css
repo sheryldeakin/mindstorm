@@ -38,3 +38,75 @@ body {
   background: rgba(148, 163, 184, 0.4);
   border-radius: 999px;
 }
+
+@keyframes loading-bar {
+  0% {
+    transform: translateX(-60%);
+  }
+  100% {
+    transform: translateX(140%);
+  }
+}
+
+@keyframes typing {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+@keyframes caret {
+  0%,
+  100% {
+    border-color: transparent;
+  }
+  50% {
+    border-color: rgba(59, 130, 246, 0.6);
+  }
+}
+
+@keyframes list-fade {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.loading-bar {
+  position: relative;
+  overflow: hidden;
+}
+
+.loading-bar::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(56, 189, 248, 0.45), transparent);
+  transform: translateX(-60%);
+  animation: loading-bar 1.2s ease-in-out infinite;
+}
+
+.typing-line {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  border-right: 2px solid rgba(59, 130, 246, 0.6);
+  animation: typing 1.8s steps(26, end) infinite alternate, caret 0.8s step-end infinite;
+}
+
+.typing-caret {
+  border-right: 2px solid rgba(59, 130, 246, 0.6);
+  animation: caret 0.8s step-end infinite;
+}
+
+.list-fade {
+  animation: list-fade 220ms ease-out;
+}

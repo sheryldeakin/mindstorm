@@ -8,11 +8,11 @@ interface JournalTimelineProps {
 const JournalTimeline = ({ entries, loading = false }: JournalTimelineProps) => {
   if (loading) {
     return (
-      <div className="flex gap-4 overflow-x-auto pb-2">
+      <div className="flex flex-wrap gap-4 pb-2">
         {[1, 2, 3].map((item) => (
           <div
             key={item}
-            className="min-w-[200px] animate-pulse rounded-3xl border border-brand/10 bg-white p-4 text-sm text-brand/70 shadow-sm"
+            className="w-full animate-pulse rounded-3xl border border-brand/10 bg-white p-4 text-sm text-brand/70 shadow-sm sm:w-[220px]"
           >
             <div className="h-3 w-24 rounded-full bg-brand/10" />
             <div className="mt-3 h-4 w-32 rounded-full bg-brand/10" />
@@ -32,11 +32,11 @@ const JournalTimeline = ({ entries, loading = false }: JournalTimelineProps) => 
   }
 
   return (
-    <div className="flex gap-4 overflow-x-auto pb-2">
+    <div className="flex flex-wrap gap-4 pb-2">
       {entries.map((entry) => (
         <div
           key={entry.id}
-          className="min-w-[200px] rounded-3xl border border-brand/15 bg-white p-4 text-sm text-brand/70 shadow-sm"
+          className="w-full rounded-3xl border border-brand/15 bg-white p-4 text-sm text-brand/70 shadow-sm sm:w-[220px]"
         >
           <p className="text-xs uppercase tracking-[0.4em] text-brand/50">{entry.date}</p>
           <p className="mt-3 font-semibold text-brand">{entry.title}</p>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import InsightPanel from "../components/features/InsightPanel";
 import Input from "../components/ui/Input";
@@ -7,7 +7,7 @@ import { Card } from "../components/ui/Card";
 import Textarea from "../components/ui/Textarea";
 import { useAuth } from "../contexts/AuthContext";
 import useCreateEntry from "../hooks/useCreateEntry";
-import { analyzeEntryText } from "../lib/analyzeEntry";
+import { analyzeEntryText, type LlmAnalysis } from "../lib/analyzeEntry";
 
 const EntryEditorPage = () => {
   const navigate = useNavigate();
@@ -15,8 +15,29 @@ const EntryEditorPage = () => {
   const { createEntry, loading, error, success, setSuccess } = useCreateEntry();
   const [title, setTitle] = useState("");
   const [summary, setSummary] = useState("");
+  const [entryDate, setEntryDate] = useState(() => {
+    const now = new Date();
+    const localIso = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
+      .toISOString()
+      .slice(0, 10);
+    return localIso;
+  });
+  const [isEditingDate, setIsEditingDate] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
+  const [draftAnalysis, setDraftAnalysis] = useState<LlmAnalysis | null>(null);
+  const [draftLoading, setDraftLoading] = useState(false);
+  const [draftError, setDraftError] = useState<string | null>(null);
+  const draftRequestRef = useRef(0);
+  const lastAnalyzedTextRef = useRef("");
+  const draftText = [title, summary].filter(Boolean).join(". ").trim();
+  const suggestedTitle = draftAnalysis?.title?.trim() || "";
+  const formattedEntryDate = new Date(`${entryDate}T00:00:00`).toLocaleDateString(undefined, {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
 
   useEffect(() => {
     if (success) {
@@ -25,26 +46,73 @@ const EntryEditorPage = () => {
     }
   }, [navigate, setSuccess, success]);
 
+  useEffect(() => {
+    if (!draftText) {
+      setDraftAnalysis(null);
+      setDraftError(null);
+      setDraftLoading(false);
+      lastAnalyzedTextRef.current = "";
+      return;
+    }
+
+    const requestId = ++draftRequestRef.current;
+    setDraftLoading(true);
+    setDraftError(null);
+
+    const timeout = window.setTimeout(() => {
+      analyzeEntryText(draftText)
+        .then((analysis) => {
+          if (draftRequestRef.current !== requestId) return;
+          setDraftAnalysis(analysis);
+          lastAnalyzedTextRef.current = draftText;
+        })
+        .catch((err) => {
+          if (draftRequestRef.current !== requestId) return;
+          const message = err instanceof Error ? err.message : "Could not analyze draft.";
+          setDraftError(message);
+        })
+        .finally(() => {
+          if (draftRequestRef.current === requestId) {
+            setDraftLoading(false);
+          }
+        });
+    }, 700);
+
+    return () => {
+      window.clearTimeout(timeout);
+    };
+  }, [draftText]);
+
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!summary && !title) {
+    const combinedText = draftText;
+    if (!combinedText) {
       setAnalysisError("Add some reflection text first.");
       return;
     }
     setAnalysisError(null);
     setAnalyzing(true);
     try {
-      const analysis = await analyzeEntryText([title, summary].filter(Boolean).join(". "));
+      const analysis =
+        draftAnalysis && lastAnalyzedTextRef.current === combinedText
+          ? draftAnalysis
+          : await analyzeEntryText(combinedText);
       const combinedTags = new Set<string>();
-      analysis.tags?.forEach((tag) => combinedTags.add(tag));
+      analysis.emotions?.forEach((emotion) => {
+        if (emotion.label) combinedTags.add(emotion.label.toLowerCase());
+      });
       analysis.triggers?.forEach((trigger) => combinedTags.add(trigger));
+      analysis.themes?.forEach((theme) => combinedTags.add(theme));
       const emotions = analysis.emotions || [];
 
       await createEntry({
-        title: title || "Untitled reflection",
+        title: title || suggestedTitle || "Untitled reflection",
         summary,
         tags: Array.from(combinedTags),
         emotions,
+        date: entryDate,
+        triggers: analysis.triggers || [],
+        themes: analysis.themes || [],
       });
     } catch (err) {
       const message = err instanceof Error ? err.message : "Could not analyze entry.";
@@ -58,27 +126,49 @@ const EntryEditorPage = () => {
     <div className="grid gap-8 lg:grid-cols-3">
       <Card className="lg:col-span-2 border border-brand/15 bg-white p-8 text-slate-900 shadow-lg shadow-brand/10">
         <p className="text-sm uppercase tracking-[0.4em] text-brandLight">New entry</p>
-        <h2 className="mt-2 text-3xl font-semibold">Today's reflection feels like...</h2>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+        <div className="mt-2 flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            onClick={() => setIsEditingDate(true)}
+            className="rounded-full border border-slate-200 bg-white px-4 py-1.5 text-2xl font-semibold text-slate-900 shadow-sm transition hover:border-slate-300"
+            aria-label="Edit entry date"
+          >
+            {formattedEntryDate}
+          </button>
+          {isEditingDate && (
+            <div className="flex items-center gap-2">
+              <Input
+                type="date"
+                className="max-w-[200px]"
+                value={entryDate}
+                onChange={(e) => setEntryDate(e.target.value)}
+                onBlur={() => setIsEditingDate(false)}
+                autoFocus
+              />
+              <button
+                type="button"
+                onClick={() => setIsEditingDate(false)}
+                className="text-sm text-slate-500 hover:text-slate-700"
+              >
+                Done
+              </button>
+            </div>
+          )}
+        </div>
+        <form className="mt-5 space-y-6" onSubmit={handleSubmit}>
           <div>
             <label className="text-sm text-slate-500">Title</label>
             <Input
-              placeholder="A gentle headline for how you feel"
+              placeholder={suggestedTitle || "A gentle headline for how you feel"}
               className="mt-2"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              required
             />
-          </div>
-          <div>
-            <label className="text-sm text-slate-500">Tags</label>
-            <Input
-              placeholder="Work, therapy, relationships"
-              className="mt-2"
-              value="Auto-generated after save"
-              disabled
-            />
-            <p className="mt-1 text-xs text-slate-400">LLM will extract tags, triggers, and emotions automatically.</p>
+            {suggestedTitle && !title && (
+              <p className="mt-1 text-xs text-slate-400">
+                Suggested title will be used if you leave this blank.
+              </p>
+            )}
           </div>
           <div>
             <label className="text-sm text-slate-500">Reflection</label>
@@ -113,7 +203,12 @@ const EntryEditorPage = () => {
           </div>
         </form>
       </Card>
-      <InsightPanel />
+      <InsightPanel
+        analysis={draftAnalysis}
+        loading={draftLoading}
+        error={draftError}
+        hasDraft={Boolean(draftText)}
+      />
     </div>
   );
 };

@@ -1,3 +1,4 @@
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import EntryCard from "../components/features/EntryCard";
 import EmotionChips from "../components/features/EmotionChips";
@@ -11,12 +12,17 @@ import { quickFilters } from "../lib/mockData";
 
 const JournalDashboard = () => {
   const navigate = useNavigate();
+  const timelineRef = useRef<HTMLDivElement | null>(null);
+  const [selectedLimit, setSelectedLimit] = useState<number | null>(null);
+  const [autoLimit, setAutoLimit] = useState(5);
+  const limit = selectedLimit ?? autoLimit;
+  const [entryOffset, setEntryOffset] = useState(0);
   const {
     data: entries,
     loading: entriesLoading,
     error: entriesError,
     empty: entriesEmpty,
-  } = useEntries();
+  } = useEntries({ limit });
   const {
     data: insights,
     loading: insightsLoading,
@@ -24,19 +30,73 @@ const JournalDashboard = () => {
     empty: insightsEmpty,
   } = useInsights();
 
+  const {
+    data: recentEntries,
+    loading: recentLoading,
+    error: recentError,
+    empty: recentEmpty,
+    total: recentTotal,
+  } = useEntries({ limit: 7, offset: entryOffset });
+  const listKey = `entries-${entryOffset}`;
+
+  const handlePreviousWeek = () => {
+    setEntryOffset((prev) => prev + 7);
+  };
+
+  const handleNextWeek = () => {
+    setEntryOffset((prev) => Math.max(0, prev - 7));
+  };
+  const reachedEnd = typeof recentTotal === "number" && entryOffset + 7 >= recentTotal;
+
+  useEffect(() => {
+    const updateAutoLimit = () => {
+      if (!timelineRef.current) return;
+      const width = timelineRef.current.getBoundingClientRect().width;
+      const cardWidth = 220;
+      const gap = 16;
+      const count = Math.max(1, Math.floor((width + gap) / (cardWidth + gap)));
+      setAutoLimit(count);
+    };
+
+    updateAutoLimit();
+    window.addEventListener("resize", updateAutoLimit);
+    return () => window.removeEventListener("resize", updateAutoLimit);
+  }, []);
+
+  const limitOptions = useMemo(() => [3, 5, 7], []);
+
   return (
     <div className="space-y-10">
       <section className="rounded-3xl border border-brand/15 bg-white p-6 shadow-lg shadow-brand/10">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <p className="text-sm uppercase tracking-[0.4em] text-brandLight">Timeline</p>
-            <h2 className="mt-2 text-2xl font-semibold text-slate-900">This week's reflections</h2>
+            <h2 className="mt-2 text-2xl font-semibold text-slate-900">Recent reflections</h2>
           </div>
-          <Button variant="secondary" onClick={() => navigate("/entry")}>
-            New entry
-          </Button>
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1">
+              <span className="text-xs uppercase tracking-[0.2em] text-slate-400">Show</span>
+              {limitOptions.map((value) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setSelectedLimit(value)}
+                  className={
+                    (value === limit ? "bg-brand text-white" : "text-slate-600 hover:text-brand") +
+                    " rounded-full px-2.5 py-1 text-xs font-semibold transition"
+                  }
+                  aria-pressed={value === limit}
+                >
+                  {value}
+                </button>
+              ))}
+            </div>
+            <Button variant="secondary" onClick={() => navigate("/entry")}>
+              New entry
+            </Button>
+          </div>
         </div>
-        <div className="mt-6">
+        <div className="mt-6" ref={timelineRef}>
           <JournalTimeline entries={entries} loading={entriesLoading} />
           <div className="mt-6">
             {entriesLoading ? (
@@ -66,7 +126,21 @@ const JournalDashboard = () => {
       </section>
       <section className="grid gap-6 lg:grid-cols-5">
         <div className="space-y-6 lg:col-span-3">
-          {entriesLoading ? (
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-sm uppercase tracking-[0.3em] text-brandLight">Journal library</p>
+              <h3 className="mt-1 text-xl font-semibold text-slate-900">Latest entries</h3>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button variant="secondary" size="sm" onClick={handlePreviousWeek} disabled={reachedEnd}>
+                Older
+              </Button>
+              <Button variant="secondary" size="sm" onClick={handleNextWeek} disabled={entryOffset === 0}>
+                Newer
+              </Button>
+            </div>
+          </div>
+          {recentLoading ? (
             <>
               {[1, 2].map((item) => (
                 <Card key={item} className="animate-pulse border-slate-100 p-6 text-slate-900 shadow-sm">
@@ -80,13 +154,13 @@ const JournalDashboard = () => {
                 </Card>
               ))}
             </>
-          ) : entriesEmpty ? (
+          ) : recentEmpty ? (
             <Card className="border-dashed border-slate-200 bg-slate-50/70 p-6 text-slate-700">
               <h3 className="text-lg font-semibold text-slate-800">No entries yet</h3>
               <p className="mt-1 text-sm text-slate-600">Log your first reflection to see it here.</p>
               <Button className="mt-4">New entry</Button>
             </Card>
-          ) : entriesError ? (
+          ) : recentError ? (
             <Card className="border-dashed border-slate-200 bg-slate-50/70 p-6 text-slate-700">
               <h3 className="text-lg font-semibold text-slate-800">Entries not available</h3>
               <p className="mt-1 text-sm text-slate-600">
@@ -94,7 +168,11 @@ const JournalDashboard = () => {
               </p>
             </Card>
           ) : (
-            entries.map((entry) => <EntryCard key={entry.id} entry={entry} />)
+            <div key={listKey} className="space-y-6 list-fade">
+              {recentEntries.map((entry) => (
+                <EntryCard key={entry.id} entry={entry} />
+              ))}
+            </div>
           )}
         </div>
         <div className="space-y-4 lg:col-span-2">

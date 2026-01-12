@@ -14,10 +14,15 @@ export interface Trigger {
 export interface JournalEntry {
   id: string;
   date: string;
+  dateISO?: string;
   title: string;
   summary: string;
   emotions: Emotion[];
   tags: string[];
+  triggers?: string[];
+  themes?: string[];
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Insight {

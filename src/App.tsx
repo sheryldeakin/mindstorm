@@ -5,6 +5,7 @@ import Footer from "./components/layout/Footer";
 import Navbar from "./components/layout/Navbar";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import EntryEditorPage from "./pages/EntryEditorPage";
+import EntryDetailPage from "./pages/EntryDetailPage";
 import HomePage from "./pages/HomePage";
 import JournalDashboard from "./pages/JournalDashboard";
 import PatternsPage from "./pages/PatternsPage";
@@ -55,6 +56,7 @@ const App = () => {
         >
           <Route path="/journal" element={<JournalDashboard />} />
           <Route path="/entry" element={<EntryEditorPage />} />
+          <Route path="/entry/:id" element={<EntryDetailPage />} />
           <Route path="/patterns" element={<PatternsPage />} />
           <Route path="/cycles" element={<CyclesGraphPage />} />
         </Route>
