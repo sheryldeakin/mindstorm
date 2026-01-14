@@ -10,6 +10,7 @@ export interface LlmAnalysis {
   title?: string;
   emotions: LlmEmotion[];
   themes?: string[];
+  themeIntensities?: { theme: string; intensity: number }[];
   triggers: string[];
   summary?: string;
 }
@@ -26,6 +27,7 @@ export const analyzeEntryText = async (text: string): Promise<LlmAnalysis> => {
     title: analysis.title,
     emotions: analysis.emotions || [],
     themes: analysis.themes || legacyTags || [],
+    themeIntensities: analysis.themeIntensities || [],
     triggers: analysis.triggers || [],
     summary: analysis.summary,
   };

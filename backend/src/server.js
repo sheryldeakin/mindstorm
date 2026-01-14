@@ -8,6 +8,8 @@ const authRoutes = require("./routes/auth");
 const entryRoutes = require("./routes/entries");
 const insightRoutes = require("./routes/insights");
 const aiRoutes = require("./routes/ai");
+const derivedRoutes = require("./routes/derived");
+const { startDerivedWorker } = require("./derived/worker");
 
 dotenv.config();
 
@@ -39,6 +41,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/entries", entryRoutes);
 app.use("/api/insights", insightRoutes);
 app.use("/api/ai", aiRoutes);
+app.use("/api/derived", derivedRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
@@ -48,6 +51,7 @@ connectDb()
     app.listen(port, () => {
       console.log(`API running on http://localhost:${port}`);
     });
+    startDerivedWorker({ intervalMs: 60000 });
   })
   .catch((error) => {
     console.error("Failed to start server:", error);

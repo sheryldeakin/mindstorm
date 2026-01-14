@@ -1,11 +1,18 @@
 import { useMemo, useState } from "react";
 import InsightCard from "../components/features/InsightCard";
+import CopingStrategiesPanel from "../components/features/CopingStrategiesPanel";
+import ExploreQuestionsPanel from "../components/features/ExploreQuestionsPanel";
+import InfluencesPanel from "../components/features/InfluencesPanel";
+import LifeAreasImpactPanel from "../components/features/LifeAreasImpactPanel";
+import PatternDetailHeader from "../components/features/PatternDetailHeader";
 import PatternHighlights from "../components/features/PatternHighlights";
+import PatternTimelineChart from "../components/features/PatternTimelineChart";
 import Tabs from "../components/ui/Tabs";
 import { Card } from "../components/ui/Card";
 import useEntries from "../hooks/useEntries";
 import useInsights from "../hooks/useInsights";
 import type { PatternMetric } from "../types/journal";
+import type { PatternDetail } from "../types/patterns";
 
 const tabOptions = [
   { id: "week", label: "This week" },
@@ -13,8 +20,107 @@ const tabOptions = [
   { id: "quarter", label: "90 days" },
 ];
 
+const timelineOptions = [
+  { id: "week", label: "Week" },
+  { id: "month", label: "Month" },
+];
+
+const patternDetail: PatternDetail = {
+  id: "pattern-afternoon-activation",
+  title: "Afternoon activation loop",
+  summary: "Energy spikes after high-context meetings and settles once you step away from screens.",
+  phrases: [
+    "Pressure climbs after back-to-back calls",
+    "Restlessness peaks around 3 PM",
+    "Body tension drops after a walk",
+  ],
+  paraphrase:
+    "When the day stacks with meetings, your nervous system moves into alert mode and stays there until you reset.",
+  rangeLabel: "Last 30 days",
+  intensityLabel: "Moderate intensity",
+  timeline: {
+    week: {
+      scaleLabel: "Past 7 days",
+      points: [
+        { id: "mon", label: "Mon", intensity: 42 },
+        { id: "tue", label: "Tue", intensity: 68 },
+        { id: "wed", label: "Wed", intensity: 51 },
+        { id: "thu", label: "Thu", intensity: 74 },
+        { id: "fri", label: "Fri", intensity: 39 },
+        { id: "sat", label: "Sat", intensity: 22 },
+        { id: "sun", label: "Sun", intensity: 46 },
+      ],
+      spanLinks: [
+        { id: "span-1", label: "Mon 3:10-4:00 PM activation", dateRange: "Entry: Therapy prep" },
+        { id: "span-2", label: "Thu 2:40-3:30 PM restlessness", dateRange: "Entry: Work storm" },
+        { id: "span-3", label: "Sun 2:20-3:00 PM reset", dateRange: "Entry: Family dinner" },
+      ],
+    },
+    month: {
+      scaleLabel: "Past 6 weeks",
+      points: [
+        { id: "wk-1", label: "Wk 1", intensity: 36 },
+        { id: "wk-2", label: "Wk 2", intensity: 58 },
+        { id: "wk-3", label: "Wk 3", intensity: 62 },
+        { id: "wk-4", label: "Wk 4", intensity: 48 },
+        { id: "wk-5", label: "Wk 5", intensity: 71 },
+        { id: "wk-6", label: "Wk 6", intensity: 44 },
+      ],
+      spanLinks: [
+        { id: "span-4", label: "Week 2: packed meetings", dateRange: "3 linked entries" },
+        { id: "span-5", label: "Week 5: sleep debt week", dateRange: "2 linked entries" },
+      ],
+    },
+  },
+  lifeAreas: [
+    { id: "life-1", label: "Work focus", detail: "Difficulty shifting out of task mode after meetings.", score: 78 },
+    { id: "life-2", label: "Body + energy", detail: "Tension in shoulders and shallow breathing in afternoons.", score: 66 },
+    { id: "life-3", label: "Sleep wind-down", detail: "Harder to decompress on days with late calls.", score: 52 },
+  ],
+  influences: [
+    {
+      id: "influence-1",
+      label: "Sleep quality",
+      detail: "Lower sleep scores tend to precede sharper spikes.",
+      direction: "up",
+      confidence: 72,
+    },
+    {
+      id: "influence-2",
+      label: "Stress load",
+      detail: "Higher workload intensity coincides with stronger activation.",
+      direction: "up",
+      confidence: 81,
+    },
+    {
+      id: "influence-3",
+      label: "Medication timing",
+      detail: "Midday timing aligns with calmer entries.",
+      direction: "down",
+      confidence: 58,
+    },
+    {
+      id: "influence-4",
+      label: "Substances + events",
+      detail: "Caffeine after 2 PM correlates with more restlessness.",
+      direction: "up",
+      confidence: 64,
+    },
+  ],
+  copingStrategies: {
+    userTagged: ["3-minute breath reset", "Sunlight break", "Post-call stretch"],
+    suggested: ["Short walk before the next meeting", "Hydration check-in", "Two-minute box breathing"],
+  },
+  exploreQuestions: [
+    "Which meeting types lead to the fastest spike in activation?",
+    "What is different on afternoons when the pattern is quieter?",
+    "How does movement within the first hour of the spike shift intensity?",
+  ],
+};
+
 const PatternsPage = () => {
   const [range, setRange] = useState("week");
+  const [timelineScale, setTimelineScale] = useState<"week" | "month">("week");
   const { data: entries, loading: entriesLoading } = useEntries({ limit: 200 });
   const { data: insights, loading: insightsLoading, error: insightsError, empty: insightsEmpty } = useInsights({
     limit: 6,
@@ -108,8 +214,40 @@ const PatternsPage = () => {
     ];
   }, [entriesInRange, range]);
 
+  const timelineSeries = patternDetail.timeline[timelineScale];
+
   return (
     <div className="space-y-10 text-slate-900">
+      <section className="space-y-6">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <p className="text-xs uppercase tracking-[0.4em] text-brandLight">Patterns</p>
+            <h2 className="mt-2 text-2xl font-semibold">Deep dive into one pattern</h2>
+          </div>
+          <Tabs options={timelineOptions} activeId={timelineScale} onValueChange={setTimelineScale} />
+        </div>
+        <PatternDetailHeader
+          title={patternDetail.title}
+          summary={patternDetail.summary}
+          phrases={patternDetail.phrases}
+          paraphrase={patternDetail.paraphrase}
+          rangeLabel={patternDetail.rangeLabel}
+          intensityLabel={patternDetail.intensityLabel}
+        />
+        <PatternTimelineChart
+          scaleLabel={timelineSeries.scaleLabel}
+          points={timelineSeries.points}
+          spanLinks={timelineSeries.spanLinks}
+        />
+        <div className="grid gap-6 lg:grid-cols-2">
+          <LifeAreasImpactPanel areas={patternDetail.lifeAreas} />
+          <InfluencesPanel influences={patternDetail.influences} />
+        </div>
+        <div className="grid gap-6 lg:grid-cols-2">
+          <CopingStrategiesPanel strategies={patternDetail.copingStrategies} />
+          <ExploreQuestionsPanel questions={patternDetail.exploreQuestions} />
+        </div>
+      </section>
       <section className="rounded-3xl border border-brand/15 bg-white p-6 shadow-lg shadow-brand/10">
         <p className="text-sm uppercase tracking-[0.4em] text-brandLight">Patterns & insights</p>
         <div className="mt-2 flex flex-wrap items-center justify-between gap-4">

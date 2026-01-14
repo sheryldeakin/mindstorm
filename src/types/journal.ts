@@ -21,6 +21,14 @@ export interface JournalEntry {
   tags: string[];
   triggers?: string[];
   themes?: string[];
+  themeIntensities?: { theme: string; intensity: number }[];
+  evidenceBySection?: {
+    recurringExperiences?: string[];
+    impactAreas?: string[];
+    relatedInfluences?: string[];
+    unclearAreas?: string[];
+    questionsToExplore?: string[];
+  };
   createdAt?: string;
   updatedAt?: string;
 }

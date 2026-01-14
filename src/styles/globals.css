@@ -102,6 +102,15 @@ body {
   animation: typing 1.8s steps(26, end) infinite alternate, caret 0.8s step-end infinite;
 }
 
+.typing-line-no-caret {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  animation: typing 1.8s steps(26, end) infinite alternate;
+}
+
 .typing-caret {
   border-right: 2px solid rgba(59, 130, 246, 0.6);
   animation: caret 0.8s step-end infinite;

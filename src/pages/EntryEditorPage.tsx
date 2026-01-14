@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import InsightPanel from "../components/features/InsightPanel";
+import LiveInsightPanel from "../components/features/LiveInsightPanel";
 import Input from "../components/ui/Input";
 import Button from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
@@ -42,9 +42,8 @@ const EntryEditorPage = () => {
   useEffect(() => {
     if (success) {
       setTimeout(() => setSuccess(false), 2000);
-      navigate("/journal");
     }
-  }, [navigate, setSuccess, success]);
+  }, [setSuccess, success]);
 
   useEffect(() => {
     if (!draftText) {
@@ -105,7 +104,7 @@ const EntryEditorPage = () => {
       analysis.themes?.forEach((theme) => combinedTags.add(theme));
       const emotions = analysis.emotions || [];
 
-      await createEntry({
+      const entry = await createEntry({
         title: title || suggestedTitle || "Untitled reflection",
         summary,
         tags: Array.from(combinedTags),
@@ -113,7 +112,11 @@ const EntryEditorPage = () => {
         date: entryDate,
         triggers: analysis.triggers || [],
         themes: analysis.themes || [],
+        themeIntensities: analysis.themeIntensities || [],
       });
+      if (entry?.id) {
+        navigate(`/entry/${entry.id}`);
+      }
     } catch (err) {
       const message = err instanceof Error ? err.message : "Could not analyze entry.";
       setAnalysisError(message);
@@ -124,7 +127,7 @@ const EntryEditorPage = () => {
 
   return (
     <div className="grid gap-8 lg:grid-cols-3">
-      <Card className="lg:col-span-2 border border-brand/15 bg-white p-8 text-slate-900 shadow-lg shadow-brand/10">
+      <Card className="lg:col-span-2 flex min-h-[720px] flex-col border border-brand/15 bg-white p-8 text-slate-900 shadow-lg shadow-brand/10">
         <p className="text-sm uppercase tracking-[0.4em] text-brandLight">New entry</p>
         <div className="mt-2 flex flex-wrap items-center gap-3">
           <button
@@ -155,7 +158,7 @@ const EntryEditorPage = () => {
             </div>
           )}
         </div>
-        <form className="mt-5 space-y-6" onSubmit={handleSubmit}>
+        <form className="mt-5 flex flex-1 flex-col gap-6" onSubmit={handleSubmit}>
           <div>
             <label className="text-sm text-slate-500">Title</label>
             <Input
@@ -170,12 +173,12 @@ const EntryEditorPage = () => {
               </p>
             )}
           </div>
-          <div>
+          <div className="flex flex-1 flex-col">
             <label className="text-sm text-slate-500">Reflection</label>
             <Textarea
-              rows={10}
+              rows={12}
               placeholder="Let your stream of consciousness flow. MindStorm will find the signal."
-              className="mt-2"
+              className="mt-2 flex-1 text-sm"
               value={summary}
               onChange={(e) => setSummary(e.target.value)}
               required
@@ -188,7 +191,7 @@ const EntryEditorPage = () => {
           )}
           {success && (
             <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">
-              Entry saved. Redirecting to your journal...
+              Entry saved. Opening your summary...
             </div>
           )}
           {analysisError && (
@@ -196,18 +199,18 @@ const EntryEditorPage = () => {
               {analysisError}
             </div>
           )}
-          <div className="flex flex-wrap gap-4">
+          <div className="mt-auto flex flex-wrap gap-4">
             <Button type="submit" size="lg" disabled={loading || analyzing || status !== "authed"}>
               {loading || analyzing ? "Analyzing & saving..." : "Save journal"}
             </Button>
           </div>
         </form>
       </Card>
-      <InsightPanel
+      <LiveInsightPanel
         analysis={draftAnalysis}
         loading={draftLoading}
         error={draftError}
-        hasDraft={Boolean(draftText)}
+        draftText={draftText}
       />
     </div>
   );

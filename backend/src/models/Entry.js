@@ -24,7 +24,18 @@ const entrySchema = new mongoose.Schema(
     tags: { type: [String], default: [] },
     triggers: { type: [String], default: [] },
     themes: { type: [String], default: [] },
+    themeIntensities: {
+      type: [{ theme: String, intensity: Number }],
+      default: [],
+    },
     emotions: { type: [emotionSchema], default: [] },
+    evidenceBySection: {
+      recurringExperiences: { type: [String], default: [] },
+      impactAreas: { type: [String], default: [] },
+      relatedInfluences: { type: [String], default: [] },
+      unclearAreas: { type: [String], default: [] },
+      questionsToExplore: { type: [String], default: [] },
+    },
   },
   { timestamps: true },
 );

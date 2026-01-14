@@ -8,6 +8,7 @@ interface CreateEntryInput {
   summary: string;
   tags: string[];
   emotions?: JournalEntry["emotions"];
+  themeIntensities?: JournalEntry["themeIntensities"];
   date?: string;
   triggers?: string[];
   themes?: string[];
@@ -20,7 +21,7 @@ const useCreateEntry = () => {
   const [success, setSuccess] = useState(false);
 
   const createEntry = useCallback(
-    async ({ title, summary, tags, emotions = [], date, triggers = [], themes = [] }: CreateEntryInput) => {
+    async ({ title, summary, tags, emotions = [], themeIntensities = [], date, triggers = [], themes = [] }: CreateEntryInput) => {
       setLoading(true);
       setError(null);
       setSuccess(false);
@@ -32,13 +33,14 @@ const useCreateEntry = () => {
       }
 
       try {
-        await apiFetch<{ entry: JournalEntry }>("/entries", {
+        const { entry } = await apiFetch<{ entry: JournalEntry }>("/entries", {
           method: "POST",
-          body: JSON.stringify({ title, summary, tags, emotions, date, triggers, themes }),
+          body: JSON.stringify({ title, summary, tags, emotions, themeIntensities, date, triggers, themes }),
         });
 
         await apiFetch("/insights/refresh", { method: "POST" });
         setSuccess(true);
+        return entry;
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to save entry.");
       } finally {
