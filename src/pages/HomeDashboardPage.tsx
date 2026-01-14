@@ -3,6 +3,7 @@ import PatternCardGrid from "../components/features/PatternCardGrid";
 import TodayPromptCard from "../components/features/TodayPromptCard";
 import WhatHelpedSummary from "../components/features/WhatHelpedSummary";
 import { Card } from "../components/ui/Card";
+import Tabs from "../components/ui/Tabs";
 import { apiFetch } from "../lib/apiClient";
 import type { HomePatternCard, TimeRangeSummary } from "../types/home";
 import type { WeeklySummary } from "../types/prepare";
@@ -52,8 +53,16 @@ const fallbackPrompts = [
   "What would make tomorrow 10% softer?",
 ];
 
+const rangeOptions = [
+  { id: "week", label: "Your week in patterns" },
+  { id: "month", label: "Your month in patterns" },
+  { id: "year", label: "Your year in patterns" },
+  { id: "all", label: "All of your patterns" },
+];
+
 const HomeDashboardPage = () => {
   const { status } = useAuth();
+  const [range, setRange] = useState("week");
   const [snapshot, setSnapshot] = useState<{
     patterns: HomePatternCard[];
     timeRangeSummary: TimeRangeSummary;
@@ -69,6 +78,15 @@ const HomeDashboardPage = () => {
   const [weeklySummaries, setWeeklySummaries] = useState<WeeklySummary[]>([]);
   const [weeklyLoading, setWeeklyLoading] = useState(false);
   const [weeklyError, setWeeklyError] = useState<string | null>(null);
+  const rangeKey =
+    range === "week"
+      ? "last_7_days"
+      : range === "month"
+        ? "last_30_days"
+        : range === "year"
+          ? "last_365_days"
+          : "all_time";
+  const headingLabel = rangeOptions.find((option) => option.id === range)?.label || "Your week in patterns";
 
   useEffect(() => {
     if (status !== "authed") {
@@ -78,14 +96,14 @@ const HomeDashboardPage = () => {
       return;
     }
     setLoading(true);
-    apiFetch<{ snapshot: any; stale?: boolean }>("/derived/snapshot?rangeKey=last_30_days")
+    apiFetch<{ snapshot: any; stale?: boolean }>(`/derived/snapshot?rangeKey=${rangeKey}`)
       .then(({ snapshot, stale }) => {
         setSnapshot(snapshot);
         setStale(Boolean(stale));
       })
       .catch(() => setSnapshot(null))
       .finally(() => setLoading(false));
-  }, [status]);
+  }, [rangeKey, status]);
 
   useEffect(() => {
     if (status !== "authed") {
@@ -93,7 +111,7 @@ const HomeDashboardPage = () => {
     }
     setWeeklyLoading(true);
     setWeeklyError(null);
-    apiFetch<{ weeklySummaries: WeeklySummary[] }>("/derived/weekly-summaries?rangeDays=56")
+    apiFetch<{ weeklySummaries: WeeklySummary[] }>(`/derived/weekly-summaries?rangeKey=${rangeKey}`)
       .then(({ weeklySummaries: responseSummaries }) => {
         setWeeklySummaries(responseSummaries || []);
       })
@@ -102,7 +120,7 @@ const HomeDashboardPage = () => {
         setWeeklySummaries([]);
       })
       .finally(() => setWeeklyLoading(false));
-  }, [status]);
+  }, [rangeKey, status]);
 
   const patterns = snapshot?.patterns?.length ? snapshot.patterns : fallbackPatterns;
   const timeRangeSummary = snapshot?.timeRangeSummary || null;
@@ -112,6 +130,20 @@ const HomeDashboardPage = () => {
     () => (weeklySummaries.length ? weeklySummaries[weeklySummaries.length - 1] : null),
     [weeklySummaries],
   );
+  const weeklyHeading =
+    range === "week"
+      ? "This week so far"
+      : range === "month"
+        ? "This month so far"
+        : range === "year"
+          ? "This year so far"
+          : "All-time weekly summary";
+  const weeklySubcopy =
+    range === "week"
+      ? "A snapshot of the current week."
+      : range === "all"
+        ? "Most recent week in your full history."
+        : "Most recent week in this range.";
   const snapshotOverview =
     snapshot?.snapshotOverview ||
     (patterns.length
@@ -130,14 +162,17 @@ const HomeDashboardPage = () => {
         <p className="text-sm uppercase tracking-[0.4em] text-brandLight">Home</p>
         <div className="mt-2 flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h2 className="text-3xl font-semibold">Your week in patterns</h2>
+            <h2 className="text-3xl font-semibold">{headingLabel}</h2>
             <p className="mt-2 text-sm text-slate-500">
-              A quick read on how your nervous system shifted over the past week.
+              A quick read on how your nervous system shifted over the selected range.
             </p>
           </div>
-          {(loading || stale) && (
-            <span className="text-xs uppercase tracking-[0.3em] text-slate-400">Updating</span>
-          )}
+          <div className="flex flex-wrap items-center gap-3">
+            <Tabs options={rangeOptions} activeId={range} onValueChange={setRange} />
+            {(loading || stale) && (
+              <span className="text-xs uppercase tracking-[0.3em] text-slate-400">Updating</span>
+            )}
+          </div>
         </div>
       </section>
       <Card className="border-brand/15 bg-white p-6">
@@ -199,8 +234,8 @@ const HomeDashboardPage = () => {
         </div>
       </Card>
       <Card className="border-brand/15 bg-white p-6">
-        <h3 className="text-xl font-semibold">This week so far</h3>
-        <p className="mt-1 text-sm text-slate-500">A snapshot of the current week.</p>
+        <h3 className="text-xl font-semibold">{weeklyHeading}</h3>
+        <p className="mt-1 text-sm text-slate-500">{weeklySubcopy}</p>
         {weeklyLoading ? (
           <p className="mt-3 text-sm text-slate-500">Loading weekly summary...</p>
         ) : weeklyError ? (

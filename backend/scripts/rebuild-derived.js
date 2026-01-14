@@ -3,6 +3,8 @@ const mongoose = require("mongoose");
 const Entry = require("../src/models/Entry");
 const { generateEntryEvidence, generateWeeklySummary } = require("../src/controllers/aiController");
 const { recomputeSnapshotForUser } = require("../src/derived/services/snapshotRecompute");
+const { upsertEntrySignals } = require("../src/derived/services/derivedService");
+const { recomputeConnectionsForUser } = require("../src/derived/services/connectionsRecompute");
 
 dotenv.config();
 
@@ -56,6 +58,18 @@ const run = async () => {
       } else {
         console.warn(`Evidence skipped for entry ${entry._id}: ${evidence?.error}`);
       }
+
+      await upsertEntrySignals({
+        userId: entry.userId,
+        entryId: entry._id,
+        dateISO: entry.dateISO,
+        data: {
+          themes: entry.themes || [],
+          themeIntensities: entry.themeIntensities || [],
+          evidenceBySection: entry.evidenceBySection || {},
+        },
+        sourceUpdatedAt: entry.updatedAt,
+      });
     }
 
     const weeks = Array.from(data.weeks).filter(Boolean).sort();
@@ -76,6 +90,11 @@ const run = async () => {
     await recomputeSnapshotForUser({ userId, rangeKey: "last_30_days" });
     await recomputeSnapshotForUser({ userId, rangeKey: "last_7_days" });
     await recomputeSnapshotForUser({ userId, rangeKey: "last_90_days" });
+    await recomputeSnapshotForUser({ userId, rangeKey: "last_365_days" });
+    await recomputeSnapshotForUser({ userId, rangeKey: "all_time" });
+    await recomputeConnectionsForUser({ userId, rangeKey: "last_30_days" });
+    await recomputeConnectionsForUser({ userId, rangeKey: "last_7_days" });
+    await recomputeConnectionsForUser({ userId, rangeKey: "last_90_days" });
     console.log(`Snapshots recomputed for user ${userId}`);
   }
 

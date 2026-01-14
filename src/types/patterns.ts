@@ -53,3 +53,12 @@ export interface PatternDetail {
   copingStrategies: CopingStrategies;
   exploreQuestions: string[];
 }
+
+export interface PatternSummary {
+  id: string;
+  title: string;
+  description: string;
+  trend: "up" | "down" | "steady";
+  confidence: "high" | "medium" | "low";
+  sparkline: number[];
+}

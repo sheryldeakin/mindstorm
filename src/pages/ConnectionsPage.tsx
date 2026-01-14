@@ -1,74 +1,43 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import CausalityDisclaimer from "../components/features/CausalityDisclaimer";
 import ConnectionsGraph from "../components/features/ConnectionsGraph";
 import type { ConnectionEdge, ConnectionNode } from "../types/connections";
-
-const nodes: ConnectionNode[] = [
-  { id: "sleep", label: "Sleep" },
-  { id: "energy", label: "Energy" },
-  { id: "stress", label: "Stress" },
-  { id: "edge", label: "On edge" },
-  { id: "focus", label: "Focus" },
-  { id: "connection", label: "Connection" },
-];
-
-const edges: ConnectionEdge[] = [
-  {
-    id: "edge-1",
-    from: "sleep",
-    to: "energy",
-    label: "Sleep <-> Energy",
-    strength: 72,
-    evidence: [
-      {
-        id: "e-1",
-        quote: "Slept well and had a calmer, more focused morning.",
-        source: "Entry: Ocean walk reset",
-      },
-      {
-        id: "e-2",
-        quote: "After a rough night, the afternoon crash hit hard.",
-        source: "Entry: Work storm",
-      },
-    ],
-  },
-  {
-    id: "edge-2",
-    from: "stress",
-    to: "edge",
-    label: "Stress <-> On edge",
-    strength: 66,
-    evidence: [
-      {
-        id: "e-3",
-        quote: "Meeting load stacked up and I felt more on edge.",
-        source: "Entry: Therapy prep",
-      },
-      {
-        id: "e-4",
-        quote: "When stress is high, I notice my shoulders lock up.",
-        source: "Entry: Family dinner reflections",
-      },
-    ],
-  },
-  {
-    id: "edge-3",
-    from: "connection",
-    to: "focus",
-    label: "Connection <-> Focus",
-    strength: 54,
-    evidence: [
-      {
-        id: "e-5",
-        quote: "A quick check-in with a friend helped me re-center.",
-        source: "Entry: Ocean walk reset",
-      },
-    ],
-  },
-];
+import { apiFetch } from "../lib/apiClient";
+import { useAuth } from "../contexts/AuthContext";
 
 const ConnectionsPage = () => {
-  const [selectedEdge, setSelectedEdge] = useState<ConnectionEdge | undefined>(edges[0]);
+  const { status } = useAuth();
+  const [nodes, setNodes] = useState<ConnectionNode[]>([]);
+  const [edges, setEdges] = useState<ConnectionEdge[]>([]);
+  const [selectedEdge, setSelectedEdge] = useState<ConnectionEdge | undefined>(undefined);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (status !== "authed") {
+      setNodes([]);
+      setEdges([]);
+      setSelectedEdge(undefined);
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    apiFetch<{ graph: { nodes: ConnectionNode[]; edges: ConnectionEdge[] } }>(
+      "/derived/connections?rangeKey=last_30_days",
+    )
+      .then(({ graph }) => {
+        setNodes(graph.nodes || []);
+        setEdges(graph.edges || []);
+        setSelectedEdge((graph.edges || [])[0]);
+      })
+      .catch((err) => {
+        setError(err instanceof Error ? err.message : "Failed to load connections.");
+        setNodes([]);
+        setEdges([]);
+        setSelectedEdge(undefined);
+      })
+      .finally(() => setLoading(false));
+  }, [status]);
 
   return (
     <div className="space-y-8 text-slate-900">
@@ -88,14 +57,20 @@ const ConnectionsPage = () => {
         nodes={nodes}
         edges={edges}
         selectedEdgeId={selectedEdge?.id}
-        onEdgeSelect={setSelectedEdge}
+        onEdgeSelect={(edge) => setSelectedEdge(edge)}
+        loading={loading}
+        emptyState={!!error || (!loading && nodes.length === 0)}
       />
       <section className="rounded-3xl border border-brand/15 bg-white p-6 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h3 className="text-xl font-semibold">Supporting evidence</h3>
             <p className="mt-1 text-sm text-slate-500">
-              {selectedEdge ? `Quotes for ${selectedEdge.label}.` : "Select a connection to view quotes."}
+              {error
+                ? "Unable to load evidence yet."
+                : selectedEdge
+                ? `Quotes for ${selectedEdge.label}.`
+                : "Select a connection to view quotes."}
             </p>
           </div>
           {selectedEdge && (
@@ -108,14 +83,20 @@ const ConnectionsPage = () => {
             </button>
           )}
         </div>
-        {selectedEdge ? (
+        {loading ? (
+          <p className="mt-4 text-sm text-slate-500">Loading evidence...</p>
+        ) : error ? (
+          <p className="mt-4 text-sm text-rose-600">{error}</p>
+        ) : selectedEdge ? (
           <div className="mt-6 space-y-4">
-            {selectedEdge.evidence.map((evidence) => (
+            {selectedEdge.evidence.length ? selectedEdge.evidence.map((evidence) => (
               <div key={evidence.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                 <p className="text-sm text-slate-700">“{evidence.quote}”</p>
                 <p className="mt-2 text-xs text-slate-400">{evidence.source}</p>
               </div>
-            ))}
+            )) : (
+              <p className="text-sm text-slate-500">No quotes attached to this connection yet.</p>
+            )}
           </div>
         ) : (
           <p className="mt-4 text-sm text-slate-500">Tap an edge to surface the most relevant quotes.</p>

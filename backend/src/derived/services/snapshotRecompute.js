@@ -2,7 +2,15 @@ const SnapshotSummary = require("../models/SnapshotSummary");
 const Entry = require("../../models/Entry");
 
 const getRangeStartIso = (rangeKey) => {
-  const days = rangeKey === "last_90_days" ? 90 : rangeKey === "last_7_days" ? 7 : 30;
+  if (rangeKey === "all_time") return null;
+  const days =
+    rangeKey === "last_365_days"
+      ? 365
+      : rangeKey === "last_90_days"
+        ? 90
+        : rangeKey === "last_7_days"
+          ? 7
+          : 30;
   const end = new Date();
   const start = new Date(end.getFullYear(), end.getMonth(), end.getDate() - (days - 1));
   return start.toISOString().slice(0, 10);
@@ -105,16 +113,15 @@ const buildSnapshot = (entries, rangeKey, weeklySummaries) => {
 const recomputeSnapshotForUser = async ({ userId, rangeKey }) => {
   const startIso = getRangeStartIso(rangeKey);
   const endIso = new Date().toISOString().slice(0, 10);
-  const entries = await Entry.find({ userId, dateISO: { $gte: startIso } })
+  const entryQuery = startIso ? { userId, dateISO: { $gte: startIso } } : { userId };
+  const entries = await Entry.find(entryQuery)
     .sort({ dateISO: 1 })
     .lean();
   const WeeklySummary = require("../../models/WeeklySummary");
-  const weeklySummaries = await WeeklySummary.find({
-    userId,
-    weekStartISO: { $gte: startIso, $lte: endIso },
-  })
-    .sort({ weekStartISO: 1 })
-    .lean();
+  const weeklyQuery = startIso
+    ? { userId, weekStartISO: { $gte: startIso, $lte: endIso } }
+    : { userId };
+  const weeklySummaries = await WeeklySummary.find(weeklyQuery).sort({ weekStartISO: 1 }).lean();
   const snapshot = buildSnapshot(entries, rangeKey, weeklySummaries);
   const sourceVersion = entries[entries.length - 1]?.updatedAt || new Date();
 
