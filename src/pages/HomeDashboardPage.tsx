@@ -7,6 +7,113 @@ import type { HomePatternCard, TimeRangeSummary } from "../types/home";
 import type { WeeklySummary } from "../types/prepare";
 import { useAuth } from "../contexts/AuthContext";
 
+const LIFE_AREA_DOMAINS = [
+  "Work/School",
+  "Relationships",
+  "Energy and Self-care",
+  "Motivation",
+  "Feeling safe or steady",
+  "Enjoyment and meaning",
+];
+
+const normalizeLabel = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, "");
+
+const buildLifeAreaValues = (areas: string[]) => {
+  const normalizedAreas = new Set(areas.map((area) => normalizeLabel(area)));
+  return LIFE_AREA_DOMAINS.map((label) => {
+    const normalizedLabel = normalizeLabel(label);
+    const isMatch = Array.from(normalizedAreas).some((area) => area.includes(normalizedLabel) || normalizedLabel.includes(area));
+    return {
+      label,
+      value: isMatch ? 0.62 : 0.18,
+    };
+  });
+};
+
+const LifeAreaRadar = ({ areas }: { areas: string[] }) => {
+  const size = 280;
+  const center = size / 2;
+  const radius = 86;
+  const levels = [0.33, 0.66, 1];
+  const angleStep = (Math.PI * 2) / LIFE_AREA_DOMAINS.length;
+  const values = buildLifeAreaValues(areas);
+
+  const polarPoint = (value: number, index: number) => {
+    const angle = -Math.PI / 2 + index * angleStep;
+    return {
+      x: center + radius * value * Math.cos(angle),
+      y: center + radius * value * Math.sin(angle),
+    };
+  };
+
+  const polygonPoints = values
+    .map((item, index) => {
+      const point = polarPoint(item.value, index);
+      return `${point.x},${point.y}`;
+    })
+    .join(" ");
+  const markerPoints = values.map((item, index) => polarPoint(item.value, index));
+
+  return (
+    <svg viewBox={`0 0 ${size} ${size}`} className="h-[280px] w-[280px] overflow-visible text-slate-300">
+      {levels.map((level) => {
+        const levelPoints = LIFE_AREA_DOMAINS.map((_, index) => {
+          const point = polarPoint(level, index);
+          return `${point.x},${point.y}`;
+        }).join(" ");
+        return <polygon key={level} points={levelPoints} fill="none" stroke="currentColor" strokeWidth="0.8" />;
+      })}
+      {LIFE_AREA_DOMAINS.map((label, index) => {
+        const point = polarPoint(1, index);
+        const angle = -Math.PI / 2 + index * angleStep;
+        const labelRadius = radius + 26;
+        const labelPoint = {
+          x: center + labelRadius * Math.cos(angle),
+          y: center + labelRadius * Math.sin(angle),
+        };
+        const textAnchor = Math.cos(angle) > 0.2 ? "start" : Math.cos(angle) < -0.2 ? "end" : "middle";
+        const dy = Math.sin(angle) > 0.2 ? "0.8em" : Math.sin(angle) < -0.2 ? "-0.2em" : "0.35em";
+        const labelLines = label.split(" ");
+        return (
+          <g key={`axis-${index}`}>
+            <line
+              x1={center}
+              y1={center}
+              x2={point.x}
+              y2={point.y}
+              stroke="currentColor"
+              strokeWidth="0.6"
+              opacity="0.7"
+            />
+            <text
+              x={labelPoint.x}
+              y={labelPoint.y}
+              textAnchor={textAnchor}
+              dy={dy}
+              className="fill-slate-500 text-[9px] uppercase tracking-[0.18em]"
+            >
+              {labelLines.map((line, lineIndex) => (
+                <tspan
+                  key={`${label}-${lineIndex}`}
+                  x={labelPoint.x}
+                  dy={lineIndex === 0 ? 0 : "1.05em"}
+                >
+                  {line}
+                </tspan>
+              ))}
+            </text>
+          </g>
+        );
+      })}
+      <polygon points={polygonPoints} fill="rgba(99, 128, 207, 0.18)" stroke="rgba(99, 128, 207, 0.45)" strokeWidth="1" />
+      {markerPoints.map((point, index) => (
+        <circle key={`marker-${index}`} cx={point.x} cy={point.y} r="2.4" fill="rgba(99, 128, 207, 0.9)" />
+      ))}
+      <circle cx={center} cy={center} r="1.6" fill="rgba(99, 128, 207, 0.55)" />
+    </svg>
+  );
+};
+
 const fallbackPatterns: HomePatternCard[] = [
   {
     id: "pattern-1",
@@ -181,56 +288,51 @@ const HomeDashboardPage = () => {
         <p className="mt-3 text-sm text-slate-600">
           {snapshotOverview || "Current snapshot not available yet."}
         </p>
-        <div className="mt-6 grid gap-6 text-sm text-slate-600 md:grid-cols-2 xl:grid-cols-4">
-          <div className="space-y-3">
-            <p className="small-label text-slate-400">Top patterns</p>
-            <div className="space-y-2">
-              {patterns.slice(0, 5).map((pattern) => (
-                <div key={pattern.id} className="flex items-center gap-2">
-                  <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
-                  <span>{pattern.title}</span>
-                </div>
-              ))}
-            </div>
-          </div>
+        <div className="mt-6 grid gap-6 text-sm text-slate-600 lg:grid-cols-[1.3fr_2fr]">
           <div className="space-y-3">
             <p className="small-label text-slate-400">Life areas affected</p>
-            <div className="space-y-2">
-              {(snapshotImpactAreas.length ? snapshotImpactAreas : ["Not available yet."])
-                .slice(0, 3)
-                .map((item) => (
-                  <div key={item} className="flex items-center gap-2">
-                    <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
-                    <span>{item}</span>
-                  </div>
-                ))}
+            <div className="flex items-start">
+              <LifeAreaRadar areas={snapshotImpactAreas} />
             </div>
           </div>
-          <div className="space-y-3">
-            <p className="small-label text-slate-400">Influences</p>
-            <div className="space-y-2">
-              {(snapshotInfluences.length ? snapshotInfluences : ["Not available yet."])
-                .slice(0, 3)
-                .map((item) => (
-                  <div key={item} className="flex items-center gap-2">
+          <div className="grid gap-6 md:grid-cols-2">
+            <div className="space-y-3">
+              <p className="small-label text-slate-400">Top patterns</p>
+              <div className="space-y-2">
+                {patterns.slice(0, 5).map((pattern) => (
+                  <div key={pattern.id} className="flex items-center gap-2">
                     <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
-                    <span>{item}</span>
+                    <span>{pattern.title}</span>
                   </div>
                 ))}
+              </div>
+            </div>
+            <div className="space-y-3">
+              <p className="small-label text-slate-400">Influences</p>
+              <div className="space-y-2">
+                {(snapshotInfluences.length ? snapshotInfluences : ["Not available yet."])
+                  .slice(0, 3)
+                  .map((item) => (
+                    <div key={item} className="flex items-center gap-2">
+                      <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
+                      <span>{item}</span>
+                    </div>
+                  ))}
+              </div>
             </div>
           </div>
-          <div className="space-y-3">
-            <p className="small-label text-slate-400">Questions you might explore</p>
-            <div className="space-y-2">
-              {(snapshotQuestions.length ? snapshotQuestions : ["Not available yet."])
-                .slice(0, 3)
-                .map((item) => (
-                  <div key={item} className="flex items-center gap-2">
-                    <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
-                    <span>{item}</span>
-                  </div>
-                ))}
-            </div>
+        </div>
+        <div className="mt-6 space-y-3 text-sm text-slate-600">
+          <p className="small-label text-slate-400">Questions you might explore</p>
+          <div className="space-y-2">
+            {(snapshotQuestions.length ? snapshotQuestions : ["Not available yet."])
+              .slice(0, 3)
+              .map((item) => (
+                <div key={item} className="flex items-center gap-2">
+                  <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
+                  <span>{item}</span>
+                </div>
+              ))}
           </div>
         </div>
       </Card>
