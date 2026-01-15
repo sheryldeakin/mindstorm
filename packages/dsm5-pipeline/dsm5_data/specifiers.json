@@ -1,0 +1,3516 @@
+{
+  "specifiers": [
+    {
+      "id": "SPEC_INTELLECTUAL_DISABILITY_INTELLECTUAL_DEVELOPMENTAL_DISORDER_CURRENT_SEVERITY",
+      "label": "Current Severity",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "INTELLECTUAL_DISABILITY_INTELLECTUAL_DEVELOPMENTAL_DISORDER"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "MILD",
+          "label": "Mild",
+          "icd9_code": "317",
+          "icd10_code": "F70",
+          "table_text": "Mild For preschool children, there Compared with typically develop- The individual may function age-approprimay be no obvious concep- ing age-mates, the individual is ately in personal care. Individuals need tual differences. For school- immature in social interactions. some support with complex daily living age children and adults, For example, there may be diffi- tasks in comparison to peers. In adulthood, there are difficulties in culty in accurately perceiving supports typically involve grocery shoplearning academic skills peers\u2019 social cues. Communica- ping, transportation, home and child-care involving reading, writing, tion, conversation, and language organizing, nutritious food preparation, arithmetic, time, or money, are more concrete or immature and banking and money management. Recwith support needed in one than expected for age. There may reational skills resemble those of age-mates, or more areas to meet age- be difficulties regulating emotion although judgment related to well-being related expectations. In and behavior in age-appropriate and organization around recreation adults, abstract thinking, fashion; these difficulties are requires support. In adulthood, competitive executive function (i.e., noticed by peers in social situa- employment is often seen in jobs that do not planning, strategizing, pri- tions. There is limited under- emphasize conceptual skills. Individuals ority setting, and cognitive standing of risk in social generally need support to make health care flexibility), and short-term situations; social judgment is decisions and legal decisions, and to learn to memory, as well as func- immature for age, and the person perform a skilled vocation competently. tional use of academic skills is at risk of being manipulated by Support is typically needed to raise a (e.g., reading, money man- others (gullibility). family. agement), are impaired. There is a somewhat concrete approach to problems and solutions compared with age-mates. 20 Neurodevelopmental Disorders TABLE 1 Severity levels for intellectual disability (intellectual developmental disorder) (continued) Severity level Conceptual domain Social domain Practical domain"
+        },
+        {
+          "id": "MODERATE",
+          "label": "Moderate",
+          "icd9_code": "318.0",
+          "icd10_code": "F71",
+          "table_text": "Moderate All through development, the The individual shows marked dif- The individual can care for personal needs individual\u2019s conceptual ferences from peers in social and involving eating, dressing, elimination, and skills lag markedly behind communicative behavior across hygiene as an adult, although an extended those of peers. For pre- development. Spoken language is period of teaching and time is needed for schoolers, language and typically a primary tool for social the individual to become independent in pre-academic skills develop communication but is much less these areas, and reminders may be needed. slowly. For school-age chil- complex than that of peers. Similarly, participation in all household dren, progress in reading, Capacity for relationships is evi- tasks can be achieved by adulthood, writing, mathematics and in dent in ties to family and friends, although an extended period of teaching is understanding time and and the individual may have suc- needed, and ongoing supports will typimoney occurs slowly across cessful friendships across life and cally occur for adult-level performance. the school years and is sometimes romantic relations in Independent employment in jobs that markedly limited compared adulthood. However, individuals require limited conceptual and communicawith that of peers. For may not perceive or interpret tion skills can be achieved, but considerable adults, academic skill devel- social cues accurately. Social support from co-workers, supervisors, and opment is typically at an ele- judgment and decision-making others is needed to manage social expectamentary level, and support abilities are limited, and caretak- tions, job complexities, and ancillary is required for all use of aca- ers must assist the person with responsibilities such as scheduling, transdemic skills in work and life decisions. Friendships with portation, health benefits, and money manpersonal life. Ongoing assis- typically developing peers are agement. A variety of recreational skills can tance on a daily basis is often affected by communication be developed. These typically require addineeded to complete concep- or social limitations. Significant tional supports and learning opportunities tual tasks of day-to-day life, social and communicative sup- over an extended period of time. Maladapand others may take over port is needed in work settings tive behavior is present in a significant these responsibilities fully for success. minority and causes social problems. for the individual. Intellectual Disability (Intellectual Developmental Disorder) 21 TABLE 1 Severity levels for intellectual disability (intellectual developmental disorder) (continued) Severity level Conceptual domain Social domain Practical domain"
+        },
+        {
+          "id": "SEVERE",
+          "label": "Severe",
+          "icd9_code": "318.1",
+          "icd10_code": "F72",
+          "table_text": "Severe Attainment of conceptual Spoken language is quite limited in The individual requires support for all activiskills is limited. The individ- terms of vocabulary and gram- ties of daily living, including meals, dressual generally has little mar. Speech may be single words ing, bathing, and elimination. The understanding of written or phrases and may be supple- individual requires supervision at all times. language or of concepts mented through augmentative The individual cannot make responsible involving numbers, quan- means. Speech and communica- decisions regarding well-being of self or tity, time, and money. Care- tion are focused on the here and others. In adulthood, participation in tasks takers provide extensive now within everyday events. at home, recreation, and work requires supports for problem solv- Language is used for social com- ongoing support and assistance. Skill acquiing throughout life. munication more than for explica- sition in all domains involves long-term tion. Individuals understand teaching and ongoing support. Maladaptive simple speech and gestural com- behavior, including self-injury, is present in munication. Relationships with a significant minority. family members and familiar others are a source of pleasure and help. 22 Neurodevelopmental Disorders TABLE 1 Severity levels for intellectual disability (intellectual developmental disorder) (continued) Severity level Conceptual domain Social domain Practical domain"
+        },
+        {
+          "id": "PROFOUND",
+          "label": "Profound",
+          "icd9_code": "318.2",
+          "icd10_code": "F73",
+          "table_text": "Profound Conceptual skills generally The individual has very limited The individual is dependent on others for all involve the physical world understanding of symbolic com- aspects of daily physical care, health, and rather than symbolic pro- munication in speech or gesture. safety, although he or she may be able to cesses. The individual may He or she may understand some participate in some of these activities as use objects in goal-directed simple instructions or gestures. well. Individuals without severe physical fashion for self-care, work, The individual expresses his or impairments may assist with some daily and recreation. Certain her own desires and emotions work tasks at home, like carrying dishes to visuospatial skills, such as largely through nonverbal, non- the table. Simple actions with objects may matching and sorting based symbolic communication. The be the basis of participation in some vocaon physical characteristics, individual enjoys relationships tional activities with high levels of ongoing may be acquired. However, with well-known family mem- support. Recreational activities may co-occurring motor and sen- bers, caretakers, and familiar oth- involve, for example, enjoyment in listening sory impairments may pre- ers, and initiates and responds to to music, watching movies, going out for vent functional use of social interactions through ges- walks, or participating in water activities, objects. tural and emotional cues. Co- all with the support of others. Co-occurring occurring sensory and physical physical and sensory impairments are freimpairments may prevent many quent barriers to participation (beyond social activities. watching) in home, recreational, and vocational activities. Maladaptive behavior is present in a significant minority."
+        }
+      ]
+    },
+    {
+      "id": "SPEC_AUTISM_SPECTRUM_DISORDER_299_00_SPECIFIERS",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "AUTISM_SPECTRUM_DISORDER_299_00"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "ASSOCIATED_WITH_A_KNOWN_MEDICAL_OR_GENETIC_CONDITION_OR_ENVIRONMENTAL_FACTOR",
+          "label": "Associated with a known medical or genetic condition or environmental factor",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "ASSOCIATED_WITH_ANOTHER_NEURODEVELOPMENTAL",
+          "label": "Associated with another neurodevelopmental",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "MENTAL",
+          "label": "mental",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "OR_BEHAVIORAL_DISORDER",
+          "label": "or behavioral disorder",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_AUTISM_SPECTRUM_DISORDER_299_00_CURRENT_SEVERITY",
+      "label": "Current Severity",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "AUTISM_SPECTRUM_DISORDER_299_00"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "REQUIRING_VERY_SUBSTANTIAL_SUPPORT",
+          "label": "Requiring very substantial support",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "REQUIRING_SUBSTANTIAL_SUPPORT",
+          "label": "Requiring substantial support",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "REQUIRING_SUPPORT",
+          "label": "Requiring support",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_AUTISM_SPECTRUM_DISORDER_299_00_SPECIFIERS_2",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "AUTISM_SPECTRUM_DISORDER_299_00"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "WITH_OR_WITHOUT_ACCOMPANYING_INTELLECTUAL_IMPAIRMENT",
+          "label": "With or without accompanying intellectual impairment",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "WITH_OR_WITHOUT_ACCOMPANYING_LANGUAGE_IMPAIRMENT",
+          "label": "With or without accompanying language impairment",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "WITH_CATATONIA_USE",
+          "label": "With catatonia (use",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "ADDITIONAL_CODE_293_89_F06_1",
+          "label": "additional code 293.89 [F06.1])",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_ATTENTION_DEFICIT_HYPERACTIVITY_DISORDER_SPECIFIERS",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "ATTENTION_DEFICIT_HYPERACTIVITY_DISORDER"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "COMBINED_PRESENTATION",
+          "label": "Combined presentation",
+          "icd9_code": "314.01",
+          "icd10_code": "F90.2"
+        },
+        {
+          "id": "PREDOMINANTLY_INATTENTIVE_PRESENTATION",
+          "label": "Predominantly inattentive presentation",
+          "icd9_code": "314.00",
+          "icd10_code": "F90.0"
+        },
+        {
+          "id": "PREDOMINANTLY_HYPERACTIVE_IMPULSIVE",
+          "label": "Predominantly hyperactive/impulsive",
+          "icd9_code": "314.01",
+          "icd10_code": "F90.1"
+        },
+        {
+          "id": "PRESENTATION",
+          "label": "presentation",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_ATTENTION_DEFICIT_HYPERACTIVITY_DISORDER_SPECIFIERS_2",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "ATTENTION_DEFICIT_HYPERACTIVITY_DISORDER"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "IN_PARTIAL_REMISSION",
+          "label": "In partial remission",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_ATTENTION_DEFICIT_HYPERACTIVITY_DISORDER_CURRENT_SEVERITY",
+      "label": "Current Severity",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "ATTENTION_DEFICIT_HYPERACTIVITY_DISORDER"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "MILD",
+          "label": "Mild",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "MODERATE",
+          "label": "Moderate",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "SEVERE",
+          "label": "Severe",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_SPECIFIC_LEARNING_DISORDER_SPECIFIERS",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "SPECIFIC_LEARNING_DISORDER"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "WITH_IMPAIRMENT_IN_READING_SPECIFY_IF_WITH",
+          "label": "With impairment in reading (specify if with",
+          "icd9_code": "315.00",
+          "icd10_code": "F81.0"
+        },
+        {
+          "id": "WORD_READING_ACCURACY",
+          "label": "word reading accuracy",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "READING_RATE_OR",
+          "label": "reading rate or",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "FLUENCY",
+          "label": "fluency",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "READING_COMPREHENSION",
+          "label": "reading comprehension)",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "WITH_IMPAIRMENT_IN_WRITTEN_EXPRESSION_SPECIFY",
+          "label": "With impairment in written expression (specify",
+          "icd9_code": "315.2",
+          "icd10_code": "F81.81"
+        },
+        {
+          "id": "IF_WITH_SPELLING_ACCURACY",
+          "label": "if with spelling accuracy",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "GRAMMAR_AND",
+          "label": "grammar and",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "PUNCTUATION_ACCURACY",
+          "label": "punctuation accuracy",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "CLARITY_OR",
+          "label": "clarity or",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "ORGANIZATION_OF_WRITTEN_EXPRESSION",
+          "label": "organization of written expression)",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_STEREOTYPIC_MOVEMENT_DISORDER_307_3_SPECIFIERS",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "STEREOTYPIC_MOVEMENT_DISORDER_307_3"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "WITH_SELF_INJURIOUS_BEHAVIOR",
+          "label": "With self-injurious behavior",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "WITHOUT",
+          "label": "Without",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "SELF_INJURIOUS_BEHAVIOR",
+          "label": "self-injurious behavior",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_STEREOTYPIC_MOVEMENT_DISORDER_307_3_SPECIFIERS_2",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "STEREOTYPIC_MOVEMENT_DISORDER_307_3"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "ASSOCIATED_WITH_A_KNOWN_MEDICAL_OR_GENETIC_CONDITION",
+          "label": "Associated with a known medical or genetic condition",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "NEURODEVELOPMENTAL_DISORDER",
+          "label": "neurodevelopmental disorder",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "OR_ENVIRONMENTAL_FACTOR",
+          "label": "or environmental factor",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_STEREOTYPIC_MOVEMENT_DISORDER_307_3_CURRENT_SEVERITY",
+      "label": "Current Severity",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "STEREOTYPIC_MOVEMENT_DISORDER_307_3"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "MILD",
+          "label": "Mild",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "MODERATE",
+          "label": "Moderate",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "SEVERE",
+          "label": "Severe",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "TIC_DISORDERS",
+          "label": "Tic Disorders",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_PERSISTENT_CHRONIC_MOTOR_OR_VOCAL_TIC_DISORDER_307_22_SPECIFIERS",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "PERSISTENT_CHRONIC_MOTOR_OR_VOCAL_TIC_DISORDER_307_22"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "WITH_MOTOR_TICS_ONLY",
+          "label": "With motor tics only",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "WITH_VOCAL_TICS_ONLY",
+          "label": "With vocal tics only",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_DELUSIONAL_DISORDERA_C_297_1_SPECIFIERS",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "DELUSIONAL_DISORDERA_C_297_1"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "EROTOMANIC_TYPE",
+          "label": "Erotomanic type",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "GRANDIOSE_TYPE",
+          "label": "Grandiose type",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "JEALOUS_TYPE",
+          "label": "Jealous type",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "PERSECUTORY_TYPE",
+          "label": "Persecutory type",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "SOMATIC_TYPE",
+          "label": "Somatic type",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "MIXED_TYPE",
+          "label": "Mixed type",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "UNSPECIFIED_TYPE",
+          "label": "Unspecified type",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_DELUSIONAL_DISORDERA_C_297_1_SPECIFIERS_2",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "DELUSIONAL_DISORDERA_C_297_1"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "WITH_BIZARRE_CONTENT",
+          "label": "With bizarre content",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_BRIEF_PSYCHOTIC_DISORDERB_C_298_8_SPECIFIERS",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "BRIEF_PSYCHOTIC_DISORDERB_C_298_8"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "WITH_MARKED_STRESSOR_S",
+          "label": "With marked stressor(s)",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "WITHOUT_MARKED",
+          "label": "Without marked",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "STRESSOR_S",
+          "label": "stressor(s)",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "WITH_POSTPARTUM_ONSET",
+          "label": "With postpartum onset",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_SCHIZOPHRENIFORM_DISORDERB_C_295_40_SPECIFIERS",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "SCHIZOPHRENIFORM_DISORDERB_C_295_40"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "WITH_GOOD_PROGNOSTIC_FEATURES",
+          "label": "With good prognostic features",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "WITHOUT",
+          "label": "Without",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "GOOD_PROGNOSTIC_FEATURES",
+          "label": "good prognostic features",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_SCHIZOAFFECTIVE_DISORDERA_B_C_SPECIFIERS",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "SCHIZOAFFECTIVE_DISORDERA_B_C"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "BIPOLAR_TYPE",
+          "label": "Bipolar type",
+          "icd9_code": "295.70",
+          "icd10_code": "F25.0"
+        },
+        {
+          "id": "DEPRESSIVE_TYPE",
+          "label": "Depressive type",
+          "icd9_code": "295.70",
+          "icd10_code": "F25.1"
+        },
+        {
+          "id": "DSM_5_CLASSIFICATION_XIII",
+          "label": "DSM-5 Classification xiii",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_SUBSTANCE_MEDICATION_INDUCED_PSYCHOTIC_DISORDERC_SPECIFIERS",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "SUBSTANCE_MEDICATION_INDUCED_PSYCHOTIC_DISORDERC"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "WITH_ONSET_DURING_INTOXICATION",
+          "label": "With onset during intoxication",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "WITH_ONSET_DURING_WITHDRAWAL",
+          "label": "With onset during withdrawal",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_PSYCHOTIC_DISORDER_DUE_TO_ANOTHER_MEDICAL_CONDITIONC_SPECIFIERS",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "PSYCHOTIC_DISORDER_DUE_TO_ANOTHER_MEDICAL_CONDITIONC"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "WITH_DELUSIONS",
+          "label": "With delusions",
+          "icd9_code": "293.81",
+          "icd10_code": "F06.2"
+        },
+        {
+          "id": "WITH_HALLUCINATIONS",
+          "label": "With hallucinations",
+          "icd9_code": "293.82",
+          "icd10_code": "F06.0"
+        }
+      ]
+    },
+    {
+      "id": "SPEC_CYCLOTHYMIC_DISORDER_301_13_SPECIFIERS",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "CYCLOTHYMIC_DISORDER_301_13"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "WITH_ANXIOUS_DISTRESS",
+          "label": "With anxious distress",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "DSM_5_CLASSIFICATION_XV",
+          "label": "DSM-5 Classification xv",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_SUBSTANCE_MEDICATION_INDUCED_BIPOLAR_AND_RELATED_DISORDER_SPECIFIERS",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "SUBSTANCE_MEDICATION_INDUCED_BIPOLAR_AND_RELATED_DISORDER"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "WITH_ONSET_DURING_INTOXICATION",
+          "label": "With onset during intoxication",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "WITH_ONSET_DURING_WITHDRAWAL",
+          "label": "With onset during withdrawal",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_BIPOLAR_AND_RELATED_DISORDER_DUE_TO_ANOTHER_MEDICAL_CONDITION_293_83_SPECIFIERS",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "BIPOLAR_AND_RELATED_DISORDER_DUE_TO_ANOTHER_MEDICAL_CONDITION_293_83"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "F06_33_WITH_MANIC_FEATURES",
+          "label": "(F06.33) With manic features",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "F06_33_WITH_MANIC_OR_HYPOMANIC_LIKE_EPISODE",
+          "label": "(F06.33) With manic- or hypomanic-like episode",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "F06_34_WITH_MIXED_FEATURES",
+          "label": "(F06.34) With mixed features",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_BIPOLAR_II_DISORDERA_296_89_CURRENT_OR_MOST_RECENT_EPISODE",
+      "label": "current or most recent episode",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "BIPOLAR_II_DISORDERA_296_89"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "HYPOMANIC",
+          "label": "Hypomanic",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "DEPRESSED",
+          "label": "Depressed",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_BIPOLAR_II_DISORDERA_296_89_COURSE_IF_FULL_CRITERIA_FOR_A_MOOD_EPISODE",
+      "label": "course if full criteria for a mood episode",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "BIPOLAR_II_DISORDERA_296_89"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "ARE_NOT_CURRENTLY_MET_IN_PARTIAL_REMISSION",
+          "label": "are not currently met: In partial remission",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "IN",
+          "label": "In",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "FULL_REMISSION",
+          "label": "full remission",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_BIPOLAR_II_DISORDERA_296_89_SEVERITY_IF_FULL_CRITERIA_FOR_A_MOOD_EPISODE",
+      "label": "severity if full criteria for a mood episode",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "BIPOLAR_II_DISORDERA_296_89"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "ARE_CURRENTLY_MET_MILD",
+          "label": "are currently met: Mild",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "MODERATE",
+          "label": "Moderate",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "SEVERE",
+          "label": "Severe",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_PERSISTENT_DEPRESSIVE_DISORDER_DYSTHYMIA_A_300_4_SPECIFIERS",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "PERSISTENT_DEPRESSIVE_DISORDER_DYSTHYMIA_A_300_4"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "IN_PARTIAL_REMISSION",
+          "label": "In partial remission",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "IN_FULL_REMISSION",
+          "label": "In full remission",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_PERSISTENT_DEPRESSIVE_DISORDER_DYSTHYMIA_A_300_4_SPECIFIERS_2",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "PERSISTENT_DEPRESSIVE_DISORDER_DYSTHYMIA_A_300_4"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "EARLY_ONSET",
+          "label": "Early onset",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "LATE_ONSET",
+          "label": "Late onset",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_PERSISTENT_DEPRESSIVE_DISORDER_DYSTHYMIA_A_300_4_SPECIFIERS_3",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "PERSISTENT_DEPRESSIVE_DISORDER_DYSTHYMIA_A_300_4"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "WITH_PURE_DYSTHYMIC_SYNDROME",
+          "label": "With pure dysthymic syndrome",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "WITH",
+          "label": "With",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "PERSISTENT_MAJOR_DEPRESSIVE_EPISODE",
+          "label": "persistent major depressive episode",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "WITH_INTERMITTENT_MAJOR_DEPRESSIVE_EPISODES",
+          "label": "With intermittent major depressive episodes",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "WITH_CURRENT",
+          "label": "with current",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "EPISODE",
+          "label": "episode",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "WITH_INTERMITTENT_MAJOR_DEPRESSIVE_EPISODES_2",
+          "label": "With intermittent major depressive episodes",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "WITHOUT_CURRENT_EPISODE",
+          "label": "without current episode",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_PERSISTENT_DEPRESSIVE_DISORDER_DYSTHYMIA_A_300_4_CURRENT_SEVERITY",
+      "label": "Current Severity",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "PERSISTENT_DEPRESSIVE_DISORDER_DYSTHYMIA_A_300_4"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "MILD",
+          "label": "Mild",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "MODERATE",
+          "label": "Moderate",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "SEVERE",
+          "label": "Severe",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_SUBSTANCE_MEDICATION_INDUCED_DEPRESSIVE_DISORDER_SPECIFIERS",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "SUBSTANCE_MEDICATION_INDUCED_DEPRESSIVE_DISORDER"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "WITH_ONSET_DURING_INTOXICATION",
+          "label": "With onset during intoxication",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "WITH_ONSET_DURING_WITHDRAWAL",
+          "label": "With onset during withdrawal",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_DEPRESSIVE_DISORDER_DUE_TO_ANOTHER_MEDICAL_CONDITION_293_83_SPECIFIERS",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "DEPRESSIVE_DISORDER_DUE_TO_ANOTHER_MEDICAL_CONDITION_293_83"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "F06_31_WITH_DEPRESSIVE_FEATURES",
+          "label": "(F06.31) With depressive features",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "F06_32_WITH_MAJOR_DEPRESSIVE_LIKE_EPISODE",
+          "label": "(F06.32) With major depressive-like episode",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "F06_34_WITH_MIXED_FEATURES",
+          "label": "(F06.34) With mixed features",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_SPECIFIC_PHOBIA_300_29_SPECIFIERS",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "SPECIFIC_PHOBIA_300_29"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "F40_218_ANIMAL",
+          "label": "(F40.218) Animal",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "F40_228_NATURAL_ENVIRONMENT",
+          "label": "(F40.228) Natural environment",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "BLOOD_INJECTION_INJURY",
+          "label": "(___.__) Blood-injection-injury",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "F40_230_FEAR_OF_BLOOD",
+          "label": "(F40.230) Fear of blood",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "F40_231_FEAR_OF_INJECTIONS_AND_TRANSFUSIONS",
+          "label": "(F40.231) Fear of injections and transfusions",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "F40_232_FEAR_OF_OTHER_MEDICAL_CARE",
+          "label": "(F40.232) Fear of other medical care",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "F40_233_FEAR_OF_INJURY",
+          "label": "(F40.233) Fear of injury",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "F40_248_SITUATIONAL",
+          "label": "(F40.248) Situational",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "F40_298_OTHER",
+          "label": "(F40.298) Other",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_SOCIAL_ANXIETY_DISORDER_SOCIAL_PHOBIA_300_23_SPECIFIERS",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "SOCIAL_ANXIETY_DISORDER_SOCIAL_PHOBIA_300_23"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "PERFORMANCE_ONLY",
+          "label": "Performance only",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_SUBSTANCE_MEDICATION_INDUCED_ANXIETY_DISORDER_SPECIFIERS",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "SUBSTANCE_MEDICATION_INDUCED_ANXIETY_DISORDER"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "WITH_ONSET_DURING_INTOXICATION",
+          "label": "With onset during intoxication",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "WITH_ONSET_DURING_WITHDRAWAL",
+          "label": "With onset during withdrawal",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "WITH_ONSET_AFTER_MEDICATION_USE",
+          "label": "With onset after medication use",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_SUBSTANCE_MEDICATION_INDUCED_OBSESSIVECOMPULSIVE_AND_RELATED_DISORDER_SPECIFIERS",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "SUBSTANCE_MEDICATION_INDUCED_OBSESSIVECOMPULSIVE_AND_RELATED_DISORDER"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "WITH_ONSET_DURING_INTOXICATION",
+          "label": "With onset during intoxication",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "WITH_ONSET_DURING_WITHDRAWAL",
+          "label": "With onset during withdrawal",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "WITH_ONSET_AFTER_MEDICATION_USE",
+          "label": "With onset after medication use",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_OBSESSIVE_COMPULSIVE_AND_RELATED_DISORDER_DUE_TO_ANOTHER_MEDICAL_CONDITION_294_8_SPECIFIERS",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "OBSESSIVE_COMPULSIVE_AND_RELATED_DISORDER_DUE_TO_ANOTHER_MEDICAL_CONDITION_294_8"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "WITH_OBSESSIVE_COMPULSIVE_DISORDER_LIKE",
+          "label": "With obsessive-compulsive disorder\u2013like",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "SYMPTOMS",
+          "label": "symptoms",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "WITH_APPEARANCE_PREOCCUPATIONS",
+          "label": "With appearance preoccupations",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "WITH_HOARDING_SYMPTOMS",
+          "label": "With hoarding symptoms",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "WITH_HAIR_PULLING",
+          "label": "With hair-pulling",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "SYMPTOMS_2",
+          "label": "symptoms",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "WITH_SKIN_PICKING_SYMPTOMS",
+          "label": "With skin-picking symptoms",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_OBSESSIVE_COMPULSIVE_DISORDERA_300_3_SPECIFIERS",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "OBSESSIVE_COMPULSIVE_DISORDERA_300_3"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "TIC_RELATED",
+          "label": "Tic-related",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_BODY_DYSMORPHIC_DISORDERA_300_7_SPECIFIERS",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "BODY_DYSMORPHIC_DISORDERA_300_7"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "WITH_MUSCLE_DYSMORPHIA",
+          "label": "With muscle dysmorphia",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_HOARDING_DISORDERA_300_3_SPECIFIERS",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "HOARDING_DISORDERA_300_3"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "WITH_EXCESSIVE_ACQUISITION",
+          "label": "With excessive acquisition",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_REACTIVE_ATTACHMENT_DISORDER_313_89_SPECIFIERS",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "REACTIVE_ATTACHMENT_DISORDER_313_89"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "PERSISTENT",
+          "label": "Persistent",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_REACTIVE_ATTACHMENT_DISORDER_313_89_CURRENT_SEVERITY",
+      "label": "Current Severity",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "REACTIVE_ATTACHMENT_DISORDER_313_89"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "SEVERE",
+          "label": "Severe",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_DISINHIBITED_SOCIAL_ENGAGEMENT_DISORDER_313_89_SPECIFIERS",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "DISINHIBITED_SOCIAL_ENGAGEMENT_DISORDER_313_89"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "PERSISTENT",
+          "label": "Persistent",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_DISINHIBITED_SOCIAL_ENGAGEMENT_DISORDER_313_89_CURRENT_SEVERITY",
+      "label": "Current Severity",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "DISINHIBITED_SOCIAL_ENGAGEMENT_DISORDER_313_89"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "SEVERE",
+          "label": "Severe",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_POSTTRAUMATIC_STRESS_DISORDER_INCLUDES_POSTTRAUMATIC_STRESS_DISORDER_FOR_CHILDREN_6_YEARS_AND_YOUNGER_309_81_SPECIFIERS",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "POSTTRAUMATIC_STRESS_DISORDER_INCLUDES_POSTTRAUMATIC_STRESS_DISORDER_FOR_CHILDREN_6_YEARS_AND_YOUNGER_309_81"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "WITH_DISSOCIATIVE_SYMPTOMS",
+          "label": "With dissociative symptoms",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_POSTTRAUMATIC_STRESS_DISORDER_INCLUDES_POSTTRAUMATIC_STRESS_DISORDER_FOR_CHILDREN_6_YEARS_AND_YOUNGER_309_81_SPECIFIERS_2",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "POSTTRAUMATIC_STRESS_DISORDER_INCLUDES_POSTTRAUMATIC_STRESS_DISORDER_FOR_CHILDREN_6_YEARS_AND_YOUNGER_309_81"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "WITH_DELAYED_EXPRESSION",
+          "label": "With delayed expression",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_ADJUSTMENT_DISORDERS_SPECIFIERS",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "ADJUSTMENT_DISORDERS"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "WITH_DEPRESSED_MOOD",
+          "label": "With depressed mood",
+          "icd9_code": "309.0",
+          "icd10_code": "F43.21"
+        },
+        {
+          "id": "WITH_ANXIETY",
+          "label": "With anxiety",
+          "icd9_code": "309.24",
+          "icd10_code": "F43.22"
+        },
+        {
+          "id": "WITH_MIXED_ANXIETY_AND_DEPRESSED_MOOD",
+          "label": "With mixed anxiety and depressed mood",
+          "icd9_code": "309.28",
+          "icd10_code": "F43.23"
+        },
+        {
+          "id": "WITH_DISTURBANCE_OF_CONDUCT",
+          "label": "With disturbance of conduct",
+          "icd9_code": "309.3",
+          "icd10_code": "F43.24"
+        },
+        {
+          "id": "WITH_MIXED_DISTURBANCE_OF_EMOTIONS_AND_CONDUCT",
+          "label": "With mixed disturbance of emotions and conduct",
+          "icd9_code": "309.4",
+          "icd10_code": "F43.25"
+        },
+        {
+          "id": "UNSPECIFIED",
+          "label": "Unspecified",
+          "icd9_code": "309.9",
+          "icd10_code": "F43.20"
+        }
+      ]
+    },
+    {
+      "id": "SPEC_DISSOCIATIVE_AMNESIA_300_12_SPECIFIERS",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "DISSOCIATIVE_AMNESIA_300_12"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "WITH_DISSOCIATIVE_FUGUE",
+          "label": "With dissociative fugue",
+          "icd9_code": "300.13",
+          "icd10_code": "F44.1"
+        },
+        {
+          "id": "XX_DSM_5_CLASSIFICATION",
+          "label": "xx DSM-5 Classification",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_SOMATIC_SYMPTOM_DISORDER_300_82_SPECIFIERS",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "SOMATIC_SYMPTOM_DISORDER_300_82"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "WITH_PREDOMINANT_PAIN",
+          "label": "With predominant pain",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_SOMATIC_SYMPTOM_DISORDER_300_82_SPECIFIERS_2",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "SOMATIC_SYMPTOM_DISORDER_300_82"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "PERSISTENT",
+          "label": "Persistent",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_SOMATIC_SYMPTOM_DISORDER_300_82_CURRENT_SEVERITY",
+      "label": "Current Severity",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "SOMATIC_SYMPTOM_DISORDER_300_82"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "MILD",
+          "label": "Mild",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "MODERATE",
+          "label": "Moderate",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "SEVERE",
+          "label": "Severe",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_ILLNESS_ANXIETY_DISORDER_300_7_SPECIFIERS",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "ILLNESS_ANXIETY_DISORDER_300_7"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "CARE_SEEKING_TYPE",
+          "label": "Care seeking type",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "CARE_AVOIDANT",
+          "label": "Care avoidant",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "TYPE",
+          "label": "type",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_CONVERSION_DISORDER_FUNCTIONAL_NEUROLOGICAL_SYMPTOM_DISORDER_300_11_SYMPTOM_TYPE",
+      "label": "symptom type",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "CONVERSION_DISORDER_FUNCTIONAL_NEUROLOGICAL_SYMPTOM_DISORDER_300_11"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "F44_4_WITH_WEAKNESS_OR_PARALYSIS",
+          "label": "(F44.4) With weakness or paralysis",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "F44_4_WITH_ABNORMAL_MOVEMENT",
+          "label": "(F44.4) With abnormal movement",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "F44_4_WITH_SWALLOWING_SYMPTOMS",
+          "label": "(F44.4) With swallowing symptoms",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "F44_4_WITHSPEECH_SYMPTOM",
+          "label": "(F44.4) Withspeech symptom",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "F44_5_WITH_ATTACKS_OR_SEIZURES",
+          "label": "(F44.5) With attacks or seizures",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "F44_6_WITH_ANESTHESIA_OR_SENSORY_LOSS",
+          "label": "(F44.6) With anesthesia or sensory loss",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "F44_6_WITH_SPECIAL_SENSORY_SYMPTOM",
+          "label": "(F44.6) With special sensory symptom",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "F44_7_WITH_MIXED_SYMPTOMS",
+          "label": "(F44.7) With mixed symptoms",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_CONVERSION_DISORDER_FUNCTIONAL_NEUROLOGICAL_SYMPTOM_DISORDER_300_11_SPECIFIERS",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "CONVERSION_DISORDER_FUNCTIONAL_NEUROLOGICAL_SYMPTOM_DISORDER_300_11"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "ACUTE_EPISODE",
+          "label": "Acute episode",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "PERSISTENT",
+          "label": "Persistent",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_CONVERSION_DISORDER_FUNCTIONAL_NEUROLOGICAL_SYMPTOM_DISORDER_300_11_SPECIFIERS_2",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "CONVERSION_DISORDER_FUNCTIONAL_NEUROLOGICAL_SYMPTOM_DISORDER_300_11"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "WITH_PSYCHOLOGICAL_STRESSOR_SPECIFY",
+          "label": "With psychological stressor (specify",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "STRESSOR",
+          "label": "stressor)",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "WITHOUT_PSYCHOLOGICAL_STRESSOR",
+          "label": "Without psychological stressor",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_PSYCHOLOGICAL_FACTORS_AFFECTING_OTHER_MEDICAL_CONDITIONS_316_CURRENT_SEVERITY",
+      "label": "Current Severity",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "PSYCHOLOGICAL_FACTORS_AFFECTING_OTHER_MEDICAL_CONDITIONS_316"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "MILD",
+          "label": "Mild",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "MODERATE",
+          "label": "Moderate",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "SEVERE",
+          "label": "Severe",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "EXTREME",
+          "label": "Extreme",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_FACTITIOUS_DISORDER_INCLUDES_FACTITIOUS_DISORDER_IMPOSED_ON_SELF_FACTITIOUS_DISORDER_IMPOSED_ON_ANOTHER_300_19_SINGLE_EPISODE_RECURRENT_EPISODES",
+      "label": "Single episode, Recurrent episodes",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "FACTITIOUS_DISORDER_INCLUDES_FACTITIOUS_DISORDER_IMPOSED_ON_SELF_FACTITIOUS_DISORDER_IMPOSED_ON_ANOTHER_300_19"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "DSM_5_CLASSIFICATION_XXI",
+          "label": "DSM-5 Classification xxi",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_ANOREXIA_NERVOSAB_C_307_1_SPECIFIERS",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "ANOREXIA_NERVOSAB_C_307_1"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "F50_01_RESTRICTING_TYPE",
+          "label": "(F50.01) Restricting type",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "F50_02_BINGE_EATING_PURGING_TYPE",
+          "label": "(F50.02) Binge-eating/purging type",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_ENURESIS_307_6_SPECIFIERS",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "ENURESIS_307_6"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "NOCTURNAL_ONLY",
+          "label": "Nocturnal only",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "DIURNAL_ONLY",
+          "label": "Diurnal only",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "NOCTURNAL_AND_DIURNAL",
+          "label": "Nocturnal and diurnal",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_ENCOPRESIS_307_7_SPECIFIERS",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "ENCOPRESIS_307_7"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "WITH_CONSTIPATION_AND_OVERFLOW",
+          "label": "With constipation and overflow",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "INCONTINENCE",
+          "label": "incontinence",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "WITHOUT_CONSTIPATION_AND_OVERFLOW_INCONTINENCE",
+          "label": "Without constipation and overflow incontinence",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "XXII_DSM_5_CLASSIFICATION",
+          "label": "xxii DSM-5 Classification",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_CENTRAL_SLEEP_APNEA_SPECIFIERS",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "CENTRAL_SLEEP_APNEA"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "IDIOPATHIC_CENTRAL_SLEEP_APNEA",
+          "label": "Idiopathic central sleep apnea",
+          "icd9_code": "327.21",
+          "icd10_code": "G47.31"
+        },
+        {
+          "id": "CHEYNE_STOKES_BREATHING",
+          "label": "Cheyne-Stokes breathing",
+          "icd9_code": "786.04",
+          "icd10_code": "R06.3"
+        },
+        {
+          "id": "CENTRAL_SLEEP_APNEA_COMORBID_WITH_OPIOID_USE",
+          "label": "Central sleep apnea comorbid with opioid use",
+          "icd9_code": "780.57",
+          "icd10_code": "G47.37"
+        }
+      ]
+    },
+    {
+      "id": "SPEC_SLEEP_RELATED_HYPOVENTILATION_SPECIFIERS",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "SLEEP_RELATED_HYPOVENTILATION"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "IDIOPATHIC_HYPOVENTILATION",
+          "label": "Idiopathic hypoventilation",
+          "icd9_code": "327.24",
+          "icd10_code": "G47.34"
+        },
+        {
+          "id": "CONGENITAL_CENTRAL_ALVEOLAR_HYPOVENTILATION",
+          "label": "Congenital central alveolar hypoventilation",
+          "icd9_code": "327.25",
+          "icd10_code": "G47.35"
+        },
+        {
+          "id": "COMORBID_SLEEP_RELATED_HYPOVENTILATION",
+          "label": "Comorbid sleep-related hypoventilation",
+          "icd9_code": "327.26",
+          "icd10_code": "G47.36"
+        }
+      ]
+    },
+    {
+      "id": "SPEC_DELAYED_SLEEP_PHASE_TYPE_307_45_SPECIFIERS",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "DELAYED_SLEEP_PHASE_TYPE_307_45"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "FAMILIAL",
+          "label": "Familial",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "OVERLAPPING_WITH_NON_24HOUR_SLEEP_WAKE_TYPE",
+          "label": "Overlapping with non-24hour sleep-wake type",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_ADVANCED_SLEEP_PHASE_TYPE_307_45_SPECIFIERS",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "ADVANCED_SLEEP_PHASE_TYPE_307_45"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "FAMILIAL",
+          "label": "Familial",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_NON_RAPID_EYE_MOVEMENT_SLEEP_AROUSAL_DISORDERS_SPECIFIERS",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "NON_RAPID_EYE_MOVEMENT_SLEEP_AROUSAL_DISORDERS"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "SLEEPWALKING_TYPE",
+          "label": "Sleepwalking type",
+          "icd9_code": "307.46",
+          "icd10_code": "F51.3"
+        }
+      ]
+    },
+    {
+      "id": "SPEC_NON_RAPID_EYE_MOVEMENT_SLEEP_AROUSAL_DISORDERS_SPECIFIERS_2",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "NON_RAPID_EYE_MOVEMENT_SLEEP_AROUSAL_DISORDERS"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "WITH_SLEEP_RELATED_EATING",
+          "label": "With sleep-related eating",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "WITH_SLEEPRELATED_SEXUAL_BEHAVIOR_SEXSOMNIA",
+          "label": "With sleeprelated sexual behavior (sexsomnia)",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "SLEEP_TERROR_TYPE",
+          "label": "Sleep terror type",
+          "icd9_code": "307.46",
+          "icd10_code": "F51.4"
+        }
+      ]
+    },
+    {
+      "id": "SPEC_NIGHTMARE_DISORDERB_C_307_47_SPECIFIERS",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "NIGHTMARE_DISORDERB_C_307_47"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "DURING_SLEEP_ONSET",
+          "label": "During sleep onset",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_NIGHTMARE_DISORDERB_C_307_47_SPECIFIERS_2",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "NIGHTMARE_DISORDERB_C_307_47"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "WITH_ASSOCIATED_NON_SLEEP_DISORDER",
+          "label": "With associated non\u2013sleep disorder",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "WITH_ASSOCIATED_OTHER_MEDICAL_CONDITION",
+          "label": "With associated other medical condition",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "WITH",
+          "label": "With",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "ASSOCIATED_OTHER_SLEEP_DISORDER",
+          "label": "associated other sleep disorder",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "XXIV_DSM_5_CLASSIFICATION",
+          "label": "xxiv DSM-5 Classification",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_SUBSTANCE_MEDICATION_INDUCED_SLEEP_DISORDER_SPECIFIERS",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "SUBSTANCE_MEDICATION_INDUCED_SLEEP_DISORDER"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "INSOMNIA_TYPE",
+          "label": "Insomnia type",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "DAYTIME_SLEEPINESS_TYPE",
+          "label": "Daytime sleepiness type",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "PARASOMNIA_TYPE",
+          "label": "Parasomnia type",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "MIXED_TYPE",
+          "label": "Mixed type",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_SUBSTANCE_MEDICATION_INDUCED_SLEEP_DISORDER_SPECIFIERS_2",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "SUBSTANCE_MEDICATION_INDUCED_SLEEP_DISORDER"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "WITH_ONSET_DURING_INTOXICATION",
+          "label": "With onset during intoxication",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "WITH_ONSET_DURING_DISCONTINUATION_WITHDRAWAL",
+          "label": "With onset during discontinuation/withdrawal",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_INSOMNIA_DISORDERA_307_42_SPECIFIERS",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "INSOMNIA_DISORDERA_307_42"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "WITH_NON_SLEEP_DISORDER_MENTAL_COMORBIDITY",
+          "label": "With non\u2013sleep disorder mental comorbidity",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "WITH_OTHER_MEDICAL_COMORBIDITY",
+          "label": "With other medical comorbidity",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "WITH",
+          "label": "With",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "OTHER_SLEEP_DISORDER",
+          "label": "other sleep disorder",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_HYPERSOMNOLENCE_DISORDERB_C_307_44_SPECIFIERS",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "HYPERSOMNOLENCE_DISORDERB_C_307_44"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "WITH_MENTAL_DISORDER",
+          "label": "With mental disorder",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "WITH_MEDICAL",
+          "label": "With medical",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "CONDITION",
+          "label": "condition",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "WITH_ANOTHER_SLEEP_DISORDER",
+          "label": "With another sleep disorder",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_NARCOLEPSYC_SPECIFIERS",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "NARCOLEPSYC"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "NARCOLEPSY_WITHOUT_CATAPLEXY_BUT_WITH",
+          "label": "Narcolepsy without cataplexy but with",
+          "icd9_code": "347.00",
+          "icd10_code": "G47.419"
+        },
+        {
+          "id": "HYPOCRETIN_DEFICIENCY",
+          "label": "hypocretin deficiency",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "NARCOLEPSY_WITH_CATAPLEXY_BUT_WITHOUT",
+          "label": "Narcolepsy with cataplexy but without",
+          "icd9_code": "347.01",
+          "icd10_code": "G47.411"
+        },
+        {
+          "id": "HYPOCRETIN_DEFICIENCY_2",
+          "label": "hypocretin deficiency",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "AUTOSOMAL_DOMINANT_CEREBELLAR_ATAXIA",
+          "label": "Autosomal dominant cerebellar ataxia,",
+          "icd9_code": "347.00",
+          "icd10_code": "G47.419"
+        },
+        {
+          "id": "DEAFNESS",
+          "label": "deafness",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "AND_NARCOLEPSY",
+          "label": "and narcolepsy",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "AUTOSOMAL_DOMINANT_NARCOLEPSY_OBESITY_AND",
+          "label": "Autosomal dominant narcolepsy, obesity, and",
+          "icd9_code": "347.00",
+          "icd10_code": "G47.419"
+        },
+        {
+          "id": "TYPE_2_DIABETES",
+          "label": "type 2 diabetes",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_FEMALE_ORGASMIC_DISORDERA_B_C_302_73_SPECIFIERS",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "FEMALE_ORGASMIC_DISORDERA_B_C_302_73"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "NEVER_EXPERIENCED_AN_ORGASM_UNDER_ANY",
+          "label": "Never experienced an orgasm under any",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "SITUATION",
+          "label": "situation",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_SUBSTANCE_MEDICATION_INDUCED_SEXUAL_DYSFUNCTIONC_SPECIFIERS",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "SUBSTANCE_MEDICATION_INDUCED_SEXUAL_DYSFUNCTIONC"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "WITH_ONSET_DURING_INTOXICATION",
+          "label": "With onset during intoxication",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "WITH_ONSET_DURING_WITHDRAWAL",
+          "label": "With onset during withdrawal",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "WITH_ONSET_AFTER_MEDICATION_USE",
+          "label": "With onset after medication use",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_GENDER_DYSPHORIA_SPECIFIERS",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "GENDER_DYSPHORIA"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "WITH_A_DISORDER_OF_SEX_DEVELOPMENT",
+          "label": "With a disorder of sex development",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "GENDER_DYSPHORIA_IN_ADOLESCENTS_AND_ADULTS",
+          "label": "Gender Dysphoria in Adolescents and Adults",
+          "icd9_code": "302.85",
+          "icd10_code": "F64.1"
+        }
+      ]
+    },
+    {
+      "id": "SPEC_GENDER_DYSPHORIA_SPECIFIERS_2",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "GENDER_DYSPHORIA"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "WITH_A_DISORDER_OF_SEX_DEVELOPMENT",
+          "label": "With a disorder of sex development",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_GENDER_DYSPHORIA_SPECIFIERS_3",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "GENDER_DYSPHORIA"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "POSTTRANSITION",
+          "label": "Posttransition",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_OPPOSITIONAL_DEFIANT_DISORDER_313_81_CURRENT_SEVERITY",
+      "label": "Current Severity",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "OPPOSITIONAL_DEFIANT_DISORDER_313_81"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "MILD",
+          "label": "Mild",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "MODERATE",
+          "label": "Moderate",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "SEVERE",
+          "label": "Severe",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_CONDUCT_DISORDER_SPECIFIERS",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "CONDUCT_DISORDER"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "CHILDHOOD_ONSET_TYPE",
+          "label": "Childhood-onset type",
+          "icd9_code": "312.81",
+          "icd10_code": "F91.1"
+        },
+        {
+          "id": "ADOLESCENT_ONSET_TYPE",
+          "label": "Adolescent-onset type",
+          "icd9_code": "312.82",
+          "icd10_code": "F91.2"
+        },
+        {
+          "id": "XXVI_DSM_5_CLASSIFICATION",
+          "label": "xxvi DSM-5 Classification",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "UNSPECIFIED_ONSET",
+          "label": "Unspecified onset",
+          "icd9_code": "312.89",
+          "icd10_code": "F91.9"
+        }
+      ]
+    },
+    {
+      "id": "SPEC_CONDUCT_DISORDER_SPECIFIERS_2",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "CONDUCT_DISORDER"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "WITH_LIMITED_PROSOCIAL_EMOTIONS",
+          "label": "With limited prosocial emotions",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_CONDUCT_DISORDER_CURRENT_SEVERITY",
+      "label": "Current Severity",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "CONDUCT_DISORDER"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "MILD",
+          "label": "Mild",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "MODERATE",
+          "label": "Moderate",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "SEVERE",
+          "label": "Severe",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_ALCOHOL_USE_DISORDERA_B_CURRENT_SEVERITY",
+      "label": "Current Severity",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "ALCOHOL_USE_DISORDERA_B"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "MILD",
+          "label": "Mild",
+          "icd9_code": "305.00",
+          "icd10_code": "F10.10"
+        },
+        {
+          "id": "MODERATE",
+          "label": "Moderate",
+          "icd9_code": "303.90",
+          "icd10_code": "F10.20"
+        },
+        {
+          "id": "SEVERE",
+          "label": "Severe",
+          "icd9_code": "303.90",
+          "icd10_code": "F10.20"
+        }
+      ]
+    },
+    {
+      "id": "SPEC_CANNABIS_USE_DISORDERA_B_CURRENT_SEVERITY",
+      "label": "Current Severity",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "CANNABIS_USE_DISORDERA_B"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "MILD",
+          "label": "Mild",
+          "icd9_code": "305.20",
+          "icd10_code": "F12.10"
+        },
+        {
+          "id": "MODERATE",
+          "label": "Moderate",
+          "icd9_code": "304.30",
+          "icd10_code": "F12.20"
+        },
+        {
+          "id": "SEVERE",
+          "label": "Severe",
+          "icd9_code": "304.30",
+          "icd10_code": "F12.20"
+        }
+      ]
+    },
+    {
+      "id": "SPEC_PHENCYCLIDINE_USE_DISORDERA_B_CURRENT_SEVERITY",
+      "label": "Current Severity",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "PHENCYCLIDINE_USE_DISORDERA_B"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "XXVIII_DSM_5_CLASSIFICATION",
+          "label": "xxviii DSM-5 Classification",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "MILD",
+          "label": "Mild",
+          "icd9_code": "305.90",
+          "icd10_code": "F16.10"
+        },
+        {
+          "id": "MODERATE",
+          "label": "Moderate",
+          "icd9_code": "304.60",
+          "icd10_code": "F16.20"
+        },
+        {
+          "id": "SEVERE",
+          "label": "Severe",
+          "icd9_code": "304.60",
+          "icd10_code": "F16.20"
+        }
+      ]
+    },
+    {
+      "id": "SPEC_OTHER_HALLUCINOGEN_USE_DISORDERA_B_CURRENT_SEVERITY",
+      "label": "Current Severity",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "OTHER_HALLUCINOGEN_USE_DISORDERA_B"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "MILD",
+          "label": "Mild",
+          "icd9_code": "305.30",
+          "icd10_code": "F16.10"
+        },
+        {
+          "id": "MODERATE",
+          "label": "Moderate",
+          "icd9_code": "304.50",
+          "icd10_code": "F16.20"
+        },
+        {
+          "id": "SEVERE",
+          "label": "Severe",
+          "icd9_code": "304.50",
+          "icd10_code": "F16.20"
+        }
+      ]
+    },
+    {
+      "id": "SPEC_INHALANT_USE_DISORDERA_B_CURRENT_SEVERITY",
+      "label": "Current Severity",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "INHALANT_USE_DISORDERA_B"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "MILD",
+          "label": "Mild",
+          "icd9_code": "305.90",
+          "icd10_code": "F18.10"
+        },
+        {
+          "id": "MODERATE",
+          "label": "Moderate",
+          "icd9_code": "304.60",
+          "icd10_code": "F18.20"
+        },
+        {
+          "id": "SEVERE",
+          "label": "Severe",
+          "icd9_code": "304.60",
+          "icd10_code": "F18.20"
+        }
+      ]
+    },
+    {
+      "id": "SPEC_OPIOID_USE_DISORDERA_SPECIFIERS",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "OPIOID_USE_DISORDERA"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "ON_MAINTENANCE_THERAPY",
+          "label": "On maintenance therapy",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "IN_A_CONTROLLED",
+          "label": "In a controlled",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "ENVIRONMENT",
+          "label": "environment",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_OPIOID_USE_DISORDERA_CURRENT_SEVERITY",
+      "label": "Current Severity",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "OPIOID_USE_DISORDERA"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "MILD",
+          "label": "Mild",
+          "icd9_code": "305.50",
+          "icd10_code": "F11.10"
+        },
+        {
+          "id": "MODERATE",
+          "label": "Moderate",
+          "icd9_code": "304.00",
+          "icd10_code": "F11.20"
+        },
+        {
+          "id": "SEVERE",
+          "label": "Severe",
+          "icd9_code": "304.00",
+          "icd10_code": "F11.20"
+        }
+      ]
+    },
+    {
+      "id": "SPEC_SEDATIVE_HYPNOTIC_OR_ANXIOLYTIC_USE_DISORDERA_B_CURRENT_SEVERITY",
+      "label": "Current Severity",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "SEDATIVE_HYPNOTIC_OR_ANXIOLYTIC_USE_DISORDERA_B"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "MILD",
+          "label": "Mild",
+          "icd9_code": "305.40",
+          "icd10_code": "F13.10"
+        },
+        {
+          "id": "MODERATE",
+          "label": "Moderate",
+          "icd9_code": "304.10",
+          "icd10_code": "F13.20"
+        },
+        {
+          "id": "SEVERE",
+          "label": "Severe",
+          "icd9_code": "304.10",
+          "icd10_code": "F13.20"
+        }
+      ]
+    },
+    {
+      "id": "SPEC_STIMULANT_USE_DISORDERA_B_CURRENT_SEVERITY",
+      "label": "Current Severity",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "STIMULANT_USE_DISORDERA_B"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "MILD",
+          "label": "Mild",
+          "icd9_code": "___.__",
+          "icd10_code": "___.__"
+        },
+        {
+          "id": "AMPHETAMINE_TYPE_SUBSTANCE",
+          "label": "Amphetamine-type substance",
+          "icd9_code": "305.70",
+          "icd10_code": "F15.10"
+        },
+        {
+          "id": "COCAINE",
+          "label": "Cocaine",
+          "icd9_code": "305.60",
+          "icd10_code": "F14.10"
+        },
+        {
+          "id": "OTHER_OR_UNSPECIFIED_STIMULANT",
+          "label": "Other or unspecified stimulant",
+          "icd9_code": "305.70",
+          "icd10_code": "F15.10"
+        },
+        {
+          "id": "MODERATE",
+          "label": "Moderate",
+          "icd9_code": "___.__",
+          "icd10_code": "___.__"
+        },
+        {
+          "id": "AMPHETAMINE_TYPE_SUBSTANCE_2",
+          "label": "Amphetamine-type substance",
+          "icd9_code": "304.40",
+          "icd10_code": "F15.20"
+        },
+        {
+          "id": "COCAINE_2",
+          "label": "Cocaine",
+          "icd9_code": "304.20",
+          "icd10_code": "F14.20"
+        },
+        {
+          "id": "OTHER_OR_UNSPECIFIED_STIMULANT_2",
+          "label": "Other or unspecified stimulant",
+          "icd9_code": "304.40",
+          "icd10_code": "F15.20"
+        },
+        {
+          "id": "SEVERE",
+          "label": "Severe",
+          "icd9_code": "___.__",
+          "icd10_code": "___.__"
+        },
+        {
+          "id": "AMPHETAMINE_TYPE_SUBSTANCE_3",
+          "label": "Amphetamine-type substance",
+          "icd9_code": "304.40",
+          "icd10_code": "F15.20"
+        },
+        {
+          "id": "COCAINE_3",
+          "label": "Cocaine",
+          "icd9_code": "304.20",
+          "icd10_code": "F14.20"
+        },
+        {
+          "id": "OTHER_OR_UNSPECIFIED_STIMULANT_3",
+          "label": "Other or unspecified stimulant",
+          "icd9_code": "304.40",
+          "icd10_code": "F15.20"
+        }
+      ]
+    },
+    {
+      "id": "SPEC_STIMULANT_INTOXICATIONC_292_89_THE_SPECIFIC_INTOXICANT",
+      "label": "the specific intoxicant",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "STIMULANT_INTOXICATIONC_292_89"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "AMPHETAMINE_OR_OTHER_STIMULANT_WITHOUT",
+          "label": "Amphetamine or other stimulant, Without",
+          "icd9_code": "292.89",
+          "icd10_code": "___.__"
+        },
+        {
+          "id": "PERCEPTUAL_DISTURBANCES",
+          "label": "perceptual disturbances",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "F15_129_WITH_USE_DISORDER",
+          "label": "(F15.129) With use disorder",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "MILD",
+          "label": "mild",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "F15_229_WITH_USE_DISORDER",
+          "label": "(F15.229) With use disorder",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "MODERATE_OR_SEVERE",
+          "label": "moderate or severe",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "F15_929_WITHOUT_USE_DISORDER",
+          "label": "(F15.929) Without use disorder",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "DSM_5_CLASSIFICATION_XXXI",
+          "label": "DSM-5 Classification xxxi",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "COCAINE_WITHOUT_PERCEPTUAL_DISTURBANCES",
+          "label": "Cocaine, Without perceptual disturbances",
+          "icd9_code": "292.89",
+          "icd10_code": "___.__"
+        },
+        {
+          "id": "F14_129_WITH_USE_DISORDER",
+          "label": "(F14.129) With use disorder",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "MILD_2",
+          "label": "mild",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "F14_229_WITH_USE_DISORDER",
+          "label": "(F14.229) With use disorder",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "MODERATE_OR_SEVERE_2",
+          "label": "moderate or severe",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "F14_929_WITHOUT_USE_DISORDER",
+          "label": "(F14.929) Without use disorder",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "AMPHETAMINE_OR_OTHER_STIMULANT_WITH",
+          "label": "Amphetamine or other stimulant, With",
+          "icd9_code": "292.89",
+          "icd10_code": "___.__"
+        },
+        {
+          "id": "PERCEPTUAL_DISTURBANCES_2",
+          "label": "perceptual disturbances",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "F15_122_WITH_USE_DISORDER",
+          "label": "(F15.122) With use disorder",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "MILD_3",
+          "label": "mild",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "F15_222_WITH_USE_DISORDER",
+          "label": "(F15.222) With use disorder",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "MODERATE_OR_SEVERE_3",
+          "label": "moderate or severe",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "F15_922_WITHOUT_USE_DISORDER",
+          "label": "(F15.922) Without use disorder",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "COCAINE_WITH_PERCEPTUAL_DISTURBANCES",
+          "label": "Cocaine, With perceptual disturbances",
+          "icd9_code": "292.89",
+          "icd10_code": "___.__"
+        },
+        {
+          "id": "F14_122_WITH_USE_DISORDER",
+          "label": "(F14.122) With use disorder",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "MILD_4",
+          "label": "mild",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "F14_222_WITH_USE_DISORDER",
+          "label": "(F14.222) With use disorder",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "MODERATE_OR_SEVERE_4",
+          "label": "moderate or severe",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "F14_922_WITHOUT_USE_DISORDER",
+          "label": "(F14.922) Without use disorder",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_STIMULANT_WITHDRAWALD_292_0_THE_SPECIFIC_SUBSTANCE_CAUSING_THE_WITHDRAWAL_SYNDROME",
+      "label": "the specific substance causing the withdrawal syndrome",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "STIMULANT_WITHDRAWALD_292_0"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "F15_23_AMPHETAMINE_OR_OTHER_STIMULANT",
+          "label": "(F15.23) Amphetamine or other stimulant",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "F14_23_COCAINE",
+          "label": "(F14.23) Cocaine",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_TOBACCO_USE_DISORDERA_SPECIFIERS",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "TOBACCO_USE_DISORDERA"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "ON_MAINTENANCE_THERAPY",
+          "label": "On maintenance therapy",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "IN_A_CONTROLLED",
+          "label": "In a controlled",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "ENVIRONMENT",
+          "label": "environment",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_TOBACCO_USE_DISORDERA_CURRENT_SEVERITY",
+      "label": "Current Severity",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "TOBACCO_USE_DISORDERA"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "MILD",
+          "label": "Mild",
+          "icd9_code": "305.1",
+          "icd10_code": "Z72.0"
+        },
+        {
+          "id": "MODERATE",
+          "label": "Moderate",
+          "icd9_code": "305.1",
+          "icd10_code": "F17.200"
+        },
+        {
+          "id": "SEVERE",
+          "label": "Severe",
+          "icd9_code": "305.1",
+          "icd10_code": "F17.200"
+        }
+      ]
+    },
+    {
+      "id": "SPEC_OTHER_TOBACCO_INDUCED_DISORDERS_CURRENT_SEVERITY",
+      "label": "Current Severity",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "OTHER_TOBACCO_INDUCED_DISORDERS"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "MILD",
+          "label": "Mild",
+          "icd9_code": "305.90",
+          "icd10_code": "F19.10"
+        },
+        {
+          "id": "MODERATE",
+          "label": "Moderate",
+          "icd9_code": "304.90",
+          "icd10_code": "F19.20"
+        },
+        {
+          "id": "SEVERE",
+          "label": "Severe",
+          "icd9_code": "304.90",
+          "icd10_code": "F19.20"
+        }
+      ]
+    },
+    {
+      "id": "SPEC_GAMBLING_DISORDERA_312_31_SPECIFIERS",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "GAMBLING_DISORDERA_312_31"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "EPISODIC",
+          "label": "Episodic",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "PERSISTENT",
+          "label": "Persistent",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_GAMBLING_DISORDERA_312_31_CURRENT_SEVERITY",
+      "label": "Current Severity",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "GAMBLING_DISORDERA_312_31"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "MILD",
+          "label": "Mild",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "MODERATE",
+          "label": "Moderate",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "SEVERE",
+          "label": "Severe",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_MILD_NEUROCOGNITIVE_DISORDER_DUE_TO_TRAUMATIC_BRAIN_INJURYA_SUBSTANCE_MEDICATION_INDUCED_MAJOR_OR_MILD_NEUROCOGNITIVE_DISORDERA_331_83_SPECIFIERS",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "MILD_NEUROCOGNITIVE_DISORDER_DUE_TO_TRAUMATIC_BRAIN_INJURYA_SUBSTANCE_MEDICATION_INDUCED_MAJOR_OR_MILD_NEUROCOGNITIVE_DISORDERA_331_83"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "PERSISTENT",
+          "label": "Persistent",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_DELIRIUM_SPECIFIERS",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "DELIRIUM"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "SUBSTANCE_INTOXICATION_DELIRIUMA",
+          "label": "Substance intoxication deliriuma",
+          "icd9_code": "___.__",
+          "icd10_code": "___.__"
+        },
+        {
+          "id": "SUBSTANCE_WITHDRAWAL_DELIRIUMA",
+          "label": "Substance withdrawal deliriuma",
+          "icd9_code": "___.__",
+          "icd10_code": "___.__"
+        },
+        {
+          "id": "DSM_5_CLASSIFICATION_XXXIII",
+          "label": "DSM-5 Classification xxxiii",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "MEDICATION_INDUCED_DELIRIUMA",
+          "label": "Medication-induced deliriuma",
+          "icd9_code": "292.81",
+          "icd10_code": "___.__"
+        },
+        {
+          "id": "DELIRIUM_DUE_TO_ANOTHER_MEDICAL_CONDITION",
+          "label": "Delirium due to another medical condition",
+          "icd9_code": "293.0",
+          "icd10_code": "F05"
+        },
+        {
+          "id": "DELIRIUM_DUE_TO_MULTIPLE_ETIOLOGIES",
+          "label": "Delirium due to multiple etiologies",
+          "icd9_code": "293.0",
+          "icd10_code": "F05"
+        }
+      ]
+    },
+    {
+      "id": "SPEC_DELIRIUM_SPECIFIERS_2",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "DELIRIUM"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "ACUTE",
+          "label": "Acute",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "PERSISTENT",
+          "label": "Persistent",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_DELIRIUM_SPECIFIERS_3",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "DELIRIUM"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "HYPERACTIVE",
+          "label": "Hyperactive",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "HYPOACTIVE",
+          "label": "Hypoactive",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "MIXED_LEVEL_OF",
+          "label": "Mixed level of",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "ACTIVITY",
+          "label": "activity",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_UNSPECIFIED_DELIRIUM_780_09_SPECIFIERS",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "UNSPECIFIED_DELIRIUM_780_09"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "ALZHEIMER_S_DISEASE",
+          "label": "Alzheimer\u2019s disease",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "FRONTOTEMPORAL_LOBAR_DEGENERATION",
+          "label": "Frontotemporal lobar degeneration",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "LEWY_BODY_DISEASE",
+          "label": "Lewy body disease",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "VASCULAR_DISEASE",
+          "label": "Vascular disease",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "TRAUMATIC_BRAIN_INJURY",
+          "label": "Traumatic brain injury",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "SUBSTANCE_MEDICATION_USE",
+          "label": "Substance/medication use",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "HIV_INFECTION",
+          "label": "HIV infection",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "PRION_DISEASE",
+          "label": "Prion disease",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "PARKINSON_S",
+          "label": "Parkinson\u2019s",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "DISEASE",
+          "label": "disease",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "HUNTINGTON_S_DISEASE",
+          "label": "Huntington\u2019s disease",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "ANOTHER_MEDICAL_CONDITION",
+          "label": "Another medical condition",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "MULTIPLE_ETIOLOGIES",
+          "label": "Multiple etiologies",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "UNSPECIFIED",
+          "label": "Unspecified",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "ASPECIFY_WITHOUT_BEHAVIORAL_DISTURBANCE",
+          "label": "aSpecify Without behavioral disturbance",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "WITH_BEHAVIORAL_DISTURBANCE",
+          "label": "With behavioral disturbance.",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "FOR_POSSIBLE_MAJOR_NEUROCOGNITIVE_DISORDER_AND_FOR_MILD_NEUROCOGNITIVE_DISORDER",
+          "label": "For possible major neurocognitive disorder and for mild neurocognitive disorder",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "BEHAVIORAL_DISTURBANCE_CANNOT_BE_CODED_BUT_SHOULD_STILL_BE_INDICATED_IN",
+          "label": "behavioral disturbance cannot be coded but should still be indicated in",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "WRITING",
+          "label": "writing.",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "BSPECIFY_CURRENT_SEVERITY_MILD",
+          "label": "bSpecify current severity: Mild",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "MODERATE",
+          "label": "Moderate",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "SEVERE_THIS_SPECIFIER_APPLIES_ONLY",
+          "label": "Severe. This specifier applies only",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "TO_MAJOR_NEUROCOGNITIVE_DISORDERS_INCLUDING_PROBABLE_AND_POSSIBLE",
+          "label": "to major neurocognitive disorders (including probable and possible).",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_PERSONALITY_CHANGE_DUE_TO_ANOTHER_MEDICAL_CONDITION_310_1_SPECIFIERS",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "PERSONALITY_CHANGE_DUE_TO_ANOTHER_MEDICAL_CONDITION_310_1"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "LABILE_TYPE",
+          "label": "Labile type",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "DISINHIBITED_TYPE",
+          "label": "Disinhibited type",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "AGGRESSIVE_TYPE",
+          "label": "Aggressive type",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "APATHETIC_TYPE",
+          "label": "Apathetic type",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "PARANOID_TYPE",
+          "label": "Paranoid type",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "OTHER_TYPE",
+          "label": "Other type",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "COMBINED_TYPE",
+          "label": "Combined type",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "UNSPECIFIED_TYPE",
+          "label": "Unspecified type",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_EXHIBITIONISTIC_DISORDERA_302_4_SPECIFIERS",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "EXHIBITIONISTIC_DISORDERA_302_4"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "SEXUALLY_AROUSED_BY_EXPOSING",
+          "label": "Sexually aroused by exposing",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "GENITALS_TO_PREPUBERTAL_CHILDREN",
+          "label": "genitals to prepubertal children",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "SEXUALLY",
+          "label": "Sexually",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "AROUSED_BY_EXPOSING_GENITALS_TO_PHYSICALLY_MATURE_INDIVIDUALS",
+          "label": "aroused by exposing genitals to physically mature individuals",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "SEXUALLY_AROUSED_BY_EXPOSING_2",
+          "label": "Sexually aroused by exposing",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "GENITALS_TO_PREPUBERTAL_CHILDREN_AND_TO_PHYSICALLY_MATURE_INDIVIDUALS",
+          "label": "genitals to prepubertal children and to physically mature individuals",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_SEXUAL_MASOCHISM_DISORDERA_302_83_SPECIFIERS",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "SEXUAL_MASOCHISM_DISORDERA_302_83"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "WITH_ASPHYXIOPHILIA",
+          "label": "With asphyxiophilia",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_PEDOPHILIC_DISORDER_302_2_SPECIFIERS",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "PEDOPHILIC_DISORDER_302_2"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "EXCLUSIVE_TYPE",
+          "label": "Exclusive type",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "NONEXCLUSIVE",
+          "label": "Nonexclusive",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "TYPE",
+          "label": "type",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_PEDOPHILIC_DISORDER_302_2_SPECIFIERS_2",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "PEDOPHILIC_DISORDER_302_2"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "SEXUALLY_ATTRACTED_TO_MALES",
+          "label": "Sexually attracted to males",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "SEXUALLY_ATTRACTED_TO_FEMALES",
+          "label": "Sexually attracted to females",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "SEXUALLY_ATTRACTED_TO_BOTH",
+          "label": "Sexually attracted to both",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_PEDOPHILIC_DISORDER_302_2_SPECIFIERS_3",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "PEDOPHILIC_DISORDER_302_2"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "LIMITED_TO_INCEST",
+          "label": "Limited to incest",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_FETISHISTIC_DISORDERA_302_81_SPECIFIERS",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "FETISHISTIC_DISORDERA_302_81"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "BODY_PART_S",
+          "label": "Body part(s)",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "NONLIVING_OBJECT_S",
+          "label": "Nonliving object(s)",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "OTHER",
+          "label": "Other",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    },
+    {
+      "id": "SPEC_TRANSVESTIC_DISORDERA_302_3_SPECIFIERS",
+      "label": "Specifiers",
+      "applies_to": "disorder",
+      "applies_to_disorders": [
+        "TRANSVESTIC_DISORDERA_302_3"
+      ],
+      "type": "enum",
+      "values": [
+        {
+          "id": "WITH_FETISHISM",
+          "label": "With fetishism",
+          "icd9_code": null,
+          "icd10_code": null
+        },
+        {
+          "id": "WITH_AUTOGYNEPHILIA",
+          "label": "With autogynephilia",
+          "icd9_code": null,
+          "icd10_code": null
+        }
+      ]
+    }
+  ]
+}

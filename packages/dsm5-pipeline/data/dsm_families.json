@@ -1,0 +1,5390 @@
+[
+  {
+    "family": "Neurodevelopmental Disorders",
+    "page": 17,
+    "groups": [
+      {
+        "name": "Intellectual Disabilities",
+        "page": 17,
+        "disorders": [
+          {
+            "icd9": "___.__",
+            "icd10": "___.__",
+            "name": "Intellectual Disability (Intellectual Developmental\nDisorder)",
+            "page": 17,
+            "specifiers": [
+              {
+                "label": "Current Severity",
+                "type": "enum",
+                "values": [
+                  {
+                    "label": "Mild",
+                    "icd9_code": "317",
+                    "icd10_code": "F70"
+                  },
+                  {
+                    "label": "Moderate",
+                    "icd9_code": "318.0",
+                    "icd10_code": "F71"
+                  },
+                  {
+                    "label": "Severe",
+                    "icd9_code": "318.1",
+                    "icd10_code": "F72"
+                  },
+                  {
+                    "label": "Profound",
+                    "icd9_code": "318.2",
+                    "icd10_code": "F73"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "icd9": "315.8",
+            "icd10": "F88",
+            "name": "Global Developmental Delay",
+            "page": 23,
+            "specifiers": []
+          },
+          {
+            "icd9": "319",
+            "icd10": "F79",
+            "name": "Unspecified Intellectual Disability (Intellectual\nDevelopmental Disorder)",
+            "page": 23,
+            "specifiers": []
+          }
+        ],
+        "page_end": 23
+      },
+      {
+        "name": "Communication Disorders",
+        "page": 24,
+        "disorders": [
+          {
+            "icd9": "315.32",
+            "icd10": "F80.2",
+            "name": "Language Disorder",
+            "page": 24,
+            "specifiers": []
+          },
+          {
+            "icd9": "315.39",
+            "icd10": "F80.0",
+            "name": "Speech Sound Disorder",
+            "page": 24,
+            "specifiers": []
+          },
+          {
+            "icd9": "315.35",
+            "icd10": "F80.81",
+            "name": "Childhood-Onset Fluency Disorder (Stuttering)",
+            "page": 25,
+            "specifiers": []
+          },
+          {
+            "icd9": "315.39",
+            "icd10": "F80.89",
+            "name": "Social (Pragmatic) Communication Disorder",
+            "page": 26,
+            "specifiers": []
+          }
+        ],
+        "page_end": 26
+      },
+      {
+        "name": "Autism Spectrum Disorder",
+        "page": 27,
+        "disorders": [
+          {
+            "icd9": "307.9",
+            "icd10": "F80.9",
+            "name": "Unspecified Communication Disorder",
+            "page": 27,
+            "specifiers": []
+          },
+          {
+            "icd9": "299.00",
+            "icd10": "F84.0",
+            "name": "Autism Spectrum Disorder",
+            "page": 27,
+            "specifiers": [
+              {
+                "label": "Specifiers",
+                "type": "enum",
+                "values": [
+                  {
+                    "label": "Associated with a known medical or genetic condition or environmental factor",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "Associated with another neurodevelopmental",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "mental",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "or behavioral disorder",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  }
+                ]
+              },
+              {
+                "label": "Current Severity",
+                "type": "enum",
+                "values": [
+                  {
+                    "label": "Requiring very substantial support",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "Requiring substantial support",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "Requiring support",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  }
+                ]
+              },
+              {
+                "label": "Specifiers",
+                "type": "enum",
+                "values": [
+                  {
+                    "label": "With or without accompanying intellectual impairment",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "With or without accompanying language impairment",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "With catatonia (use",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "additional code 293.89 [F06.1])",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "page_end": 30
+      },
+      {
+        "name": "Attention-Deficit/Hyperactivity Disorder",
+        "page": 31,
+        "disorders": [
+          {
+            "icd9": "___.__",
+            "icd10": "___.__",
+            "name": "Attention-Deficit/Hyperactivity Disorder",
+            "page": 31,
+            "specifiers": [
+              {
+                "label": "Specifiers",
+                "type": "enum",
+                "values": [
+                  {
+                    "label": "Combined presentation",
+                    "icd9_code": "314.01",
+                    "icd10_code": "F90.2"
+                  },
+                  {
+                    "label": "Predominantly inattentive presentation",
+                    "icd9_code": "314.00",
+                    "icd10_code": "F90.0"
+                  },
+                  {
+                    "label": "Predominantly hyperactive/impulsive",
+                    "icd9_code": "314.01",
+                    "icd10_code": "F90.1"
+                  },
+                  {
+                    "label": "presentation",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  }
+                ]
+              },
+              {
+                "label": "Specifiers",
+                "type": "enum",
+                "values": [
+                  {
+                    "label": "In partial remission",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  }
+                ]
+              },
+              {
+                "label": "Current Severity",
+                "type": "enum",
+                "values": [
+                  {
+                    "label": "Mild",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "Moderate",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "Severe",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "icd9": "314.01",
+            "icd10": "F90.8",
+            "name": "Other Specified Attention-Deficit/Hyperactivity\nDisorder",
+            "page": 35,
+            "specifiers": []
+          },
+          {
+            "icd9": "314.01",
+            "icd10": "F90.9",
+            "name": "Unspecified Attention-Deficit/Hyperactivity\nDisorder",
+            "page": 35,
+            "specifiers": []
+          }
+        ],
+        "page_end": 35
+      },
+      {
+        "name": "Specific Learning Disorder",
+        "page": 36,
+        "disorders": [
+          {
+            "icd9": "___.__",
+            "icd10": "___.__",
+            "name": "Specific Learning Disorder",
+            "page": 36,
+            "specifiers": [
+              {
+                "label": "Specifiers",
+                "type": "enum",
+                "values": [
+                  {
+                    "label": "With impairment in reading (specify if with",
+                    "icd9_code": "315.00",
+                    "icd10_code": "F81.0"
+                  },
+                  {
+                    "label": "word reading accuracy",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "reading rate or",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "fluency",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "reading comprehension)",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "With impairment in written expression (specify",
+                    "icd9_code": "315.2",
+                    "icd10_code": "F81.81"
+                  },
+                  {
+                    "label": "if with spelling accuracy",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "grammar and",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "punctuation accuracy",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "clarity or",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "organization of written expression)",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "page_end": 38
+      },
+      {
+        "name": "Motor Disorders",
+        "page": 39,
+        "disorders": [
+          {
+            "icd9": "315.1",
+            "icd10": "F81.2",
+            "name": "With impairment in mathematics (specify if\nwith number sense, memorization of\narithmetic facts, accurate or fluent\ncalculation, accurate math reasoning)\nSpecify current severity: Mild, Moderate, Severe\nMotor Disorders",
+            "page": 39,
+            "specifiers": []
+          },
+          {
+            "icd9": "315.4",
+            "icd10": "F82",
+            "name": "Developmental Coordination Disorder",
+            "page": 39,
+            "specifiers": []
+          },
+          {
+            "icd9": "307.3",
+            "icd10": "F98.4",
+            "name": "Stereotypic Movement Disorder",
+            "page": 40,
+            "specifiers": [
+              {
+                "label": "Specifiers",
+                "type": "enum",
+                "values": [
+                  {
+                    "label": "With self-injurious behavior",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "Without",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "self-injurious behavior",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  }
+                ]
+              },
+              {
+                "label": "Specifiers",
+                "type": "enum",
+                "values": [
+                  {
+                    "label": "Associated with a known medical or genetic condition",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "neurodevelopmental disorder",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "or environmental factor",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  }
+                ]
+              },
+              {
+                "label": "Current Severity",
+                "type": "enum",
+                "values": [
+                  {
+                    "label": "Mild",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "Moderate",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "Severe",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "Tic Disorders",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "icd9": "307.23",
+            "icd10": "F95.2",
+            "name": "Tourette's Disorder",
+            "page": 41,
+            "specifiers": []
+          },
+          {
+            "icd9": "307.22",
+            "icd10": "F95.1",
+            "name": "Persistent (Chronic) Motor or Vocal Tic Disorder",
+            "page": 41,
+            "specifiers": [
+              {
+                "label": "Specifiers",
+                "type": "enum",
+                "values": [
+                  {
+                    "label": "With motor tics only",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "With vocal tics only",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "icd9": "307.21",
+            "icd10": "F95.0",
+            "name": "Provisional Tic Disorder",
+            "page": 42,
+            "specifiers": []
+          },
+          {
+            "icd9": "307.20",
+            "icd10": "F95.8",
+            "name": "Other Specified Tic Disorder",
+            "page": 42,
+            "specifiers": []
+          },
+          {
+            "icd9": "307.20",
+            "icd10": "F95.9",
+            "name": "Unspecified Tic Disorder",
+            "page": 42,
+            "specifiers": []
+          }
+        ],
+        "page_end": 42
+      },
+      {
+        "name": "Other Neurodevelopmental Disorders",
+        "page": 43,
+        "disorders": [
+          {
+            "icd9": "315.8",
+            "icd10": "F88",
+            "name": "Other Specified Neurodevelopmental Disorder",
+            "page": 43,
+            "specifiers": []
+          },
+          {
+            "icd9": "315.9",
+            "icd10": "F89",
+            "name": "Unspecified Neurodevelopmental Disorder",
+            "page": 44,
+            "specifiers": []
+          }
+        ],
+        "page_end": 44
+      }
+    ],
+    "disorders": [],
+    "page_end": 44
+  },
+  {
+    "family": "Schizophrenia Spectrum and Other Psychotic Disorders",
+    "page": 45,
+    "groups": [
+      {
+        "name": "Disorder (Catatonia Specifier)",
+        "page": 60,
+        "disorders": [
+          {
+            "icd9": "293.89",
+            "icd10": "F06.1",
+            "name": "Catatonia Associated With Another Mental\nDisorder (Catatonia Specifier)",
+            "page": 60,
+            "specifiers": []
+          },
+          {
+            "icd9": "293.89",
+            "icd10": "F06.1",
+            "name": "Catatonic Disorder Due to Another Medical\nCondition",
+            "page": 61,
+            "specifiers": []
+          },
+          {
+            "icd9": "293.89",
+            "icd10": "F06.1",
+            "name": "Unspecified Catatonia",
+            "page": 62,
+            "specifiers": []
+          }
+        ],
+        "page_end": 62
+      },
+      {
+        "name": "Other Psychotic Disorder",
+        "page": 63,
+        "disorders": [
+          {
+            "icd9": "298.8",
+            "icd10": "F28",
+            "name": "Other Specified Schizophrenia Spectrum and\nOther Psychotic Disorder",
+            "page": 63,
+            "specifiers": []
+          }
+        ],
+        "page_end": 63
+      },
+      {
+        "name": "Psychotic Disorder",
+        "page": 64,
+        "disorders": [
+          {
+            "icd9": "298.9",
+            "icd10": "F29",
+            "name": "Unspecified Schizophrenia Spectrum and Other\nPsychotic Disorder",
+            "page": 64,
+            "specifiers": []
+          }
+        ],
+        "page_end": 64
+      }
+    ],
+    "disorders": [
+      {
+        "icd9": "301.22",
+        "icd10": "F21",
+        "name": "Schizotypal (Personality) Disorder",
+        "page": 45,
+        "specifiers": []
+      },
+      {
+        "icd9": "297.1",
+        "icd10": "F22",
+        "name": "Delusional Disordera, c",
+        "page": 45,
+        "specifiers": [
+          {
+            "label": "Specifiers",
+            "type": "enum",
+            "values": [
+              {
+                "label": "Erotomanic type",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "Grandiose type",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "Jealous type",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "Persecutory type",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "Somatic type",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "Mixed type",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "Unspecified type",
+                "icd9_code": null,
+                "icd10_code": null
+              }
+            ]
+          },
+          {
+            "label": "Specifiers",
+            "type": "enum",
+            "values": [
+              {
+                "label": "With bizarre content",
+                "icd9_code": null,
+                "icd10_code": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "icd9": "298.8",
+        "icd10": "F23",
+        "name": "Brief Psychotic Disorderb, c",
+        "page": 47,
+        "specifiers": [
+          {
+            "label": "Specifiers",
+            "type": "enum",
+            "values": [
+              {
+                "label": "With marked stressor(s)",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "Without marked",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "stressor(s)",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "With postpartum onset",
+                "icd9_code": null,
+                "icd10_code": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "icd9": "295.40",
+        "icd10": "F20.81",
+        "name": "Schizophreniform Disorderb, c",
+        "page": 49,
+        "specifiers": [
+          {
+            "label": "Specifiers",
+            "type": "enum",
+            "values": [
+              {
+                "label": "With good prognostic features",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "Without",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "good prognostic features",
+                "icd9_code": null,
+                "icd10_code": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "icd9": "295.90",
+        "icd10": "F20.9",
+        "name": "Schizophreniaa, b, c",
+        "page": 50,
+        "specifiers": []
+      },
+      {
+        "icd9": "___.__",
+        "icd10": "___.__",
+        "name": "Schizoaffective Disordera, b, c",
+        "page": 53,
+        "specifiers": [
+          {
+            "label": "Specifiers",
+            "type": "enum",
+            "values": [
+              {
+                "label": "Bipolar type",
+                "icd9_code": "295.70",
+                "icd10_code": "F25.0"
+              },
+              {
+                "label": "Depressive type",
+                "icd9_code": "295.70",
+                "icd10_code": "F25.1"
+              },
+              {
+                "label": "DSM-5 Classification xiii",
+                "icd9_code": null,
+                "icd10_code": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "icd9": "___.__",
+        "icd10": "___.__",
+        "name": "Substance/Medication-Induced Psychotic\nDisorderc",
+        "page": 55,
+        "specifiers": [
+          {
+            "label": "Specifiers",
+            "type": "enum",
+            "values": [
+              {
+                "label": "With onset during intoxication",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "With onset during withdrawal",
+                "icd9_code": null,
+                "icd10_code": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "icd9": "___.__",
+        "icd10": "___.__",
+        "name": "Psychotic Disorder Due to Another Medical\nConditionc",
+        "page": 59,
+        "specifiers": [
+          {
+            "label": "Specifiers",
+            "type": "enum",
+            "values": [
+              {
+                "label": "With delusions",
+                "icd9_code": "293.81",
+                "icd10_code": "F06.2"
+              },
+              {
+                "label": "With hallucinations",
+                "icd9_code": "293.82",
+                "icd10_code": "F06.0"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "page_end": 64
+  },
+  {
+    "family": "Bipolar and Related Disorders",
+    "page": 65,
+    "groups": [
+      {
+        "name": "Related Disorder",
+        "page": 76,
+        "disorders": [
+          {
+            "icd9": "301.13",
+            "icd10": "F34.0",
+            "name": "Cyclothymic Disorder",
+            "page": 76,
+            "specifiers": [
+              {
+                "label": "Specifiers",
+                "type": "enum",
+                "values": [
+                  {
+                    "label": "With anxious distress",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "DSM-5 Classification xv",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "icd9": "___.__",
+            "icd10": "___.__",
+            "name": "Substance/Medication-Induced Bipolar and\nRelated Disorder",
+            "page": 76,
+            "specifiers": [
+              {
+                "label": "Specifiers",
+                "type": "enum",
+                "values": [
+                  {
+                    "label": "With onset during intoxication",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "With onset during withdrawal",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "page_end": 79
+      },
+      {
+        "name": "Medical Condition",
+        "page": 80,
+        "disorders": [
+          {
+            "icd9": "293.83",
+            "icd10": "___.__",
+            "name": "Bipolar and Related Disorder Due to Another\nMedical Condition",
+            "page": 80,
+            "specifiers": [
+              {
+                "label": "Specifiers",
+                "type": "enum",
+                "values": [
+                  {
+                    "label": "(F06.33) With manic features",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "(F06.33) With manic- or hypomanic-like episode",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "(F06.34) With mixed features",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "icd9": "296.89",
+            "icd10": "F31.89",
+            "name": "Other Specified Bipolar and Related Disorder",
+            "page": 81,
+            "specifiers": []
+          },
+          {
+            "icd9": "296.80",
+            "icd10": "F31.9",
+            "name": "Unspecified Bipolar and Related Disorder",
+            "page": 83,
+            "specifiers": []
+          }
+        ],
+        "page_end": 92
+      }
+    ],
+    "disorders": [
+      {
+        "icd9": "___.__",
+        "icd10": "___.__",
+        "name": "Bipolar I Disordera",
+        "page": 65,
+        "specifiers": []
+      },
+      {
+        "icd9": "296.89",
+        "icd10": "F31.81",
+        "name": "Bipolar II Disordera",
+        "page": 71,
+        "specifiers": [
+          {
+            "label": "current or most recent episode",
+            "type": "enum",
+            "values": [
+              {
+                "label": "Hypomanic",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "Depressed",
+                "icd9_code": null,
+                "icd10_code": null
+              }
+            ]
+          },
+          {
+            "label": "course if full criteria for a mood episode",
+            "type": "enum",
+            "values": [
+              {
+                "label": "are not currently met: In partial remission",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "In",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "full remission",
+                "icd9_code": null,
+                "icd10_code": null
+              }
+            ]
+          },
+          {
+            "label": "severity if full criteria for a mood episode",
+            "type": "enum",
+            "values": [
+              {
+                "label": "are currently met: Mild",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "Moderate",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "Severe",
+                "icd9_code": null,
+                "icd10_code": null
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "page_end": 92
+  },
+  {
+    "family": "Depressive Disorders",
+    "page": 93,
+    "groups": [],
+    "disorders": [
+      {
+        "icd9": "296.99",
+        "icd10": "F34.8",
+        "name": "Disruptive Mood Dysregulation Disorder",
+        "page": 93,
+        "specifiers": []
+      },
+      {
+        "icd9": "___.__",
+        "icd10": "___.__",
+        "name": "Major Depressive Disordera",
+        "page": 94,
+        "specifiers": []
+      },
+      {
+        "icd9": "300.4",
+        "icd10": "F34.1",
+        "name": "Persistent Depressive Disorder (Dysthymia)a",
+        "page": 97,
+        "specifiers": [
+          {
+            "label": "Specifiers",
+            "type": "enum",
+            "values": [
+              {
+                "label": "In partial remission",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "In full remission",
+                "icd9_code": null,
+                "icd10_code": null
+              }
+            ]
+          },
+          {
+            "label": "Specifiers",
+            "type": "enum",
+            "values": [
+              {
+                "label": "Early onset",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "Late onset",
+                "icd9_code": null,
+                "icd10_code": null
+              }
+            ]
+          },
+          {
+            "label": "Specifiers",
+            "type": "enum",
+            "values": [
+              {
+                "label": "With pure dysthymic syndrome",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "With",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "persistent major depressive episode",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "With intermittent major depressive episodes",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "with current",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "episode",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "With intermittent major depressive episodes",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "without current episode",
+                "icd9_code": null,
+                "icd10_code": null
+              }
+            ]
+          },
+          {
+            "label": "Current Severity",
+            "type": "enum",
+            "values": [
+              {
+                "label": "Mild",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "Moderate",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "Severe",
+                "icd9_code": null,
+                "icd10_code": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "icd9": "625.4",
+        "icd10": "N94.3",
+        "name": "Premenstrual Dysphoric Disorder",
+        "page": 100,
+        "specifiers": []
+      },
+      {
+        "icd9": "___.__",
+        "icd10": "___.__",
+        "name": "Substance/Medication-Induced Depressive\nDisorder",
+        "page": 101,
+        "specifiers": [
+          {
+            "label": "Specifiers",
+            "type": "enum",
+            "values": [
+              {
+                "label": "With onset during intoxication",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "With onset during withdrawal",
+                "icd9_code": null,
+                "icd10_code": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "icd9": "293.83",
+        "icd10": "___.__",
+        "name": "Depressive Disorder Due to Another Medical\nCondition",
+        "page": 105,
+        "specifiers": [
+          {
+            "label": "Specifiers",
+            "type": "enum",
+            "values": [
+              {
+                "label": "(F06.31) With depressive features",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "(F06.32) With major depressive-like episode",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "(F06.34) With mixed features",
+                "icd9_code": null,
+                "icd10_code": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "icd9": "311",
+        "icd10": "F32.8",
+        "name": "Other Specified Depressive Disorder",
+        "page": 106,
+        "specifiers": []
+      },
+      {
+        "icd9": "311",
+        "icd10": "F32.9",
+        "name": "Unspecified Depressive Disorder",
+        "page": 107,
+        "specifiers": []
+      }
+    ],
+    "page_end": 114
+  },
+  {
+    "family": "Anxiety Disorders",
+    "page": 115,
+    "groups": [],
+    "disorders": [
+      {
+        "icd9": "309.21",
+        "icd10": "F93.0",
+        "name": "Separation Anxiety Disorder",
+        "page": 115,
+        "specifiers": []
+      },
+      {
+        "icd9": "313.23",
+        "icd10": "F94.0",
+        "name": "Selective Mutism",
+        "page": 116,
+        "specifiers": []
+      },
+      {
+        "icd9": "300.29",
+        "icd10": "___.__",
+        "name": "Specific Phobia",
+        "page": 116,
+        "specifiers": [
+          {
+            "label": "Specifiers",
+            "type": "enum",
+            "values": [
+              {
+                "label": "(F40.218) Animal",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "(F40.228) Natural environment",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "(___.__) Blood-injection-injury",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "(F40.230) Fear of blood",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "(F40.231) Fear of injections and transfusions",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "(F40.232) Fear of other medical care",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "(F40.233) Fear of injury",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "(F40.248) Situational",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "(F40.298) Other",
+                "icd9_code": null,
+                "icd10_code": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "icd9": "300.23",
+        "icd10": "F40.10",
+        "name": "Social Anxiety Disorder (Social Phobia)",
+        "page": 118,
+        "specifiers": [
+          {
+            "label": "Specifiers",
+            "type": "enum",
+            "values": [
+              {
+                "label": "Performance only",
+                "icd9_code": null,
+                "icd10_code": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "icd9": "300.01",
+        "icd10": "F41.0",
+        "name": "Panic Disorder",
+        "page": 119,
+        "specifiers": []
+      },
+      {
+        "icd9": "___.__",
+        "icd10": "___.__",
+        "name": "Panic Attack Specifier",
+        "page": 120,
+        "specifiers": []
+      },
+      {
+        "icd9": "300.22",
+        "icd10": "F40.00",
+        "name": "Agoraphobia",
+        "page": 121,
+        "specifiers": []
+      },
+      {
+        "icd9": "300.02",
+        "icd10": "F41.1",
+        "name": "Generalized Anxiety Disorder",
+        "page": 122,
+        "specifiers": []
+      },
+      {
+        "icd9": "___.__",
+        "icd10": "___.__",
+        "name": "Substance/Medication-Induced Anxiety Disorder",
+        "page": 123,
+        "specifiers": [
+          {
+            "label": "Specifiers",
+            "type": "enum",
+            "values": [
+              {
+                "label": "With onset during intoxication",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "With onset during withdrawal",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "With onset after medication use",
+                "icd9_code": null,
+                "icd10_code": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "icd9": "293.84",
+        "icd10": "F06.4",
+        "name": "Anxiety Disorder Due to Another Medical\nCondition",
+        "page": 127,
+        "specifiers": []
+      },
+      {
+        "icd9": "300.09",
+        "icd10": "F41.8",
+        "name": "Other Specified Anxiety Disorder",
+        "page": 128,
+        "specifiers": []
+      },
+      {
+        "icd9": "300.00",
+        "icd10": "F41.9",
+        "name": "Unspecified Anxiety Disorder",
+        "page": 128,
+        "specifiers": []
+      }
+    ],
+    "page_end": 128
+  },
+  {
+    "family": "Obsessive-Compulsive and Related Disorders",
+    "page": 129,
+    "groups": [
+      {
+        "name": "Compulsive and Related Disorder",
+        "page": 134,
+        "disorders": [
+          {
+            "icd9": "___.__",
+            "icd10": "___.__",
+            "name": "Substance/Medication-Induced ObsessiveCompulsive and Related Disorder",
+            "page": 134,
+            "specifiers": [
+              {
+                "label": "Specifiers",
+                "type": "enum",
+                "values": [
+                  {
+                    "label": "With onset during intoxication",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "With onset during withdrawal",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "With onset after medication use",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "icd9": "294.8",
+            "icd10": "F06.8",
+            "name": "Obsessive-Compulsive and Related Disorder Due\nto Another Medical Condition",
+            "page": 137,
+            "specifiers": [
+              {
+                "label": "Specifiers",
+                "type": "enum",
+                "values": [
+                  {
+                    "label": "With obsessive-compulsive disorder\u2013like",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "symptoms",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "With appearance preoccupations",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "With hoarding symptoms",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "With hair-pulling",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "symptoms",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "With skin-picking symptoms",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "page_end": 137
+      },
+      {
+        "name": "Related Disorder",
+        "page": 138,
+        "disorders": [
+          {
+            "icd9": "300.3",
+            "icd10": "F42",
+            "name": "Other Specified Obsessive-Compulsive and\nRelated Disorder",
+            "page": 138,
+            "specifiers": []
+          },
+          {
+            "icd9": "300.3",
+            "icd10": "F42",
+            "name": "Unspecified Obsessive-Compulsive and Related\nDisorder",
+            "page": 140,
+            "specifiers": []
+          }
+        ],
+        "page_end": 140
+      }
+    ],
+    "disorders": [
+      {
+        "icd9": "300.3",
+        "icd10": "F42",
+        "name": "Obsessive-Compulsive Disordera",
+        "page": 129,
+        "specifiers": [
+          {
+            "label": "Specifiers",
+            "type": "enum",
+            "values": [
+              {
+                "label": "Tic-related",
+                "icd9_code": null,
+                "icd10_code": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "icd9": "300.7",
+        "icd10": "F45.22",
+        "name": "Body Dysmorphic Disordera",
+        "page": 131,
+        "specifiers": [
+          {
+            "label": "Specifiers",
+            "type": "enum",
+            "values": [
+              {
+                "label": "With muscle dysmorphia",
+                "icd9_code": null,
+                "icd10_code": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "icd9": "300.3",
+        "icd10": "F42",
+        "name": "Hoarding Disordera",
+        "page": 132,
+        "specifiers": [
+          {
+            "label": "Specifiers",
+            "type": "enum",
+            "values": [
+              {
+                "label": "With excessive acquisition",
+                "icd9_code": null,
+                "icd10_code": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "icd9": "312.39",
+        "icd10": "F63.3",
+        "name": "Trichotillomania (Hair-Pulling Disorder)",
+        "page": 133,
+        "specifiers": []
+      },
+      {
+        "icd9": "698.4",
+        "icd10": "L98.1",
+        "name": "Excoriation (Skin-Picking) Disorder",
+        "page": 133,
+        "specifiers": []
+      }
+    ],
+    "page_end": 140
+  },
+  {
+    "family": "Trauma- and Stressor-Related Disorders",
+    "page": 141,
+    "groups": [],
+    "disorders": [
+      {
+        "icd9": "313.89",
+        "icd10": "F94.1",
+        "name": "Reactive Attachment Disorder",
+        "page": 141,
+        "specifiers": [
+          {
+            "label": "Specifiers",
+            "type": "enum",
+            "values": [
+              {
+                "label": "Persistent",
+                "icd9_code": null,
+                "icd10_code": null
+              }
+            ]
+          },
+          {
+            "label": "Current Severity",
+            "type": "enum",
+            "values": [
+              {
+                "label": "Severe",
+                "icd9_code": null,
+                "icd10_code": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "icd9": "313.89",
+        "icd10": "F94.2",
+        "name": "Disinhibited Social Engagement Disorder",
+        "page": 142,
+        "specifiers": [
+          {
+            "label": "Specifiers",
+            "type": "enum",
+            "values": [
+              {
+                "label": "Persistent",
+                "icd9_code": null,
+                "icd10_code": null
+              }
+            ]
+          },
+          {
+            "label": "Current Severity",
+            "type": "enum",
+            "values": [
+              {
+                "label": "Severe",
+                "icd9_code": null,
+                "icd10_code": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "icd9": "309.81",
+        "icd10": "F43.10",
+        "name": "Posttraumatic Stress Disorder (includes\nPosttraumatic Stress Disorder for Children\n6 Years and Younger)",
+        "page": 143,
+        "specifiers": [
+          {
+            "label": "Specifiers",
+            "type": "enum",
+            "values": [
+              {
+                "label": "With dissociative symptoms",
+                "icd9_code": null,
+                "icd10_code": null
+              }
+            ]
+          },
+          {
+            "label": "Specifiers",
+            "type": "enum",
+            "values": [
+              {
+                "label": "With delayed expression",
+                "icd9_code": null,
+                "icd10_code": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "icd9": "308.3",
+        "icd10": "F43.0",
+        "name": "Acute Stress Disorder",
+        "page": 149,
+        "specifiers": []
+      },
+      {
+        "icd9": "___.__",
+        "icd10": "___.__",
+        "name": "Adjustment Disorders",
+        "page": 151,
+        "specifiers": [
+          {
+            "label": "Specifiers",
+            "type": "enum",
+            "values": [
+              {
+                "label": "With depressed mood",
+                "icd9_code": "309.0",
+                "icd10_code": "F43.21"
+              },
+              {
+                "label": "With anxiety",
+                "icd9_code": "309.24",
+                "icd10_code": "F43.22"
+              },
+              {
+                "label": "With mixed anxiety and depressed mood",
+                "icd9_code": "309.28",
+                "icd10_code": "F43.23"
+              },
+              {
+                "label": "With disturbance of conduct",
+                "icd9_code": "309.3",
+                "icd10_code": "F43.24"
+              },
+              {
+                "label": "With mixed disturbance of emotions and conduct",
+                "icd9_code": "309.4",
+                "icd10_code": "F43.25"
+              },
+              {
+                "label": "Unspecified",
+                "icd9_code": "309.9",
+                "icd10_code": "F43.20"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "icd9": "309.89",
+        "icd10": "F43.8",
+        "name": "Other Specified Trauma- and Stressor-Related\nDisorder",
+        "page": 152,
+        "specifiers": []
+      },
+      {
+        "icd9": "309.9",
+        "icd10": "F43.9",
+        "name": "Unspecified Trauma- and Stressor-Related\nDisorder",
+        "page": 153,
+        "specifiers": []
+      }
+    ],
+    "page_end": 154
+  },
+  {
+    "family": "Dissociative Disorders",
+    "page": 155,
+    "groups": [],
+    "disorders": [
+      {
+        "icd9": "300.14",
+        "icd10": "F44.81",
+        "name": "Dissociative Identity Disorder",
+        "page": 155,
+        "specifiers": []
+      },
+      {
+        "icd9": "300.12",
+        "icd10": "F44.0",
+        "name": "Dissociative Amnesia",
+        "page": 156,
+        "specifiers": [
+          {
+            "label": "Specifiers",
+            "type": "enum",
+            "values": [
+              {
+                "label": "With dissociative fugue",
+                "icd9_code": "300.13",
+                "icd10_code": "F44.1"
+              },
+              {
+                "label": "xx DSM-5 Classification",
+                "icd9_code": null,
+                "icd10_code": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "icd9": "300.6",
+        "icd10": "F48.1",
+        "name": "Depersonalization/Derealization Disorder",
+        "page": 157,
+        "specifiers": []
+      },
+      {
+        "icd9": "300.15",
+        "icd10": "F44.89",
+        "name": "Other Specified Dissociative Disorder",
+        "page": 158,
+        "specifiers": []
+      },
+      {
+        "icd9": "300.15",
+        "icd10": "F44.9",
+        "name": "Unspecified Dissociative Disorder",
+        "page": 159,
+        "specifiers": []
+      }
+    ],
+    "page_end": 160
+  },
+  {
+    "family": "Somatic Symptom and Related Disorders",
+    "page": 161,
+    "groups": [],
+    "disorders": [
+      {
+        "icd9": "300.82",
+        "icd10": "F45.1",
+        "name": "Somatic Symptom Disorder",
+        "page": 161,
+        "specifiers": [
+          {
+            "label": "Specifiers",
+            "type": "enum",
+            "values": [
+              {
+                "label": "With predominant pain",
+                "icd9_code": null,
+                "icd10_code": null
+              }
+            ]
+          },
+          {
+            "label": "Specifiers",
+            "type": "enum",
+            "values": [
+              {
+                "label": "Persistent",
+                "icd9_code": null,
+                "icd10_code": null
+              }
+            ]
+          },
+          {
+            "label": "Current Severity",
+            "type": "enum",
+            "values": [
+              {
+                "label": "Mild",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "Moderate",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "Severe",
+                "icd9_code": null,
+                "icd10_code": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "icd9": "300.7",
+        "icd10": "F45.21",
+        "name": "Illness Anxiety Disorder",
+        "page": 162,
+        "specifiers": [
+          {
+            "label": "Specifiers",
+            "type": "enum",
+            "values": [
+              {
+                "label": "Care seeking type",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "Care avoidant",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "type",
+                "icd9_code": null,
+                "icd10_code": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "icd9": "300.11",
+        "icd10": "___.__",
+        "name": "Conversion Disorder (Functional Neurological\nSymptom Disorder)",
+        "page": 163,
+        "specifiers": [
+          {
+            "label": "symptom type",
+            "type": "enum",
+            "values": [
+              {
+                "label": "(F44.4) With weakness or paralysis",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "(F44.4) With abnormal movement",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "(F44.4) With swallowing symptoms",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "(F44.4) Withspeech symptom",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "(F44.5) With attacks or seizures",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "(F44.6) With anesthesia or sensory loss",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "(F44.6) With special sensory symptom",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "(F44.7) With mixed symptoms",
+                "icd9_code": null,
+                "icd10_code": null
+              }
+            ]
+          },
+          {
+            "label": "Specifiers",
+            "type": "enum",
+            "values": [
+              {
+                "label": "Acute episode",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "Persistent",
+                "icd9_code": null,
+                "icd10_code": null
+              }
+            ]
+          },
+          {
+            "label": "Specifiers",
+            "type": "enum",
+            "values": [
+              {
+                "label": "With psychological stressor (specify",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "stressor)",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "Without psychological stressor",
+                "icd9_code": null,
+                "icd10_code": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "icd9": "316",
+        "icd10": "F54",
+        "name": "Psychological Factors Affecting Other Medical\nConditions",
+        "page": 164,
+        "specifiers": [
+          {
+            "label": "Current Severity",
+            "type": "enum",
+            "values": [
+              {
+                "label": "Mild",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "Moderate",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "Severe",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "Extreme",
+                "icd9_code": null,
+                "icd10_code": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "icd9": "300.19",
+        "icd10": "F68.10",
+        "name": "Factitious Disorder (includes Factitious Disorder\nImposed on Self, Factitious Disorder\nImposed on Another)",
+        "page": 165,
+        "specifiers": [
+          {
+            "label": "Single episode, Recurrent episodes",
+            "type": "enum",
+            "values": [
+              {
+                "label": "DSM-5 Classification xxi",
+                "icd9_code": null,
+                "icd10_code": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "icd9": "300.89",
+        "icd10": "F45.8",
+        "name": "Other Specified Somatic Symptom and Related\nDisorder",
+        "page": 166,
+        "specifiers": []
+      },
+      {
+        "icd9": "300.82",
+        "icd10": "F45.9",
+        "name": "Unspecified Somatic Symptom and Related\nDisorder",
+        "page": 167,
+        "specifiers": []
+      }
+    ],
+    "page_end": 168
+  },
+  {
+    "family": "Feeding and Eating Disorders",
+    "page": 169,
+    "groups": [],
+    "disorders": [
+      {
+        "icd9": "307.52",
+        "icd10": "___.__",
+        "name": "Picaa",
+        "page": 169,
+        "specifiers": []
+      },
+      {
+        "icd9": "307.53",
+        "icd10": "F98.21",
+        "name": "Rumination Disordera",
+        "page": 169,
+        "specifiers": []
+      },
+      {
+        "icd9": "307.59",
+        "icd10": "F50.8",
+        "name": "Avoidant/Restrictive Food Intake Disordera",
+        "page": 170,
+        "specifiers": []
+      },
+      {
+        "icd9": "307.1",
+        "icd10": "___.__",
+        "name": "Anorexia Nervosab, c",
+        "page": 171,
+        "specifiers": [
+          {
+            "label": "Specifiers",
+            "type": "enum",
+            "values": [
+              {
+                "label": "(F50.01) Restricting type",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "(F50.02) Binge-eating/purging type",
+                "icd9_code": null,
+                "icd10_code": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "icd9": "307.51",
+        "icd10": "F50.2",
+        "name": "Bulimia Nervosab, c",
+        "page": 172,
+        "specifiers": []
+      },
+      {
+        "icd9": "307.51",
+        "icd10": "F50.8",
+        "name": "Binge-Eating Disorderb, c",
+        "page": 174,
+        "specifiers": []
+      },
+      {
+        "icd9": "307.59",
+        "icd10": "F50.8",
+        "name": "Other Specified Feeding or Eating Disorder",
+        "page": 175,
+        "specifiers": []
+      },
+      {
+        "icd9": "307.50",
+        "icd10": "F50.9",
+        "name": "Unspecified Feeding or Eating Disorder",
+        "page": 176,
+        "specifiers": []
+      }
+    ],
+    "page_end": 176
+  },
+  {
+    "family": "Elimination Disorders",
+    "page": 177,
+    "groups": [],
+    "disorders": [
+      {
+        "icd9": "307.6",
+        "icd10": "F98.0",
+        "name": "Enuresis",
+        "page": 177,
+        "specifiers": [
+          {
+            "label": "Specifiers",
+            "type": "enum",
+            "values": [
+              {
+                "label": "Nocturnal only",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "Diurnal only",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "Nocturnal and diurnal",
+                "icd9_code": null,
+                "icd10_code": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "icd9": "307.7",
+        "icd10": "F98.1",
+        "name": "Encopresis",
+        "page": 178,
+        "specifiers": [
+          {
+            "label": "Specifiers",
+            "type": "enum",
+            "values": [
+              {
+                "label": "With constipation and overflow",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "incontinence",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "Without constipation and overflow incontinence",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "xxii DSM-5 Classification",
+                "icd9_code": null,
+                "icd10_code": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "icd9": "___.__",
+        "icd10": "___.__",
+        "name": "Other Specified Elimination Disorder",
+        "page": 178,
+        "specifiers": []
+      },
+      {
+        "icd9": "___.__",
+        "icd10": "___.__",
+        "name": "Unspecified Elimination Disorder",
+        "page": 179,
+        "specifiers": []
+      }
+    ],
+    "page_end": 180
+  },
+  {
+    "family": "Sleep-Wake Disorders",
+    "page": 181,
+    "groups": [
+      {
+        "name": "Breathing-Related Sleep Disorders",
+        "page": 186,
+        "disorders": [
+          {
+            "icd9": "347.10",
+            "icd10": "G47.429",
+            "name": "Narcolepsy secondary to another medical\ncondition\nBreathing-Related Sleep Disorders",
+            "page": 186,
+            "specifiers": []
+          },
+          {
+            "icd9": "327.23",
+            "icd10": "G47.33",
+            "name": "Obstructive Sleep Apnea Hypopneac",
+            "page": 186,
+            "specifiers": []
+          },
+          {
+            "icd9": "___.__",
+            "icd10": "___.__",
+            "name": "Central Sleep Apnea",
+            "page": 186,
+            "specifiers": [
+              {
+                "label": "Specifiers",
+                "type": "enum",
+                "values": [
+                  {
+                    "label": "Idiopathic central sleep apnea",
+                    "icd9_code": "327.21",
+                    "icd10_code": "G47.31"
+                  },
+                  {
+                    "label": "Cheyne-Stokes breathing",
+                    "icd9_code": "786.04",
+                    "icd10_code": "R06.3"
+                  },
+                  {
+                    "label": "Central sleep apnea comorbid with opioid use",
+                    "icd9_code": "780.57",
+                    "icd10_code": "G47.37"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "icd9": "___.__",
+            "icd10": "___.__",
+            "name": "Sleep-Related Hypoventilation",
+            "page": 187,
+            "specifiers": [
+              {
+                "label": "Specifiers",
+                "type": "enum",
+                "values": [
+                  {
+                    "label": "Idiopathic hypoventilation",
+                    "icd9_code": "327.24",
+                    "icd10_code": "G47.34"
+                  },
+                  {
+                    "label": "Congenital central alveolar hypoventilation",
+                    "icd9_code": "327.25",
+                    "icd10_code": "G47.35"
+                  },
+                  {
+                    "label": "Comorbid sleep-related hypoventilation",
+                    "icd9_code": "327.26",
+                    "icd10_code": "G47.36"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "icd9": "___.__",
+            "icd10": "___.__",
+            "name": "Circadian Rhythm Sleep-Wake Disordersa",
+            "page": 188,
+            "specifiers": []
+          },
+          {
+            "icd9": "307.45",
+            "icd10": "G47.21",
+            "name": "Delayed sleep phase type",
+            "page": 189,
+            "specifiers": [
+              {
+                "label": "Specifiers",
+                "type": "enum",
+                "values": [
+                  {
+                    "label": "Familial",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "Overlapping with non-24hour sleep-wake type",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "icd9": "307.45",
+            "icd10": "G47.22",
+            "name": "Advanced sleep phase type",
+            "page": 189,
+            "specifiers": [
+              {
+                "label": "Specifiers",
+                "type": "enum",
+                "values": [
+                  {
+                    "label": "Familial",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "icd9": "307.45",
+            "icd10": "G47.23",
+            "name": "Irregular sleep-wake type",
+            "page": 189,
+            "specifiers": []
+          },
+          {
+            "icd9": "307.45",
+            "icd10": "G47.24",
+            "name": "Non-24-hour sleep-wake type",
+            "page": 189,
+            "specifiers": []
+          },
+          {
+            "icd9": "307.45",
+            "icd10": "G47.26",
+            "name": "Shift work type",
+            "page": 189,
+            "specifiers": []
+          }
+        ],
+        "page_end": 189
+      },
+      {
+        "name": "Parasomnias",
+        "page": 190,
+        "disorders": [
+          {
+            "icd9": "307.45",
+            "icd10": "G47.20",
+            "name": "Unspecified type\nParasomnias",
+            "page": 190,
+            "specifiers": []
+          },
+          {
+            "icd9": "___.__",
+            "icd10": "__.__",
+            "name": "Non\u2013Rapid Eye Movement Sleep Arousal\nDisorders",
+            "page": 190,
+            "specifiers": [
+              {
+                "label": "Specifiers",
+                "type": "enum",
+                "values": [
+                  {
+                    "label": "Sleepwalking type",
+                    "icd9_code": "307.46",
+                    "icd10_code": "F51.3"
+                  }
+                ]
+              },
+              {
+                "label": "Specifiers",
+                "type": "enum",
+                "values": [
+                  {
+                    "label": "With sleep-related eating",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "With sleeprelated sexual behavior (sexsomnia)",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "Sleep terror type",
+                    "icd9_code": "307.46",
+                    "icd10_code": "F51.4"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "icd9": "307.47",
+            "icd10": "F51.5",
+            "name": "Nightmare Disorderb, c",
+            "page": 191,
+            "specifiers": [
+              {
+                "label": "Specifiers",
+                "type": "enum",
+                "values": [
+                  {
+                    "label": "During sleep onset",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  }
+                ]
+              },
+              {
+                "label": "Specifiers",
+                "type": "enum",
+                "values": [
+                  {
+                    "label": "With associated non\u2013sleep disorder",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "With associated other medical condition",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "With",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "associated other sleep disorder",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "xxiv DSM-5 Classification",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "icd9": "327.42",
+            "icd10": "G47.52",
+            "name": "Rapid Eye Movement Sleep Behavior Disorder",
+            "page": 192,
+            "specifiers": []
+          },
+          {
+            "icd9": "333.94",
+            "icd10": "G25.81",
+            "name": "Restless Legs Syndrome",
+            "page": 193,
+            "specifiers": []
+          },
+          {
+            "icd9": "___.__",
+            "icd10": "___.__",
+            "name": "Substance/Medication-Induced Sleep Disorder",
+            "page": 193,
+            "specifiers": [
+              {
+                "label": "Specifiers",
+                "type": "enum",
+                "values": [
+                  {
+                    "label": "Insomnia type",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "Daytime sleepiness type",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "Parasomnia type",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "Mixed type",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  }
+                ]
+              },
+              {
+                "label": "Specifiers",
+                "type": "enum",
+                "values": [
+                  {
+                    "label": "With onset during intoxication",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "With onset during discontinuation/withdrawal",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "icd9": "780.52",
+            "icd10": "G47.09",
+            "name": "Other Specified Insomnia Disorder",
+            "page": 197,
+            "specifiers": []
+          },
+          {
+            "icd9": "780.52",
+            "icd10": "G47.00",
+            "name": "Unspecified Insomnia Disorder",
+            "page": 198,
+            "specifiers": []
+          },
+          {
+            "icd9": "780.54",
+            "icd10": "G47.19",
+            "name": "Other Specified Hypersomnolence Disorder",
+            "page": 198,
+            "specifiers": []
+          },
+          {
+            "icd9": "780.54",
+            "icd10": "G47.10",
+            "name": "Unspecified Hypersomnolence Disorder",
+            "page": 199,
+            "specifiers": []
+          },
+          {
+            "icd9": "780.59",
+            "icd10": "G47.8",
+            "name": "Other Specified Sleep-Wake Disorder",
+            "page": 199,
+            "specifiers": []
+          },
+          {
+            "icd9": "780.59",
+            "icd10": "G47.9",
+            "name": "Unspecified Sleep-Wake Disorder",
+            "page": 200,
+            "specifiers": []
+          }
+        ],
+        "page_end": 200
+      }
+    ],
+    "disorders": [
+      {
+        "icd9": "787.60",
+        "icd10": "R15.9",
+        "name": "With fecal symptoms\nSleep-Wake Disorders",
+        "page": 181,
+        "specifiers": []
+      },
+      {
+        "icd9": "307.42",
+        "icd10": "F51.01",
+        "name": "Insomnia Disordera",
+        "page": 181,
+        "specifiers": [
+          {
+            "label": "Specifiers",
+            "type": "enum",
+            "values": [
+              {
+                "label": "With non\u2013sleep disorder mental comorbidity",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "With other medical comorbidity",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "With",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "other sleep disorder",
+                "icd9_code": null,
+                "icd10_code": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "icd9": "307.44",
+        "icd10": "F51.11",
+        "name": "Hypersomnolence Disorderb, c",
+        "page": 182,
+        "specifiers": [
+          {
+            "label": "Specifiers",
+            "type": "enum",
+            "values": [
+              {
+                "label": "With mental disorder",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "With medical",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "condition",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "With another sleep disorder",
+                "icd9_code": null,
+                "icd10_code": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "icd9": "___.__",
+        "icd10": "___.__",
+        "name": "Narcolepsyc",
+        "page": 184,
+        "specifiers": [
+          {
+            "label": "Specifiers",
+            "type": "enum",
+            "values": [
+              {
+                "label": "Narcolepsy without cataplexy but with",
+                "icd9_code": "347.00",
+                "icd10_code": "G47.419"
+              },
+              {
+                "label": "hypocretin deficiency",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "Narcolepsy with cataplexy but without",
+                "icd9_code": "347.01",
+                "icd10_code": "G47.411"
+              },
+              {
+                "label": "hypocretin deficiency",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "Autosomal dominant cerebellar ataxia,",
+                "icd9_code": "347.00",
+                "icd10_code": "G47.419"
+              },
+              {
+                "label": "deafness",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "and narcolepsy",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "Autosomal dominant narcolepsy, obesity, and",
+                "icd9_code": "347.00",
+                "icd10_code": "G47.419"
+              },
+              {
+                "label": "type 2 diabetes",
+                "icd9_code": null,
+                "icd10_code": null
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "page_end": 200
+  },
+  {
+    "family": "Sexual Dysfunctions",
+    "page": 201,
+    "groups": [],
+    "disorders": [
+      {
+        "icd9": "302.74",
+        "icd10": "F52.32",
+        "name": "Delayed Ejaculationa, b, c",
+        "page": 201,
+        "specifiers": []
+      },
+      {
+        "icd9": "302.72",
+        "icd10": "F52.21",
+        "name": "Erectile Disordera, b, c",
+        "page": 202,
+        "specifiers": []
+      },
+      {
+        "icd9": "302.73",
+        "icd10": "F52.31",
+        "name": "Female Orgasmic Disordera, b, c",
+        "page": 203,
+        "specifiers": [
+          {
+            "label": "Specifiers",
+            "type": "enum",
+            "values": [
+              {
+                "label": "Never experienced an orgasm under any",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "situation",
+                "icd9_code": null,
+                "icd10_code": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "icd9": "302.72",
+        "icd10": "F52.22",
+        "name": "Female Sexual Interest/Arousal Disordera, b, c",
+        "page": 204,
+        "specifiers": []
+      },
+      {
+        "icd9": "302.76",
+        "icd10": "F52.6",
+        "name": "Genito-Pelvic Pain/Penetration Disordera, c",
+        "page": 205,
+        "specifiers": []
+      },
+      {
+        "icd9": "302.71",
+        "icd10": "F52.0",
+        "name": "Male Hypoactive Sexual Desire Disordera, b, c",
+        "page": 206,
+        "specifiers": []
+      },
+      {
+        "icd9": "302.75",
+        "icd10": "F52.4",
+        "name": "Premature (Early) Ejaculationa, b, c",
+        "page": 207,
+        "specifiers": []
+      },
+      {
+        "icd9": "___.__",
+        "icd10": "___.__",
+        "name": "Substance/Medication-Induced Sexual\nDysfunctionc",
+        "page": 208,
+        "specifiers": [
+          {
+            "label": "Specifiers",
+            "type": "enum",
+            "values": [
+              {
+                "label": "With onset during intoxication",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "With onset during withdrawal",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "With onset after medication use",
+                "icd9_code": null,
+                "icd10_code": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "icd9": "302.79",
+        "icd10": "F52.8",
+        "name": "Other Specified Sexual Dysfunction",
+        "page": 212,
+        "specifiers": []
+      },
+      {
+        "icd9": "302.70",
+        "icd10": "F52.9",
+        "name": "Unspecified Sexual Dysfunction",
+        "page": 213,
+        "specifiers": []
+      }
+    ],
+    "page_end": 214
+  },
+  {
+    "family": "Gender Dysphoria",
+    "page": 215,
+    "groups": [],
+    "disorders": [
+      {
+        "icd9": "___.__",
+        "icd10": "__.__",
+        "name": "Gender Dysphoria",
+        "page": 215,
+        "specifiers": [
+          {
+            "label": "Specifiers",
+            "type": "enum",
+            "values": [
+              {
+                "label": "With a disorder of sex development",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "Gender Dysphoria in Adolescents and Adults",
+                "icd9_code": "302.85",
+                "icd10_code": "F64.1"
+              }
+            ]
+          },
+          {
+            "label": "Specifiers",
+            "type": "enum",
+            "values": [
+              {
+                "label": "With a disorder of sex development",
+                "icd9_code": null,
+                "icd10_code": null
+              }
+            ]
+          },
+          {
+            "label": "Specifiers",
+            "type": "enum",
+            "values": [
+              {
+                "label": "Posttransition",
+                "icd9_code": null,
+                "icd10_code": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "icd9": "302.6",
+        "icd10": "F64.8",
+        "name": "Other Specified Gender Dysphoria",
+        "page": 217,
+        "specifiers": []
+      },
+      {
+        "icd9": "302.6",
+        "icd10": "F64.9",
+        "name": "Unspecified Gender Dysphoria",
+        "page": 218,
+        "specifiers": []
+      }
+    ],
+    "page_end": 218
+  },
+  {
+    "family": "Disruptive, Impulse-Control, and Conduct Disorders",
+    "page": 219,
+    "groups": [
+      {
+        "name": "Conduct Disorder",
+        "page": 225,
+        "disorders": [
+          {
+            "icd9": "312.32",
+            "icd10": "F63.2",
+            "name": "Kleptomania",
+            "page": 225,
+            "specifiers": []
+          },
+          {
+            "icd9": "312.89",
+            "icd10": "F91.8",
+            "name": "Other Specified Disruptive, Impulse-Control, and\nConduct Disorder",
+            "page": 225,
+            "specifiers": []
+          }
+        ],
+        "page_end": 225
+      },
+      {
+        "name": "Conduct Disorder",
+        "page": 226,
+        "disorders": [
+          {
+            "icd9": "312.9",
+            "icd10": "F91.9",
+            "name": "Unspecified Disruptive, Impulse-Control, and\nConduct Disorder",
+            "page": 226,
+            "specifiers": []
+          }
+        ],
+        "page_end": 226
+      }
+    ],
+    "disorders": [
+      {
+        "icd9": "313.81",
+        "icd10": "F91.3",
+        "name": "Oppositional Defiant Disorder",
+        "page": 219,
+        "specifiers": [
+          {
+            "label": "Current Severity",
+            "type": "enum",
+            "values": [
+              {
+                "label": "Mild",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "Moderate",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "Severe",
+                "icd9_code": null,
+                "icd10_code": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "icd9": "312.34",
+        "icd10": "F63.81",
+        "name": "Intermittent Explosive Disorder",
+        "page": 220,
+        "specifiers": []
+      },
+      {
+        "icd9": "___.__",
+        "icd10": "__.__",
+        "name": "Conduct Disorder",
+        "page": 221,
+        "specifiers": [
+          {
+            "label": "Specifiers",
+            "type": "enum",
+            "values": [
+              {
+                "label": "Childhood-onset type",
+                "icd9_code": "312.81",
+                "icd10_code": "F91.1"
+              },
+              {
+                "label": "Adolescent-onset type",
+                "icd9_code": "312.82",
+                "icd10_code": "F91.2"
+              },
+              {
+                "label": "xxvi DSM-5 Classification",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "Unspecified onset",
+                "icd9_code": "312.89",
+                "icd10_code": "F91.9"
+              }
+            ]
+          },
+          {
+            "label": "Specifiers",
+            "type": "enum",
+            "values": [
+              {
+                "label": "With limited prosocial emotions",
+                "icd9_code": null,
+                "icd10_code": null
+              }
+            ]
+          },
+          {
+            "label": "Current Severity",
+            "type": "enum",
+            "values": [
+              {
+                "label": "Mild",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "Moderate",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "Severe",
+                "icd9_code": null,
+                "icd10_code": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "icd9": "301.7",
+        "icd10": "F60.2",
+        "name": "Antisocial Personality Disorder",
+        "page": 224,
+        "specifiers": []
+      },
+      {
+        "icd9": "312.33",
+        "icd10": "F63.1",
+        "name": "Pyromania",
+        "page": 224,
+        "specifiers": []
+      }
+    ],
+    "page_end": 226
+  },
+  {
+    "family": "Substance-Related and Addictive Disorders",
+    "page": 227,
+    "groups": [
+      {
+        "name": "Substance-Related Disorders",
+        "page": 230,
+        "disorders": [],
+        "page_end": 232
+      },
+      {
+        "name": "Alcohol-Related Disorders",
+        "page": 233,
+        "disorders": [
+          {
+            "icd9": "___.__",
+            "icd10": "___.__",
+            "name": "Alcohol Use Disordera, b",
+            "page": 233,
+            "specifiers": [
+              {
+                "label": "Current Severity",
+                "type": "enum",
+                "values": [
+                  {
+                    "label": "Mild",
+                    "icd9_code": "305.00",
+                    "icd10_code": "F10.10"
+                  },
+                  {
+                    "label": "Moderate",
+                    "icd9_code": "303.90",
+                    "icd10_code": "F10.20"
+                  },
+                  {
+                    "label": "Severe",
+                    "icd9_code": "303.90",
+                    "icd10_code": "F10.20"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "icd9": "303.00",
+            "icd10": "___.__",
+            "name": "Alcohol Intoxication",
+            "page": 235,
+            "specifiers": []
+          },
+          {
+            "icd9": "291.81",
+            "icd10": "___.__",
+            "name": "Alcohol Withdrawalc, d",
+            "page": 235,
+            "specifiers": []
+          },
+          {
+            "icd9": "___.__",
+            "icd10": "___.__",
+            "name": "Other Alcohol-Induced Disorders",
+            "page": 236,
+            "specifiers": []
+          }
+        ],
+        "page_end": 236
+      },
+      {
+        "name": "Caffeine-Related Disorders",
+        "page": 237,
+        "disorders": [
+          {
+            "icd9": "291.9",
+            "icd10": "F10.99",
+            "name": "Unspecified Alcohol-Related Disorder",
+            "page": 237,
+            "specifiers": []
+          },
+          {
+            "icd9": "292.0",
+            "icd10": "F15.93",
+            "name": "Caffeine Withdrawal",
+            "page": 238,
+            "specifiers": []
+          }
+        ],
+        "page_end": 238
+      },
+      {
+        "name": "Cannabis-Related Disorders",
+        "page": 239,
+        "disorders": [
+          {
+            "icd9": "___.__",
+            "icd10": "___.__",
+            "name": "Other Caffeine-Induced Disorders",
+            "page": 239,
+            "specifiers": []
+          },
+          {
+            "icd9": "292.9",
+            "icd10": "F15.99",
+            "name": "Unspecified Caffeine-Related Disorder",
+            "page": 239,
+            "specifiers": []
+          },
+          {
+            "icd9": "___.__",
+            "icd10": "___.__",
+            "name": "Cannabis Use Disordera, b",
+            "page": 239,
+            "specifiers": [
+              {
+                "label": "Current Severity",
+                "type": "enum",
+                "values": [
+                  {
+                    "label": "Mild",
+                    "icd9_code": "305.20",
+                    "icd10_code": "F12.10"
+                  },
+                  {
+                    "label": "Moderate",
+                    "icd9_code": "304.30",
+                    "icd10_code": "F12.20"
+                  },
+                  {
+                    "label": "Severe",
+                    "icd9_code": "304.30",
+                    "icd10_code": "F12.20"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "icd9": "292.89",
+            "icd10": "___.__",
+            "name": "Cannabis Intoxicationc",
+            "page": 241,
+            "specifiers": []
+          },
+          {
+            "icd9": "___.__",
+            "icd10": "___.__",
+            "name": "Other Cannabis-Induced Disorders",
+            "page": 243,
+            "specifiers": []
+          }
+        ],
+        "page_end": 243
+      },
+      {
+        "name": "Hallucinogen-Related Disorders",
+        "page": 244,
+        "disorders": [
+          {
+            "icd9": "292.9",
+            "icd10": "F12.99",
+            "name": "Unspecified Cannabis-Related Disorder",
+            "page": 244,
+            "specifiers": []
+          },
+          {
+            "icd9": "___.__",
+            "icd10": "___.__",
+            "name": "Phencyclidine Use Disordera, b",
+            "page": 244,
+            "specifiers": [
+              {
+                "label": "Current Severity",
+                "type": "enum",
+                "values": [
+                  {
+                    "label": "xxviii DSM-5 Classification",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "Mild",
+                    "icd9_code": "305.90",
+                    "icd10_code": "F16.10"
+                  },
+                  {
+                    "label": "Moderate",
+                    "icd9_code": "304.60",
+                    "icd10_code": "F16.20"
+                  },
+                  {
+                    "label": "Severe",
+                    "icd9_code": "304.60",
+                    "icd10_code": "F16.20"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "icd9": "___.__",
+            "icd10": "___.__",
+            "name": "Other Hallucinogen Use Disordera, b",
+            "page": 246,
+            "specifiers": [
+              {
+                "label": "Current Severity",
+                "type": "enum",
+                "values": [
+                  {
+                    "label": "Mild",
+                    "icd9_code": "305.30",
+                    "icd10_code": "F16.10"
+                  },
+                  {
+                    "label": "Moderate",
+                    "icd9_code": "304.50",
+                    "icd10_code": "F16.20"
+                  },
+                  {
+                    "label": "Severe",
+                    "icd9_code": "304.50",
+                    "icd10_code": "F16.20"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "icd9": "292.89",
+            "icd10": "___.__",
+            "name": "Phencyclidine Intoxication",
+            "page": 248,
+            "specifiers": []
+          },
+          {
+            "icd9": "292.89",
+            "icd10": "___.__",
+            "name": "Other Hallucinogen Intoxication",
+            "page": 249,
+            "specifiers": []
+          },
+          {
+            "icd9": "___.__",
+            "icd10": "___.__",
+            "name": "Other Phencyclidine-Induced Disorders",
+            "page": 251,
+            "specifiers": []
+          },
+          {
+            "icd9": "___.__",
+            "icd10": "___.__",
+            "name": "Other Hallucinogen-Induced Disorders",
+            "page": 251,
+            "specifiers": []
+          }
+        ],
+        "page_end": 251
+      },
+      {
+        "name": "Inhalant-Related Disorders",
+        "page": 252,
+        "disorders": [
+          {
+            "icd9": "292.9",
+            "icd10": "F16.99",
+            "name": "Unspecified Phencyclidine-Related Disorder",
+            "page": 252,
+            "specifiers": []
+          },
+          {
+            "icd9": "292.9",
+            "icd10": "F16.99",
+            "name": "Unspecified Hallucinogen-Related Disorder",
+            "page": 252,
+            "specifiers": []
+          },
+          {
+            "icd9": "___.__",
+            "icd10": "___.__",
+            "name": "Inhalant Use Disordera, b",
+            "page": 252,
+            "specifiers": [
+              {
+                "label": "Current Severity",
+                "type": "enum",
+                "values": [
+                  {
+                    "label": "Mild",
+                    "icd9_code": "305.90",
+                    "icd10_code": "F18.10"
+                  },
+                  {
+                    "label": "Moderate",
+                    "icd9_code": "304.60",
+                    "icd10_code": "F18.20"
+                  },
+                  {
+                    "label": "Severe",
+                    "icd9_code": "304.60",
+                    "icd10_code": "F18.20"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "icd9": "292.89",
+            "icd10": "___.__",
+            "name": "Inhalant Intoxication",
+            "page": 254,
+            "specifiers": []
+          },
+          {
+            "icd9": "___.__",
+            "icd10": "___.__",
+            "name": "Other Inhalant-Induced Disorders",
+            "page": 255,
+            "specifiers": []
+          }
+        ],
+        "page_end": 255
+      },
+      {
+        "name": "Opioid-Related Disorders",
+        "page": 256,
+        "disorders": [
+          {
+            "icd9": "292.9",
+            "icd10": "F18.99",
+            "name": "Unspecified Inhalant-Related Disorder",
+            "page": 256,
+            "specifiers": []
+          },
+          {
+            "icd9": "___.__",
+            "icd10": "___.__",
+            "name": "Opioid Use Disordera",
+            "page": 256,
+            "specifiers": [
+              {
+                "label": "Specifiers",
+                "type": "enum",
+                "values": [
+                  {
+                    "label": "On maintenance therapy",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "In a controlled",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "environment",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  }
+                ]
+              },
+              {
+                "label": "Current Severity",
+                "type": "enum",
+                "values": [
+                  {
+                    "label": "Mild",
+                    "icd9_code": "305.50",
+                    "icd10_code": "F11.10"
+                  },
+                  {
+                    "label": "Moderate",
+                    "icd9_code": "304.00",
+                    "icd10_code": "F11.20"
+                  },
+                  {
+                    "label": "Severe",
+                    "icd9_code": "304.00",
+                    "icd10_code": "F11.20"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "icd9": "292.89",
+            "icd10": "___.__",
+            "name": "Opioid Intoxicationc",
+            "page": 258,
+            "specifiers": []
+          },
+          {
+            "icd9": "292.0",
+            "icd10": "F11.23",
+            "name": "Opioid Withdrawald",
+            "page": 259,
+            "specifiers": []
+          },
+          {
+            "icd9": "___.__",
+            "icd10": "___.__",
+            "name": "Other Opioid-Induced Disorders",
+            "page": 260,
+            "specifiers": []
+          }
+        ],
+        "page_end": 260
+      },
+      {
+        "name": "Sedative-, Hypnotic-, or Anxiolytic-Related Disorders",
+        "page": 261,
+        "disorders": [
+          {
+            "icd9": "292.9",
+            "icd10": "F11.99",
+            "name": "Unspecified Opioid-Related Disorder",
+            "page": 261,
+            "specifiers": []
+          },
+          {
+            "icd9": "___.__",
+            "icd10": "___.__",
+            "name": "Sedative, Hypnotic, or Anxiolytic Use Disordera, b",
+            "page": 261,
+            "specifiers": [
+              {
+                "label": "Current Severity",
+                "type": "enum",
+                "values": [
+                  {
+                    "label": "Mild",
+                    "icd9_code": "305.40",
+                    "icd10_code": "F13.10"
+                  },
+                  {
+                    "label": "Moderate",
+                    "icd9_code": "304.10",
+                    "icd10_code": "F13.20"
+                  },
+                  {
+                    "label": "Severe",
+                    "icd9_code": "304.10",
+                    "icd10_code": "F13.20"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "icd9": "292.89",
+            "icd10": "___.__",
+            "name": "Sedative, Hypnotic, or Anxiolytic Intoxication",
+            "page": 264,
+            "specifiers": []
+          },
+          {
+            "icd9": "292.0",
+            "icd10": "___.__",
+            "name": "Sedative, Hypnotic, or Anxiolytic Withdrawalc, d",
+            "page": 265,
+            "specifiers": []
+          }
+        ],
+        "page_end": 265
+      },
+      {
+        "name": "Induced Disorders",
+        "page": 266,
+        "disorders": [
+          {
+            "icd9": "___.__",
+            "icd10": "___.__",
+            "name": "Other Sedative-, Hypnotic-, or AnxiolyticInduced Disorders",
+            "page": 266,
+            "specifiers": []
+          }
+        ],
+        "page_end": 266
+      },
+      {
+        "name": "Related Disorder",
+        "page": 267,
+        "disorders": [],
+        "page_end": 266
+      },
+      {
+        "name": "Stimulant-Related Disorders",
+        "page": 267,
+        "disorders": [
+          {
+            "icd9": "292.9",
+            "icd10": "F13.99",
+            "name": "Unspecified Sedative-, Hypnotic-, or AnxiolyticRelated Disorder",
+            "page": 267,
+            "specifiers": []
+          },
+          {
+            "icd9": "___.__",
+            "icd10": "___.__",
+            "name": "Stimulant Use Disordera, b",
+            "page": 267,
+            "specifiers": [
+              {
+                "label": "Current Severity",
+                "type": "enum",
+                "values": [
+                  {
+                    "label": "Mild",
+                    "icd9_code": "___.__",
+                    "icd10_code": "___.__"
+                  },
+                  {
+                    "label": "Amphetamine-type substance",
+                    "icd9_code": "305.70",
+                    "icd10_code": "F15.10"
+                  },
+                  {
+                    "label": "Cocaine",
+                    "icd9_code": "305.60",
+                    "icd10_code": "F14.10"
+                  },
+                  {
+                    "label": "Other or unspecified stimulant",
+                    "icd9_code": "305.70",
+                    "icd10_code": "F15.10"
+                  },
+                  {
+                    "label": "Moderate",
+                    "icd9_code": "___.__",
+                    "icd10_code": "___.__"
+                  },
+                  {
+                    "label": "Amphetamine-type substance",
+                    "icd9_code": "304.40",
+                    "icd10_code": "F15.20"
+                  },
+                  {
+                    "label": "Cocaine",
+                    "icd9_code": "304.20",
+                    "icd10_code": "F14.20"
+                  },
+                  {
+                    "label": "Other or unspecified stimulant",
+                    "icd9_code": "304.40",
+                    "icd10_code": "F15.20"
+                  },
+                  {
+                    "label": "Severe",
+                    "icd9_code": "___.__",
+                    "icd10_code": "___.__"
+                  },
+                  {
+                    "label": "Amphetamine-type substance",
+                    "icd9_code": "304.40",
+                    "icd10_code": "F15.20"
+                  },
+                  {
+                    "label": "Cocaine",
+                    "icd9_code": "304.20",
+                    "icd10_code": "F14.20"
+                  },
+                  {
+                    "label": "Other or unspecified stimulant",
+                    "icd9_code": "304.40",
+                    "icd10_code": "F15.20"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "icd9": "292.89",
+            "icd10": "___.__",
+            "name": "Stimulant Intoxicationc",
+            "page": 270,
+            "specifiers": [
+              {
+                "label": "the specific intoxicant",
+                "type": "enum",
+                "values": [
+                  {
+                    "label": "Amphetamine or other stimulant, Without",
+                    "icd9_code": "292.89",
+                    "icd10_code": "___.__"
+                  },
+                  {
+                    "label": "perceptual disturbances",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "(F15.129) With use disorder",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "mild",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "(F15.229) With use disorder",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "moderate or severe",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "(F15.929) Without use disorder",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "DSM-5 Classification xxxi",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "Cocaine, Without perceptual disturbances",
+                    "icd9_code": "292.89",
+                    "icd10_code": "___.__"
+                  },
+                  {
+                    "label": "(F14.129) With use disorder",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "mild",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "(F14.229) With use disorder",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "moderate or severe",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "(F14.929) Without use disorder",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "Amphetamine or other stimulant, With",
+                    "icd9_code": "292.89",
+                    "icd10_code": "___.__"
+                  },
+                  {
+                    "label": "perceptual disturbances",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "(F15.122) With use disorder",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "mild",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "(F15.222) With use disorder",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "moderate or severe",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "(F15.922) Without use disorder",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "Cocaine, With perceptual disturbances",
+                    "icd9_code": "292.89",
+                    "icd10_code": "___.__"
+                  },
+                  {
+                    "label": "(F14.122) With use disorder",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "mild",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "(F14.222) With use disorder",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "moderate or severe",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "(F14.922) Without use disorder",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "icd9": "292.0",
+            "icd10": "___.__",
+            "name": "Stimulant Withdrawald",
+            "page": 272,
+            "specifiers": [
+              {
+                "label": "the specific substance causing the withdrawal syndrome",
+                "type": "enum",
+                "values": [
+                  {
+                    "label": "(F15.23) Amphetamine or other stimulant",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "(F14.23) Cocaine",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "icd9": "___.__",
+            "icd10": "___.__",
+            "name": "Other Stimulant-Induced Disorders",
+            "page": 273,
+            "specifiers": []
+          },
+          {
+            "icd9": "292.9",
+            "icd10": "___.__",
+            "name": "Unspecified Stimulant-Related Disorder",
+            "page": 273,
+            "specifiers": []
+          }
+        ],
+        "page_end": 273
+      },
+      {
+        "name": "Tobacco-Related Disorders",
+        "page": 274,
+        "disorders": [
+          {
+            "icd9": "___.__",
+            "icd10": "___.__",
+            "name": "Tobacco Use Disordera",
+            "page": 274,
+            "specifiers": [
+              {
+                "label": "Specifiers",
+                "type": "enum",
+                "values": [
+                  {
+                    "label": "On maintenance therapy",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "In a controlled",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "environment",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  }
+                ]
+              },
+              {
+                "label": "Current Severity",
+                "type": "enum",
+                "values": [
+                  {
+                    "label": "Mild",
+                    "icd9_code": "305.1",
+                    "icd10_code": "Z72.0"
+                  },
+                  {
+                    "label": "Moderate",
+                    "icd9_code": "305.1",
+                    "icd10_code": "F17.200"
+                  },
+                  {
+                    "label": "Severe",
+                    "icd9_code": "305.1",
+                    "icd10_code": "F17.200"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "page_end": 276
+      },
+      {
+        "name": "Other (or Unknown) Substance\u2013Related Disorders",
+        "page": 277,
+        "disorders": [
+          {
+            "icd9": "___.__",
+            "icd10": "___.__",
+            "name": "Other Tobacco-Induced Disorders",
+            "page": 277,
+            "specifiers": [
+              {
+                "label": "Current Severity",
+                "type": "enum",
+                "values": [
+                  {
+                    "label": "Mild",
+                    "icd9_code": "305.90",
+                    "icd10_code": "F19.10"
+                  },
+                  {
+                    "label": "Moderate",
+                    "icd9_code": "304.90",
+                    "icd10_code": "F19.20"
+                  },
+                  {
+                    "label": "Severe",
+                    "icd9_code": "304.90",
+                    "icd10_code": "F19.20"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "icd9": "292.89",
+            "icd10": "___.__",
+            "name": "Other (or Unknown) Substance Intoxication",
+            "page": 280,
+            "specifiers": []
+          },
+          {
+            "icd9": "___.__",
+            "icd10": "___.__",
+            "name": "Other (or Unknown) Substance\u2013Induced\nDisorders",
+            "page": 281,
+            "specifiers": []
+          }
+        ],
+        "page_end": 281
+      },
+      {
+        "name": "Related Disorder",
+        "page": 282,
+        "disorders": [],
+        "page_end": 281
+      },
+      {
+        "name": "Non-Substance-Related Disorders",
+        "page": 282,
+        "disorders": [
+          {
+            "icd9": "292.9",
+            "icd10": "F19.99",
+            "name": "Unspecified Other (or Unknown) Substance\u2013\nRelated Disorder",
+            "page": 282,
+            "specifiers": []
+          },
+          {
+            "icd9": "312.31",
+            "icd10": "F63.0",
+            "name": "Gambling Disordera",
+            "page": 282,
+            "specifiers": [
+              {
+                "label": "Specifiers",
+                "type": "enum",
+                "values": [
+                  {
+                    "label": "Episodic",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "Persistent",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  }
+                ]
+              },
+              {
+                "label": "Current Severity",
+                "type": "enum",
+                "values": [
+                  {
+                    "label": "Mild",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "Moderate",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  },
+                  {
+                    "label": "Severe",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "page_end": 284
+      }
+    ],
+    "disorders": [],
+    "page_end": 284
+  },
+  {
+    "family": "Neurocognitive Disorders",
+    "page": 285,
+    "groups": [
+      {
+        "name": "Major and Mild Neurocognitive Disorders",
+        "page": 299,
+        "disorders": [],
+        "page_end": 304
+      },
+      {
+        "name": "Major or Mild Neurocognitive Disorder Due to Alzheimer\u2019s Disease",
+        "page": 305,
+        "disorders": [],
+        "page_end": 305
+      },
+      {
+        "name": "Major or Mild Frontotemporal Neurocognitive Disorder",
+        "page": 306,
+        "disorders": [],
+        "page_end": 307
+      },
+      {
+        "name": "Frontotemporal Lobar Degenerationa Major or Mild Neurocognitive Disorder With Lewy Bodies",
+        "page": 308,
+        "disorders": [
+          {
+            "icd9": "331.83",
+            "icd10": "G31.84",
+            "name": "Mild Neurocognitive Disorder Due to\nFrontotemporal Lobar Degenerationa\nMajor or Mild Neurocognitive Disorder With Lewy Bodies",
+            "page": 308,
+            "specifiers": []
+          }
+        ],
+        "page_end": 308
+      },
+      {
+        "name": "Major or Mild Vascular Neurocognitive Disorder",
+        "page": 309,
+        "disorders": [
+          {
+            "icd9": "331.83",
+            "icd10": "G31.84",
+            "name": "Mild Neurocognitive Disorder With Lewy Bodiesa\nMajor or Mild Vascular Neurocognitive Disorder",
+            "page": 309,
+            "specifiers": []
+          }
+        ],
+        "page_end": 309
+      },
+      {
+        "name": "Major or Mild Neurocognitive Disorder Due to Traumatic Brain Injury",
+        "page": 310,
+        "disorders": [
+          {
+            "icd9": "331.83",
+            "icd10": "G31.84",
+            "name": "Mild Vascular Neurocognitive Disordera\nMajor or Mild Neurocognitive Disorder Due to Traumatic Brain\nInjury",
+            "page": 310,
+            "specifiers": []
+          }
+        ],
+        "page_end": 310
+      },
+      {
+        "name": "Brain Injurya Substance/Medication-Induced Major or Mild Neurocognitive Disordera",
+        "page": 311,
+        "disorders": [
+          {
+            "icd9": "331.83",
+            "icd10": "G31.84",
+            "name": "Mild Neurocognitive Disorder Due to Traumatic\nBrain Injurya\nSubstance/Medication-Induced Major or Mild Neurocognitive\nDisordera",
+            "page": 311,
+            "specifiers": [
+              {
+                "label": "Specifiers",
+                "type": "enum",
+                "values": [
+                  {
+                    "label": "Persistent",
+                    "icd9_code": null,
+                    "icd10_code": null
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "page_end": 314
+      },
+      {
+        "name": "Major or Mild Neurocognitive Disorder Due to HIV Infection",
+        "page": 315,
+        "disorders": [],
+        "page_end": 315
+      },
+      {
+        "name": "Infectiona Major or Mild Neurocognitive Disorder Due to Prion Disease",
+        "page": 316,
+        "disorders": [],
+        "page_end": 315
+      },
+      {
+        "name": "Diseasea Major or Mild Neurocognitive Disorder Due to Parkinson\u2019s Disease",
+        "page": 316,
+        "disorders": [
+          {
+            "icd9": "331.83",
+            "icd10": "G31.84",
+            "name": "Mild Neurocognitive Disorder Due to HIV\nInfectiona\nMajor or Mild Neurocognitive Disorder Due to Prion Disease",
+            "page": 316,
+            "specifiers": []
+          },
+          {
+            "icd9": "331.83",
+            "icd10": "G31.84",
+            "name": "Mild Neurocognitive Disorder Due to Prion\nDiseasea\nMajor or Mild Neurocognitive Disorder Due to Parkinson\u2019s\nDisease",
+            "page": 316,
+            "specifiers": []
+          }
+        ],
+        "page_end": 316
+      },
+      {
+        "name": "Diseasea Major or Mild Neurocognitive Disorder Due to Huntington\u2019s Disease",
+        "page": 317,
+        "disorders": [
+          {
+            "icd9": "331.83",
+            "icd10": "G31.84",
+            "name": "Mild Neurocognitive Disorder Due to Parkinson\u2019s\nDiseasea\nMajor or Mild Neurocognitive Disorder Due to Huntington\u2019s\nDisease",
+            "page": 317,
+            "specifiers": []
+          }
+        ],
+        "page_end": 317
+      },
+      {
+        "name": "Huntington\u2019s Diseasea Major or Mild Neurocognitive Disorder Due to Another Medical Condition",
+        "page": 318,
+        "disorders": [
+          {
+            "icd9": "331.83",
+            "icd10": "G31.84",
+            "name": "Mild Neurocognitive Disorder Due to\nHuntington\u2019s Diseasea\nMajor or Mild Neurocognitive Disorder Due to Another\nMedical Condition",
+            "page": 318,
+            "specifiers": []
+          }
+        ],
+        "page_end": 318
+      },
+      {
+        "name": "Medical Conditiona Major or Mild Neurocognitive Disorder Due to Multiple Etiologies",
+        "page": 319,
+        "disorders": [
+          {
+            "icd9": "331.83",
+            "icd10": "G31.84",
+            "name": "Mild Neurocognitive Disorder Due to Another\nMedical Conditiona\nMajor or Mild Neurocognitive Disorder Due to Multiple\nEtiologies",
+            "page": 319,
+            "specifiers": []
+          }
+        ],
+        "page_end": 319
+      },
+      {
+        "name": "Etiologiesa Unspecified Neurocognitive Disorder",
+        "page": 320,
+        "disorders": [
+          {
+            "icd9": "331.83",
+            "icd10": "G31.84",
+            "name": "Mild Neurocognitive Disorder Due to Multiple\nEtiologiesa\nUnspecified Neurocognitive Disorder",
+            "page": 320,
+            "specifiers": []
+          }
+        ],
+        "page_end": 320
+      }
+    ],
+    "disorders": [
+      {
+        "icd9": "___.__",
+        "icd10": "___.__",
+        "name": "Delirium",
+        "page": 292,
+        "specifiers": [
+          {
+            "label": "Specifiers",
+            "type": "enum",
+            "values": [
+              {
+                "label": "Substance intoxication deliriuma",
+                "icd9_code": "___.__",
+                "icd10_code": "___.__"
+              },
+              {
+                "label": "Substance withdrawal deliriuma",
+                "icd9_code": "___.__",
+                "icd10_code": "___.__"
+              },
+              {
+                "label": "DSM-5 Classification xxxiii",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "Medication-induced deliriuma",
+                "icd9_code": "292.81",
+                "icd10_code": "___.__"
+              },
+              {
+                "label": "Delirium due to another medical condition",
+                "icd9_code": "293.0",
+                "icd10_code": "F05"
+              },
+              {
+                "label": "Delirium due to multiple etiologies",
+                "icd9_code": "293.0",
+                "icd10_code": "F05"
+              }
+            ]
+          },
+          {
+            "label": "Specifiers",
+            "type": "enum",
+            "values": [
+              {
+                "label": "Acute",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "Persistent",
+                "icd9_code": null,
+                "icd10_code": null
+              }
+            ]
+          },
+          {
+            "label": "Specifiers",
+            "type": "enum",
+            "values": [
+              {
+                "label": "Hyperactive",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "Hypoactive",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "Mixed level of",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "activity",
+                "icd9_code": null,
+                "icd10_code": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "icd9": "780.09",
+        "icd10": "R41.0",
+        "name": "Other Specified Delirium",
+        "page": 298,
+        "specifiers": []
+      },
+      {
+        "icd9": "780.09",
+        "icd10": "R41.0",
+        "name": "Unspecified Delirium",
+        "page": 298,
+        "specifiers": [
+          {
+            "label": "Specifiers",
+            "type": "enum",
+            "values": [
+              {
+                "label": "Alzheimer\u2019s disease",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "Frontotemporal lobar degeneration",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "Lewy body disease",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "Vascular disease",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "Traumatic brain injury",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "Substance/medication use",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "HIV infection",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "Prion disease",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "Parkinson\u2019s",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "disease",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "Huntington\u2019s disease",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "Another medical condition",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "Multiple etiologies",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "Unspecified",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "aSpecify Without behavioral disturbance",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "With behavioral disturbance.",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "For possible major neurocognitive disorder and for mild neurocognitive disorder",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "behavioral disturbance cannot be coded but should still be indicated in",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "writing.",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "bSpecify current severity: Mild",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "Moderate",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "Severe. This specifier applies only",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "to major neurocognitive disorders (including probable and possible).",
+                "icd9_code": null,
+                "icd10_code": null
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "page_end": 320
+  },
+  {
+    "family": "Personality Disorders",
+    "page": 321,
+    "groups": [],
+    "disorders": [
+      {
+        "icd9": "799.59",
+        "icd10": "R41.9",
+        "name": "Unspecified Neurocognitive Disordera\nPersonality Disorders",
+        "page": 321,
+        "specifiers": []
+      },
+      {
+        "icd9": "301.0",
+        "icd10": "F60.0",
+        "name": "Paranoid Personality Disorder",
+        "page": 322,
+        "specifiers": []
+      },
+      {
+        "icd9": "301.20",
+        "icd10": "F60.1",
+        "name": "Schizoid Personality Disorder",
+        "page": 323,
+        "specifiers": []
+      },
+      {
+        "icd9": "301.22",
+        "icd10": "F21",
+        "name": "Schizotypal Personality Disorder",
+        "page": 323,
+        "specifiers": []
+      },
+      {
+        "icd9": "301.7",
+        "icd10": "F60.2",
+        "name": "Antisocial Personality Disorder",
+        "page": 324,
+        "specifiers": []
+      },
+      {
+        "icd9": "301.83",
+        "icd10": "F60.3",
+        "name": "Borderline Personality Disorder",
+        "page": 325,
+        "specifiers": []
+      },
+      {
+        "icd9": "301.50",
+        "icd10": "F60.4",
+        "name": "Histrionic Personality Disorder",
+        "page": 326,
+        "specifiers": []
+      },
+      {
+        "icd9": "301.81",
+        "icd10": "F60.81",
+        "name": "Narcissistic Personality Disorder",
+        "page": 327,
+        "specifiers": []
+      },
+      {
+        "icd9": "301.82",
+        "icd10": "F60.6",
+        "name": "Avoidant Personality Disorder",
+        "page": 328,
+        "specifiers": []
+      },
+      {
+        "icd9": "301.6",
+        "icd10": "F60.7",
+        "name": "Dependent Personality Disorder",
+        "page": 328,
+        "specifiers": []
+      },
+      {
+        "icd9": "301.4",
+        "icd10": "F60.5",
+        "name": "Obsessive-Compulsive Personality Disorder",
+        "page": 329,
+        "specifiers": []
+      },
+      {
+        "icd9": "310.1",
+        "icd10": "F07.0",
+        "name": "Personality Change Due to Another Medical\nCondition",
+        "page": 330,
+        "specifiers": [
+          {
+            "label": "Specifiers",
+            "type": "enum",
+            "values": [
+              {
+                "label": "Labile type",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "Disinhibited type",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "Aggressive type",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "Apathetic type",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "Paranoid type",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "Other type",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "Combined type",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "Unspecified type",
+                "icd9_code": null,
+                "icd10_code": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "icd9": "301.89",
+        "icd10": "F60.89",
+        "name": "Other Specified Personality Disorder",
+        "page": 331,
+        "specifiers": []
+      },
+      {
+        "icd9": "301.9",
+        "icd10": "F60.9",
+        "name": "Unspecified Personality Disorder",
+        "page": 332,
+        "specifiers": []
+      }
+    ],
+    "page_end": 332
+  },
+  {
+    "family": "Paraphilic Disorders",
+    "page": 333,
+    "groups": [],
+    "disorders": [
+      {
+        "icd9": "302.82",
+        "icd10": "F65.3",
+        "name": "Voyeuristic Disordera",
+        "page": 333,
+        "specifiers": []
+      },
+      {
+        "icd9": "302.4",
+        "icd10": "F65.2",
+        "name": "Exhibitionistic Disordera",
+        "page": 333,
+        "specifiers": [
+          {
+            "label": "Specifiers",
+            "type": "enum",
+            "values": [
+              {
+                "label": "Sexually aroused by exposing",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "genitals to prepubertal children",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "Sexually",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "aroused by exposing genitals to physically mature individuals",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "Sexually aroused by exposing",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "genitals to prepubertal children and to physically mature individuals",
+                "icd9_code": null,
+                "icd10_code": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "icd9": "302.89",
+        "icd10": "F65.81",
+        "name": "Frotteuristic Disordera",
+        "page": 334,
+        "specifiers": []
+      },
+      {
+        "icd9": "302.83",
+        "icd10": "F65.51",
+        "name": "Sexual Masochism Disordera",
+        "page": 335,
+        "specifiers": [
+          {
+            "label": "Specifiers",
+            "type": "enum",
+            "values": [
+              {
+                "label": "With asphyxiophilia",
+                "icd9_code": null,
+                "icd10_code": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "icd9": "302.84",
+        "icd10": "F65.52",
+        "name": "Sexual Sadism Disordera",
+        "page": 335,
+        "specifiers": []
+      },
+      {
+        "icd9": "302.2",
+        "icd10": "F65.4",
+        "name": "Pedophilic Disorder",
+        "page": 336,
+        "specifiers": [
+          {
+            "label": "Specifiers",
+            "type": "enum",
+            "values": [
+              {
+                "label": "Exclusive type",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "Nonexclusive",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "type",
+                "icd9_code": null,
+                "icd10_code": null
+              }
+            ]
+          },
+          {
+            "label": "Specifiers",
+            "type": "enum",
+            "values": [
+              {
+                "label": "Sexually attracted to males",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "Sexually attracted to females",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "Sexually attracted to both",
+                "icd9_code": null,
+                "icd10_code": null
+              }
+            ]
+          },
+          {
+            "label": "Specifiers",
+            "type": "enum",
+            "values": [
+              {
+                "label": "Limited to incest",
+                "icd9_code": null,
+                "icd10_code": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "icd9": "302.81",
+        "icd10": "F65.0",
+        "name": "Fetishistic Disordera",
+        "page": 337,
+        "specifiers": [
+          {
+            "label": "Specifiers",
+            "type": "enum",
+            "values": [
+              {
+                "label": "Body part(s)",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "Nonliving object(s)",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "Other",
+                "icd9_code": null,
+                "icd10_code": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "icd9": "302.3",
+        "icd10": "F65.1",
+        "name": "Transvestic Disordera",
+        "page": 337,
+        "specifiers": [
+          {
+            "label": "Specifiers",
+            "type": "enum",
+            "values": [
+              {
+                "label": "With fetishism",
+                "icd9_code": null,
+                "icd10_code": null
+              },
+              {
+                "label": "With autogynephilia",
+                "icd9_code": null,
+                "icd10_code": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "icd9": "302.89",
+        "icd10": "F65.89",
+        "name": "Other Specified Paraphilic Disorder",
+        "page": 338,
+        "specifiers": []
+      },
+      {
+        "icd9": "302.9",
+        "icd10": "F65.9",
+        "name": "Unspecified Paraphilic Disorder",
+        "page": 339,
+        "specifiers": []
+      }
+    ],
+    "page_end": 340
+  },
+  {
+    "family": "Other Mental Disorders",
+    "page": 341,
+    "groups": [
+      {
+        "name": "Medical Condition",
+        "page": 341,
+        "disorders": [
+          {
+            "icd9": "294.8",
+            "icd10": "F06.8",
+            "name": "Other Specified Mental Disorder Due to Another\nMedical Condition",
+            "page": 341,
+            "specifiers": []
+          }
+        ],
+        "page_end": 341
+      },
+      {
+        "name": "Medical Condition",
+        "page": 342,
+        "disorders": [
+          {
+            "icd9": "294.9",
+            "icd10": "F09",
+            "name": "Unspecified Mental Disorder Due to Another\nMedical Condition",
+            "page": 342,
+            "specifiers": []
+          },
+          {
+            "icd9": "300.9",
+            "icd10": "F99",
+            "name": "Other Specified Mental Disorder",
+            "page": 343,
+            "specifiers": []
+          },
+          {
+            "icd9": "300.9",
+            "icd10": "F99",
+            "name": "Unspecified Mental Disorder",
+            "page": 343,
+            "specifiers": []
+          }
+        ],
+        "page_end": 344
+      }
+    ],
+    "disorders": [],
+    "page_end": 344
+  },
+  {
+    "family": "Medication-Induced Movement Disorders and Other Adverse Effects of Medication",
+    "page": 345,
+    "groups": [],
+    "disorders": [
+      {
+        "icd9": "332.1",
+        "icd10": "G21.11",
+        "name": "Neuroleptic-Induced Parkinsonism",
+        "page": 346,
+        "specifiers": []
+      },
+      {
+        "icd9": "332.1",
+        "icd10": "G21.19",
+        "name": "Other Medication-Induced Parkinsonism",
+        "page": 346,
+        "specifiers": []
+      },
+      {
+        "icd9": "333.92",
+        "icd10": "G21.0",
+        "name": "Neuroleptic Malignant Syndrome",
+        "page": 346,
+        "specifiers": []
+      },
+      {
+        "icd9": "333.72",
+        "icd10": "G24.02",
+        "name": "Medication-Induced Acute Dystonia",
+        "page": 349,
+        "specifiers": []
+      },
+      {
+        "icd9": "333.99",
+        "icd10": "G25.71",
+        "name": "Medication-Induced Acute Akathisia",
+        "page": 349,
+        "specifiers": []
+      },
+      {
+        "icd9": "333.85",
+        "icd10": "G24.01",
+        "name": "Tardive Dyskinesia",
+        "page": 349,
+        "specifiers": []
+      },
+      {
+        "icd9": "333.72",
+        "icd10": "G24.09",
+        "name": "Tardive Dystonia",
+        "page": 350,
+        "specifiers": []
+      },
+      {
+        "icd9": "333.99",
+        "icd10": "G25.71",
+        "name": "Tardive Akathisia",
+        "page": 350,
+        "specifiers": []
+      },
+      {
+        "icd9": "333.1",
+        "icd10": "G25.1",
+        "name": "Medication-Induced Postural Tremor",
+        "page": 350,
+        "specifiers": []
+      },
+      {
+        "icd9": "333.99",
+        "icd10": "G25.79",
+        "name": "Other Medication-Induced Movement Disorder",
+        "page": 350,
+        "specifiers": []
+      },
+      {
+        "icd9": "___.__",
+        "icd10": "___.__",
+        "name": "Antidepressant Discontinuation Syndrome",
+        "page": 351,
+        "specifiers": []
+      },
+      {
+        "icd9": "___.__",
+        "icd10": "___.__",
+        "name": "Other Adverse Effect of Medication",
+        "page": 353,
+        "specifiers": []
+      }
+    ],
+    "page_end": 354
+  },
+  {
+    "family": "Other Conditions That May Be a Focus of Clinical Attention",
+    "page": 355,
+    "groups": [
+      {
+        "name": "Relational Problems",
+        "page": 355,
+        "disorders": [],
+        "page_end": 355
+      },
+      {
+        "name": "Problems Related to Family Upbringing",
+        "page": 356,
+        "disorders": [],
+        "page_end": 356
+      },
+      {
+        "name": "Other Problems Related to Primary Support Group",
+        "page": 357,
+        "disorders": [],
+        "page_end": 357
+      },
+      {
+        "name": "Abuse and Neglect",
+        "page": 358,
+        "disorders": [],
+        "page_end": 358
+      },
+      {
+        "name": "Child Maltreatment and Neglect Problems",
+        "page": 359,
+        "disorders": [],
+        "page_end": 358
+      },
+      {
+        "name": "Child Physical Abuse",
+        "page": 359,
+        "disorders": [],
+        "page_end": 358
+      },
+      {
+        "name": "Child Physical Abuse, Confirmed",
+        "page": 359,
+        "disorders": [],
+        "page_end": 358
+      },
+      {
+        "name": "Child Physical Abuse, Suspected",
+        "page": 359,
+        "disorders": [],
+        "page_end": 358
+      },
+      {
+        "name": "Other Circumstances Related to Child Physical Abuse",
+        "page": 359,
+        "disorders": [
+          {
+            "icd9": "995.54",
+            "icd10": "T74.12XD",
+            "name": "Subsequent encounter\nChild Physical Abuse, Suspected",
+            "page": 359,
+            "specifiers": []
+          },
+          {
+            "icd9": "995.54",
+            "icd10": "T76.12XD",
+            "name": "Subsequent encounter\nOther Circumstances Related to Child Physical Abuse",
+            "page": 359,
+            "specifiers": []
+          }
+        ],
+        "page_end": 359
+      },
+      {
+        "name": "Child Sexual Abuse",
+        "page": 360,
+        "disorders": [],
+        "page_end": 359
+      },
+      {
+        "name": "Child Sexual Abuse, Confirmed",
+        "page": 360,
+        "disorders": [],
+        "page_end": 359
+      },
+      {
+        "name": "Child Sexual Abuse, Suspected",
+        "page": 360,
+        "disorders": [],
+        "page_end": 359
+      },
+      {
+        "name": "Other Circumstances Related to Child Sexual Abuse",
+        "page": 360,
+        "disorders": [
+          {
+            "icd9": "995.53",
+            "icd10": "T74.22XD",
+            "name": "Subsequent encounter\nChild Sexual Abuse, Suspected",
+            "page": 360,
+            "specifiers": []
+          },
+          {
+            "icd9": "995.53",
+            "icd10": "T76.22XD",
+            "name": "Subsequent encounter\nOther Circumstances Related to Child Sexual Abuse",
+            "page": 360,
+            "specifiers": []
+          }
+        ],
+        "page_end": 360
+      },
+      {
+        "name": "Child Neglect",
+        "page": 361,
+        "disorders": [],
+        "page_end": 360
+      },
+      {
+        "name": "Child Neglect, Confirmed",
+        "page": 361,
+        "disorders": [],
+        "page_end": 360
+      },
+      {
+        "name": "Child Neglect, Suspected",
+        "page": 361,
+        "disorders": [],
+        "page_end": 360
+      },
+      {
+        "name": "Other Circumstances Related to Child Neglect",
+        "page": 361,
+        "disorders": [
+          {
+            "icd9": "995.52",
+            "icd10": "T74.02XD",
+            "name": "Subsequent encounter\nChild Neglect, Suspected",
+            "page": 361,
+            "specifiers": []
+          },
+          {
+            "icd9": "995.52",
+            "icd10": "T76.02XD",
+            "name": "Subsequent encounter\nOther Circumstances Related to Child Neglect",
+            "page": 361,
+            "specifiers": []
+          }
+        ],
+        "page_end": 361
+      },
+      {
+        "name": "Child Psychological Abuse",
+        "page": 362,
+        "disorders": [],
+        "page_end": 361
+      },
+      {
+        "name": "Child Psychological Abuse, Confirmed",
+        "page": 362,
+        "disorders": [],
+        "page_end": 361
+      },
+      {
+        "name": "Child Psychological Abuse, Suspected",
+        "page": 362,
+        "disorders": [],
+        "page_end": 361
+      },
+      {
+        "name": "Other Circumstances Related to Child Psychological Abuse",
+        "page": 362,
+        "disorders": [
+          {
+            "icd9": "995.51",
+            "icd10": "T74.32XD",
+            "name": "Subsequent encounter\nChild Psychological Abuse, Suspected",
+            "page": 362,
+            "specifiers": []
+          },
+          {
+            "icd9": "995.51",
+            "icd10": "T76.32XD",
+            "name": "Subsequent encounter\nOther Circumstances Related to Child Psychological Abuse",
+            "page": 362,
+            "specifiers": []
+          }
+        ],
+        "page_end": 362
+      },
+      {
+        "name": "Adult Maltreatment and Neglect Problems",
+        "page": 363,
+        "disorders": [],
+        "page_end": 362
+      },
+      {
+        "name": "Spouse or Partner Violence, Physical",
+        "page": 363,
+        "disorders": [],
+        "page_end": 362
+      },
+      {
+        "name": "Spouse or Partner Violence, Physical, Confirmed",
+        "page": 363,
+        "disorders": [],
+        "page_end": 362
+      },
+      {
+        "name": "Spouse or Partner Violence, Physical, Suspected",
+        "page": 363,
+        "disorders": [],
+        "page_end": 362
+      },
+      {
+        "name": "Other Circumstances Related to Spouse or Partner Violence, Phys- ical",
+        "page": 363,
+        "disorders": [],
+        "page_end": 362
+      },
+      {
+        "name": "Spouse or Partner Violence, Sexual",
+        "page": 363,
+        "disorders": [
+          {
+            "icd9": "995.81",
+            "icd10": "T76.11XD",
+            "name": "Subsequent encounter\nOther Circumstances Related to Spouse or Partner Violence, Physical",
+            "page": 363,
+            "specifiers": []
+          }
+        ],
+        "page_end": 363
+      },
+      {
+        "name": "Spouse or Partner Violence, Sexual, Confirmed",
+        "page": 364,
+        "disorders": [],
+        "page_end": 363
+      },
+      {
+        "name": "Spouse or Partner Violence, Sexual, Suspected",
+        "page": 364,
+        "disorders": [],
+        "page_end": 363
+      },
+      {
+        "name": "Other Circumstances Related to Spouse or Partner Violence, Sex- ual",
+        "page": 364,
+        "disorders": [],
+        "page_end": 363
+      },
+      {
+        "name": "Spouse or Partner Neglect",
+        "page": 364,
+        "disorders": [],
+        "page_end": 363
+      },
+      {
+        "name": "Spouse or Partner Neglect, Confirmed",
+        "page": 364,
+        "disorders": [],
+        "page_end": 363
+      },
+      {
+        "name": "Spouse or Partner Neglect, Suspected",
+        "page": 364,
+        "disorders": [
+          {
+            "icd9": "995.83",
+            "icd10": "T74.21XD",
+            "name": "Subsequent encounter\nSpouse or Partner Violence, Sexual, Suspected",
+            "page": 364,
+            "specifiers": []
+          },
+          {
+            "icd9": "995.83",
+            "icd10": "T76.21XD",
+            "name": "Subsequent encounter\nOther Circumstances Related to Spouse or Partner Violence, Sexual",
+            "page": 364,
+            "specifiers": []
+          }
+        ],
+        "page_end": 364
+      },
+      {
+        "name": "Other Circumstances Related to Spouse or Partner Neglect",
+        "page": 365,
+        "disorders": [],
+        "page_end": 364
+      },
+      {
+        "name": "Spouse or Partner Abuse, Psychological",
+        "page": 365,
+        "disorders": [],
+        "page_end": 364
+      },
+      {
+        "name": "Spouse or Partner Abuse, Psychological, Confirmed",
+        "page": 365,
+        "disorders": [],
+        "page_end": 364
+      },
+      {
+        "name": "Spouse or Partner Abuse, Psychological, Suspected",
+        "page": 365,
+        "disorders": [],
+        "page_end": 364
+      },
+      {
+        "name": "Other Circumstances Related to Spouse or Partner Abuse, Psycho- logical",
+        "page": 365,
+        "disorders": [
+          {
+            "icd9": "995.85",
+            "icd10": "T76.01XD",
+            "name": "Subsequent encounter\nOther Circumstances Related to Spouse or Partner Neglect",
+            "page": 365,
+            "specifiers": []
+          },
+          {
+            "icd9": "995.82",
+            "icd10": "T74.31XD",
+            "name": "Subsequent encounter\nSpouse or Partner Abuse, Psychological, Suspected",
+            "page": 365,
+            "specifiers": []
+          },
+          {
+            "icd9": "995.82",
+            "icd10": "T76.31XD",
+            "name": "Subsequent encounter\nOther Circumstances Related to Spouse or Partner Abuse, Psychological",
+            "page": 365,
+            "specifiers": []
+          }
+        ],
+        "page_end": 365
+      },
+      {
+        "name": "Adult Abuse by Nonspouse or Nonpartner",
+        "page": 366,
+        "disorders": [],
+        "page_end": 365
+      },
+      {
+        "name": "Adult Physical Abuse by Nonspouse or Nonpartner, Confirmed",
+        "page": 366,
+        "disorders": [],
+        "page_end": 365
+      },
+      {
+        "name": "Adult Physical Abuse by Nonspouse or Nonpartner, Suspected",
+        "page": 366,
+        "disorders": [
+          {
+            "icd9": "995.81",
+            "icd10": "T74.11XD",
+            "name": "Subsequent encounter\nAdult Physical Abuse by Nonspouse or Nonpartner, Suspected",
+            "page": 366,
+            "specifiers": []
+          }
+        ],
+        "page_end": 366
+      },
+      {
+        "name": "Educational and Occupational Problems",
+        "page": 367,
+        "disorders": [],
+        "page_end": 366
+      },
+      {
+        "name": "Educational Problems",
+        "page": 367,
+        "disorders": [
+          {
+            "icd9": "995.82",
+            "icd10": "T76.31XD",
+            "name": "Subsequent encounter\nOther Circumstances Related to Adult Abuse by Nonspouse or\n367\nNonpartner ( )\nV65.49 (Z69.81) Encounter for mental health services for victim\nof nonspousal adult abuse\nV62.83 (Z69.82) Encounter for mental health services for\nperpetrator of nonspousal adult abuse\nEducational and Occupational Problems",
+            "page": 367,
+            "specifiers": []
+          }
+        ],
+        "page_end": 367
+      },
+      {
+        "name": "Occupational Problems",
+        "page": 368,
+        "disorders": [],
+        "page_end": 367
+      },
+      {
+        "name": "Deployment Status",
+        "page": 368,
+        "disorders": [],
+        "page_end": 367
+      },
+      {
+        "name": "Housing and Economic Problems",
+        "page": 368,
+        "disorders": [],
+        "page_end": 367
+      },
+      {
+        "name": "Housing Problems",
+        "page": 368,
+        "disorders": [],
+        "page_end": 368
+      },
+      {
+        "name": "Economic Problems",
+        "page": 369,
+        "disorders": [],
+        "page_end": 369
+      },
+      {
+        "name": "Other Problems Related to the Social Environment",
+        "page": 370,
+        "disorders": [],
+        "page_end": 370
+      },
+      {
+        "name": "Problems Related to Crime or Interaction With the Legal System",
+        "page": 371,
+        "disorders": [],
+        "page_end": 370
+      },
+      {
+        "name": "Without Imprisonment",
+        "page": 371,
+        "disorders": [],
+        "page_end": 370
+      },
+      {
+        "name": "Other Health Service Encounters for Counseling and Medical Advice",
+        "page": 371,
+        "disorders": [],
+        "page_end": 370
+      },
+      {
+        "name": "Problems Related to Other Psychosocial, Personal, and Environmental Circumstances",
+        "page": 371,
+        "disorders": [],
+        "page_end": 371
+      },
+      {
+        "name": "Including Probation Officer, Case Manager, or Social Services Worker",
+        "page": 372,
+        "disorders": [],
+        "page_end": 371
+      },
+      {
+        "name": "Psychosocial Circumstances",
+        "page": 372,
+        "disorders": [],
+        "page_end": 371
+      },
+      {
+        "name": "Other Circumstances of Personal History",
+        "page": 372,
+        "disorders": [],
+        "page_end": 372
+      },
+      {
+        "name": "Problems Related to Access to Medical and Other Health Care",
+        "page": 373,
+        "disorders": [],
+        "page_end": 372
+      },
+      {
+        "name": "Helping Agencies",
+        "page": 373,
+        "disorders": [],
+        "page_end": 372
+      },
+      {
+        "name": "Nonadherence to Medical Treatment",
+        "page": 373,
+        "disorders": [
+          {
+            "icd9": "278.00",
+            "icd10": "E66.9",
+            "name": "Overweight or Obesity",
+            "page": 373,
+            "specifiers": []
+          }
+        ],
+        "page_end": 373
+      }
+    ],
+    "disorders": [],
+    "page_end": 373
+  }
+]

@@ -1,0 +1,1057 @@
+{
+  "groups": [
+    {
+      "id": "INTELLECTUAL_DISABILITIES",
+      "family_id": "NEURODEVELOPMENTAL_DISORDERS",
+      "name": "Intellectual Disabilities",
+      "page_start": 17,
+      "page_end": 23,
+      "disorder_ids": [
+        "INTELLECTUAL_DISABILITY_INTELLECTUAL_DEVELOPMENTAL_DISORDER",
+        "GLOBAL_DEVELOPMENTAL_DELAY_315_8",
+        "UNSPECIFIED_INTELLECTUAL_DISABILITY_INTELLECTUAL_DEVELOPMENTAL_DISORDER_319"
+      ]
+    },
+    {
+      "id": "COMMUNICATION_DISORDERS",
+      "family_id": "NEURODEVELOPMENTAL_DISORDERS",
+      "name": "Communication Disorders",
+      "page_start": 24,
+      "page_end": 26,
+      "disorder_ids": [
+        "LANGUAGE_DISORDER_315_32",
+        "SPEECH_SOUND_DISORDER_315_39",
+        "CHILDHOOD_ONSET_FLUENCY_DISORDER_STUTTERING_315_35",
+        "SOCIAL_PRAGMATIC_COMMUNICATION_DISORDER_315_39"
+      ]
+    },
+    {
+      "id": "AUTISM_SPECTRUM_DISORDER",
+      "family_id": "NEURODEVELOPMENTAL_DISORDERS",
+      "name": "Autism Spectrum Disorder",
+      "page_start": 27,
+      "page_end": 30,
+      "disorder_ids": [
+        "UNSPECIFIED_COMMUNICATION_DISORDER_307_9",
+        "AUTISM_SPECTRUM_DISORDER_299_00"
+      ]
+    },
+    {
+      "id": "ATTENTION_DEFICIT_HYPERACTIVITY_DISORDER",
+      "family_id": "NEURODEVELOPMENTAL_DISORDERS",
+      "name": "Attention-Deficit/Hyperactivity Disorder",
+      "page_start": 31,
+      "page_end": 35,
+      "disorder_ids": [
+        "ATTENTION_DEFICIT_HYPERACTIVITY_DISORDER",
+        "OTHER_SPECIFIED_ATTENTION_DEFICIT_HYPERACTIVITY_DISORDER_314_01",
+        "UNSPECIFIED_ATTENTION_DEFICIT_HYPERACTIVITY_DISORDER_314_01"
+      ]
+    },
+    {
+      "id": "SPECIFIC_LEARNING_DISORDER",
+      "family_id": "NEURODEVELOPMENTAL_DISORDERS",
+      "name": "Specific Learning Disorder",
+      "page_start": 36,
+      "page_end": 38,
+      "disorder_ids": [
+        "SPECIFIC_LEARNING_DISORDER"
+      ]
+    },
+    {
+      "id": "MOTOR_DISORDERS",
+      "family_id": "NEURODEVELOPMENTAL_DISORDERS",
+      "name": "Motor Disorders",
+      "page_start": 39,
+      "page_end": 42,
+      "disorder_ids": [
+        "WITH_IMPAIRMENT_IN_MATHEMATICS_SPECIFY_IF_WITH_NUMBER_SENSE_MEMORIZATION_OF_ARITHMETIC_FACTS_ACCURATE_OR_FLUENT_CALCULATION_ACCURATE_MATH_REASONING_SPECIFY_CURRENT_SEVERITY_MILD_MODERATE_SEVERE_MOTOR_DISORDERS_315_1",
+        "DEVELOPMENTAL_COORDINATION_DISORDER_315_4",
+        "STEREOTYPIC_MOVEMENT_DISORDER_307_3",
+        "TOURETTE_S_DISORDER_307_23",
+        "PERSISTENT_CHRONIC_MOTOR_OR_VOCAL_TIC_DISORDER_307_22",
+        "PROVISIONAL_TIC_DISORDER_307_21",
+        "OTHER_SPECIFIED_TIC_DISORDER_307_20",
+        "UNSPECIFIED_TIC_DISORDER_307_20"
+      ]
+    },
+    {
+      "id": "OTHER_NEURODEVELOPMENTAL_DISORDERS",
+      "family_id": "NEURODEVELOPMENTAL_DISORDERS",
+      "name": "Other Neurodevelopmental Disorders",
+      "page_start": 43,
+      "page_end": 44,
+      "disorder_ids": [
+        "OTHER_SPECIFIED_NEURODEVELOPMENTAL_DISORDER_315_8",
+        "UNSPECIFIED_NEURODEVELOPMENTAL_DISORDER_315_9"
+      ]
+    },
+    {
+      "id": "DISORDER_CATATONIA_SPECIFIER",
+      "family_id": "SCHIZOPHRENIA_SPECTRUM_AND_OTHER_PSYCHOTIC_DISORDERS",
+      "name": "Disorder (Catatonia Specifier)",
+      "page_start": 60,
+      "page_end": 62,
+      "disorder_ids": [
+        "CATATONIA_ASSOCIATED_WITH_ANOTHER_MENTAL_DISORDER_CATATONIA_SPECIFIER_293_89",
+        "CATATONIC_DISORDER_DUE_TO_ANOTHER_MEDICAL_CONDITION_293_89",
+        "UNSPECIFIED_CATATONIA_293_89"
+      ]
+    },
+    {
+      "id": "OTHER_PSYCHOTIC_DISORDER",
+      "family_id": "SCHIZOPHRENIA_SPECTRUM_AND_OTHER_PSYCHOTIC_DISORDERS",
+      "name": "Other Psychotic Disorder",
+      "page_start": 63,
+      "page_end": 63,
+      "disorder_ids": [
+        "OTHER_SPECIFIED_SCHIZOPHRENIA_SPECTRUM_AND_OTHER_PSYCHOTIC_DISORDER_298_8"
+      ]
+    },
+    {
+      "id": "PSYCHOTIC_DISORDER",
+      "family_id": "SCHIZOPHRENIA_SPECTRUM_AND_OTHER_PSYCHOTIC_DISORDERS",
+      "name": "Psychotic Disorder",
+      "page_start": 64,
+      "page_end": 64,
+      "disorder_ids": [
+        "UNSPECIFIED_SCHIZOPHRENIA_SPECTRUM_AND_OTHER_PSYCHOTIC_DISORDER_298_9"
+      ]
+    },
+    {
+      "id": "RELATED_DISORDER",
+      "family_id": "BIPOLAR_AND_RELATED_DISORDERS",
+      "name": "Related Disorder",
+      "page_start": 76,
+      "page_end": 79,
+      "disorder_ids": [
+        "CYCLOTHYMIC_DISORDER_301_13",
+        "SUBSTANCE_MEDICATION_INDUCED_BIPOLAR_AND_RELATED_DISORDER"
+      ]
+    },
+    {
+      "id": "MEDICAL_CONDITION",
+      "family_id": "BIPOLAR_AND_RELATED_DISORDERS",
+      "name": "Medical Condition",
+      "page_start": 80,
+      "page_end": 92,
+      "disorder_ids": [
+        "BIPOLAR_AND_RELATED_DISORDER_DUE_TO_ANOTHER_MEDICAL_CONDITION_293_83",
+        "OTHER_SPECIFIED_BIPOLAR_AND_RELATED_DISORDER_296_89",
+        "UNSPECIFIED_BIPOLAR_AND_RELATED_DISORDER_296_80"
+      ]
+    },
+    {
+      "id": "COMPULSIVE_AND_RELATED_DISORDER",
+      "family_id": "OBSESSIVE_COMPULSIVE_AND_RELATED_DISORDERS",
+      "name": "Compulsive and Related Disorder",
+      "page_start": 134,
+      "page_end": 137,
+      "disorder_ids": [
+        "SUBSTANCE_MEDICATION_INDUCED_OBSESSIVECOMPULSIVE_AND_RELATED_DISORDER",
+        "OBSESSIVE_COMPULSIVE_AND_RELATED_DISORDER_DUE_TO_ANOTHER_MEDICAL_CONDITION_294_8"
+      ]
+    },
+    {
+      "id": "RELATED_DISORDER_2",
+      "family_id": "OBSESSIVE_COMPULSIVE_AND_RELATED_DISORDERS",
+      "name": "Related Disorder",
+      "page_start": 138,
+      "page_end": 140,
+      "disorder_ids": [
+        "OTHER_SPECIFIED_OBSESSIVE_COMPULSIVE_AND_RELATED_DISORDER_300_3",
+        "UNSPECIFIED_OBSESSIVE_COMPULSIVE_AND_RELATED_DISORDER_300_3"
+      ]
+    },
+    {
+      "id": "BREATHING_RELATED_SLEEP_DISORDERS",
+      "family_id": "SLEEP_WAKE_DISORDERS",
+      "name": "Breathing-Related Sleep Disorders",
+      "page_start": 186,
+      "page_end": 189,
+      "disorder_ids": [
+        "NARCOLEPSY_SECONDARY_TO_ANOTHER_MEDICAL_CONDITION_BREATHING_RELATED_SLEEP_DISORDERS_347_10",
+        "OBSTRUCTIVE_SLEEP_APNEA_HYPOPNEAC_327_23",
+        "CENTRAL_SLEEP_APNEA",
+        "SLEEP_RELATED_HYPOVENTILATION",
+        "CIRCADIAN_RHYTHM_SLEEP_WAKE_DISORDERSA",
+        "DELAYED_SLEEP_PHASE_TYPE_307_45",
+        "ADVANCED_SLEEP_PHASE_TYPE_307_45",
+        "IRREGULAR_SLEEP_WAKE_TYPE_307_45",
+        "NON_24_HOUR_SLEEP_WAKE_TYPE_307_45",
+        "SHIFT_WORK_TYPE_307_45"
+      ]
+    },
+    {
+      "id": "PARASOMNIAS",
+      "family_id": "SLEEP_WAKE_DISORDERS",
+      "name": "Parasomnias",
+      "page_start": 190,
+      "page_end": 200,
+      "disorder_ids": [
+        "UNSPECIFIED_TYPE_PARASOMNIAS_307_45",
+        "NON_RAPID_EYE_MOVEMENT_SLEEP_AROUSAL_DISORDERS",
+        "NIGHTMARE_DISORDERB_C_307_47",
+        "RAPID_EYE_MOVEMENT_SLEEP_BEHAVIOR_DISORDER_327_42",
+        "RESTLESS_LEGS_SYNDROME_333_94",
+        "SUBSTANCE_MEDICATION_INDUCED_SLEEP_DISORDER",
+        "OTHER_SPECIFIED_INSOMNIA_DISORDER_780_52",
+        "UNSPECIFIED_INSOMNIA_DISORDER_780_52",
+        "OTHER_SPECIFIED_HYPERSOMNOLENCE_DISORDER_780_54",
+        "UNSPECIFIED_HYPERSOMNOLENCE_DISORDER_780_54",
+        "OTHER_SPECIFIED_SLEEP_WAKE_DISORDER_780_59",
+        "UNSPECIFIED_SLEEP_WAKE_DISORDER_780_59"
+      ]
+    },
+    {
+      "id": "CONDUCT_DISORDER",
+      "family_id": "DISRUPTIVE_IMPULSE_CONTROL_AND_CONDUCT_DISORDERS",
+      "name": "Conduct Disorder",
+      "page_start": 225,
+      "page_end": 225,
+      "disorder_ids": [
+        "KLEPTOMANIA_312_32",
+        "OTHER_SPECIFIED_DISRUPTIVE_IMPULSE_CONTROL_AND_CONDUCT_DISORDER_312_89"
+      ]
+    },
+    {
+      "id": "CONDUCT_DISORDER_2",
+      "family_id": "DISRUPTIVE_IMPULSE_CONTROL_AND_CONDUCT_DISORDERS",
+      "name": "Conduct Disorder",
+      "page_start": 226,
+      "page_end": 226,
+      "disorder_ids": [
+        "UNSPECIFIED_DISRUPTIVE_IMPULSE_CONTROL_AND_CONDUCT_DISORDER_312_9"
+      ]
+    },
+    {
+      "id": "SUBSTANCE_RELATED_DISORDERS",
+      "family_id": "SUBSTANCE_RELATED_AND_ADDICTIVE_DISORDERS",
+      "name": "Substance-Related Disorders",
+      "page_start": 230,
+      "page_end": 232,
+      "disorder_ids": []
+    },
+    {
+      "id": "ALCOHOL_RELATED_DISORDERS",
+      "family_id": "SUBSTANCE_RELATED_AND_ADDICTIVE_DISORDERS",
+      "name": "Alcohol-Related Disorders",
+      "page_start": 233,
+      "page_end": 236,
+      "disorder_ids": [
+        "ALCOHOL_USE_DISORDERA_B",
+        "ALCOHOL_INTOXICATION_303_00",
+        "ALCOHOL_WITHDRAWALC_D_291_81",
+        "OTHER_ALCOHOL_INDUCED_DISORDERS"
+      ]
+    },
+    {
+      "id": "CAFFEINE_RELATED_DISORDERS",
+      "family_id": "SUBSTANCE_RELATED_AND_ADDICTIVE_DISORDERS",
+      "name": "Caffeine-Related Disorders",
+      "page_start": 237,
+      "page_end": 238,
+      "disorder_ids": [
+        "UNSPECIFIED_ALCOHOL_RELATED_DISORDER_291_9",
+        "CAFFEINE_WITHDRAWAL_292_0"
+      ]
+    },
+    {
+      "id": "CANNABIS_RELATED_DISORDERS",
+      "family_id": "SUBSTANCE_RELATED_AND_ADDICTIVE_DISORDERS",
+      "name": "Cannabis-Related Disorders",
+      "page_start": 239,
+      "page_end": 243,
+      "disorder_ids": [
+        "OTHER_CAFFEINE_INDUCED_DISORDERS",
+        "UNSPECIFIED_CAFFEINE_RELATED_DISORDER_292_9",
+        "CANNABIS_USE_DISORDERA_B",
+        "CANNABIS_INTOXICATIONC_292_89",
+        "OTHER_CANNABIS_INDUCED_DISORDERS"
+      ]
+    },
+    {
+      "id": "HALLUCINOGEN_RELATED_DISORDERS",
+      "family_id": "SUBSTANCE_RELATED_AND_ADDICTIVE_DISORDERS",
+      "name": "Hallucinogen-Related Disorders",
+      "page_start": 244,
+      "page_end": 251,
+      "disorder_ids": [
+        "UNSPECIFIED_CANNABIS_RELATED_DISORDER_292_9",
+        "PHENCYCLIDINE_USE_DISORDERA_B",
+        "OTHER_HALLUCINOGEN_USE_DISORDERA_B",
+        "PHENCYCLIDINE_INTOXICATION_292_89",
+        "OTHER_HALLUCINOGEN_INTOXICATION_292_89",
+        "OTHER_PHENCYCLIDINE_INDUCED_DISORDERS",
+        "OTHER_HALLUCINOGEN_INDUCED_DISORDERS"
+      ]
+    },
+    {
+      "id": "INHALANT_RELATED_DISORDERS",
+      "family_id": "SUBSTANCE_RELATED_AND_ADDICTIVE_DISORDERS",
+      "name": "Inhalant-Related Disorders",
+      "page_start": 252,
+      "page_end": 255,
+      "disorder_ids": [
+        "UNSPECIFIED_PHENCYCLIDINE_RELATED_DISORDER_292_9",
+        "UNSPECIFIED_HALLUCINOGEN_RELATED_DISORDER_292_9",
+        "INHALANT_USE_DISORDERA_B",
+        "INHALANT_INTOXICATION_292_89",
+        "OTHER_INHALANT_INDUCED_DISORDERS"
+      ]
+    },
+    {
+      "id": "OPIOID_RELATED_DISORDERS",
+      "family_id": "SUBSTANCE_RELATED_AND_ADDICTIVE_DISORDERS",
+      "name": "Opioid-Related Disorders",
+      "page_start": 256,
+      "page_end": 260,
+      "disorder_ids": [
+        "UNSPECIFIED_INHALANT_RELATED_DISORDER_292_9",
+        "OPIOID_USE_DISORDERA",
+        "OPIOID_INTOXICATIONC_292_89",
+        "OPIOID_WITHDRAWALD_292_0",
+        "OTHER_OPIOID_INDUCED_DISORDERS"
+      ]
+    },
+    {
+      "id": "SEDATIVE_HYPNOTIC_OR_ANXIOLYTIC_RELATED_DISORDERS",
+      "family_id": "SUBSTANCE_RELATED_AND_ADDICTIVE_DISORDERS",
+      "name": "Sedative-, Hypnotic-, or Anxiolytic-Related Disorders",
+      "page_start": 261,
+      "page_end": 265,
+      "disorder_ids": [
+        "UNSPECIFIED_OPIOID_RELATED_DISORDER_292_9",
+        "SEDATIVE_HYPNOTIC_OR_ANXIOLYTIC_USE_DISORDERA_B",
+        "SEDATIVE_HYPNOTIC_OR_ANXIOLYTIC_INTOXICATION_292_89",
+        "SEDATIVE_HYPNOTIC_OR_ANXIOLYTIC_WITHDRAWALC_D_292_0"
+      ]
+    },
+    {
+      "id": "INDUCED_DISORDERS",
+      "family_id": "SUBSTANCE_RELATED_AND_ADDICTIVE_DISORDERS",
+      "name": "Induced Disorders",
+      "page_start": 266,
+      "page_end": 266,
+      "disorder_ids": [
+        "OTHER_SEDATIVE_HYPNOTIC_OR_ANXIOLYTICINDUCED_DISORDERS"
+      ]
+    },
+    {
+      "id": "RELATED_DISORDER_3",
+      "family_id": "SUBSTANCE_RELATED_AND_ADDICTIVE_DISORDERS",
+      "name": "Related Disorder",
+      "page_start": 267,
+      "page_end": 266,
+      "disorder_ids": []
+    },
+    {
+      "id": "STIMULANT_RELATED_DISORDERS",
+      "family_id": "SUBSTANCE_RELATED_AND_ADDICTIVE_DISORDERS",
+      "name": "Stimulant-Related Disorders",
+      "page_start": 267,
+      "page_end": 273,
+      "disorder_ids": [
+        "UNSPECIFIED_SEDATIVE_HYPNOTIC_OR_ANXIOLYTICRELATED_DISORDER_292_9",
+        "STIMULANT_USE_DISORDERA_B",
+        "STIMULANT_INTOXICATIONC_292_89",
+        "STIMULANT_WITHDRAWALD_292_0",
+        "OTHER_STIMULANT_INDUCED_DISORDERS",
+        "UNSPECIFIED_STIMULANT_RELATED_DISORDER_292_9"
+      ]
+    },
+    {
+      "id": "TOBACCO_RELATED_DISORDERS",
+      "family_id": "SUBSTANCE_RELATED_AND_ADDICTIVE_DISORDERS",
+      "name": "Tobacco-Related Disorders",
+      "page_start": 274,
+      "page_end": 276,
+      "disorder_ids": [
+        "TOBACCO_USE_DISORDERA"
+      ]
+    },
+    {
+      "id": "OTHER_OR_UNKNOWN_SUBSTANCE_RELATED_DISORDERS",
+      "family_id": "SUBSTANCE_RELATED_AND_ADDICTIVE_DISORDERS",
+      "name": "Other (or Unknown) Substance\u2013Related Disorders",
+      "page_start": 277,
+      "page_end": 281,
+      "disorder_ids": [
+        "OTHER_TOBACCO_INDUCED_DISORDERS",
+        "OTHER_OR_UNKNOWN_SUBSTANCE_INTOXICATION_292_89",
+        "OTHER_OR_UNKNOWN_SUBSTANCE_INDUCED_DISORDERS"
+      ]
+    },
+    {
+      "id": "RELATED_DISORDER_4",
+      "family_id": "SUBSTANCE_RELATED_AND_ADDICTIVE_DISORDERS",
+      "name": "Related Disorder",
+      "page_start": 282,
+      "page_end": 281,
+      "disorder_ids": []
+    },
+    {
+      "id": "NON_SUBSTANCE_RELATED_DISORDERS",
+      "family_id": "SUBSTANCE_RELATED_AND_ADDICTIVE_DISORDERS",
+      "name": "Non-Substance-Related Disorders",
+      "page_start": 282,
+      "page_end": 284,
+      "disorder_ids": [
+        "UNSPECIFIED_OTHER_OR_UNKNOWN_SUBSTANCE_RELATED_DISORDER_292_9",
+        "GAMBLING_DISORDERA_312_31"
+      ]
+    },
+    {
+      "id": "MAJOR_AND_MILD_NEUROCOGNITIVE_DISORDERS",
+      "family_id": "NEUROCOGNITIVE_DISORDERS",
+      "name": "Major and Mild Neurocognitive Disorders",
+      "page_start": 299,
+      "page_end": 304,
+      "disorder_ids": []
+    },
+    {
+      "id": "MAJOR_OR_MILD_NEUROCOGNITIVE_DISORDER_DUE_TO_ALZHEIMER_S_DISEASE",
+      "family_id": "NEUROCOGNITIVE_DISORDERS",
+      "name": "Major or Mild Neurocognitive Disorder Due to Alzheimer\u2019s Disease",
+      "page_start": 305,
+      "page_end": 305,
+      "disorder_ids": []
+    },
+    {
+      "id": "MAJOR_OR_MILD_FRONTOTEMPORAL_NEUROCOGNITIVE_DISORDER",
+      "family_id": "NEUROCOGNITIVE_DISORDERS",
+      "name": "Major or Mild Frontotemporal Neurocognitive Disorder",
+      "page_start": 306,
+      "page_end": 307,
+      "disorder_ids": []
+    },
+    {
+      "id": "FRONTOTEMPORAL_LOBAR_DEGENERATIONA_MAJOR_OR_MILD_NEUROCOGNITIVE_DISORDER_WITH_LEWY_BODIES",
+      "family_id": "NEUROCOGNITIVE_DISORDERS",
+      "name": "Frontotemporal Lobar Degenerationa Major or Mild Neurocognitive Disorder With Lewy Bodies",
+      "page_start": 308,
+      "page_end": 308,
+      "disorder_ids": [
+        "MILD_NEUROCOGNITIVE_DISORDER_DUE_TO_FRONTOTEMPORAL_LOBAR_DEGENERATIONA_MAJOR_OR_MILD_NEUROCOGNITIVE_DISORDER_WITH_LEWY_BODIES_331_83"
+      ]
+    },
+    {
+      "id": "MAJOR_OR_MILD_VASCULAR_NEUROCOGNITIVE_DISORDER",
+      "family_id": "NEUROCOGNITIVE_DISORDERS",
+      "name": "Major or Mild Vascular Neurocognitive Disorder",
+      "page_start": 309,
+      "page_end": 309,
+      "disorder_ids": [
+        "MILD_NEUROCOGNITIVE_DISORDER_WITH_LEWY_BODIESA_MAJOR_OR_MILD_VASCULAR_NEUROCOGNITIVE_DISORDER_331_83"
+      ]
+    },
+    {
+      "id": "MAJOR_OR_MILD_NEUROCOGNITIVE_DISORDER_DUE_TO_TRAUMATIC_BRAIN_INJURY",
+      "family_id": "NEUROCOGNITIVE_DISORDERS",
+      "name": "Major or Mild Neurocognitive Disorder Due to Traumatic Brain Injury",
+      "page_start": 310,
+      "page_end": 310,
+      "disorder_ids": [
+        "MILD_VASCULAR_NEUROCOGNITIVE_DISORDERA_MAJOR_OR_MILD_NEUROCOGNITIVE_DISORDER_DUE_TO_TRAUMATIC_BRAIN_INJURY_331_83"
+      ]
+    },
+    {
+      "id": "BRAIN_INJURYA_SUBSTANCE_MEDICATION_INDUCED_MAJOR_OR_MILD_NEUROCOGNITIVE_DISORDERA",
+      "family_id": "NEUROCOGNITIVE_DISORDERS",
+      "name": "Brain Injurya Substance/Medication-Induced Major or Mild Neurocognitive Disordera",
+      "page_start": 311,
+      "page_end": 314,
+      "disorder_ids": [
+        "MILD_NEUROCOGNITIVE_DISORDER_DUE_TO_TRAUMATIC_BRAIN_INJURYA_SUBSTANCE_MEDICATION_INDUCED_MAJOR_OR_MILD_NEUROCOGNITIVE_DISORDERA_331_83"
+      ]
+    },
+    {
+      "id": "MAJOR_OR_MILD_NEUROCOGNITIVE_DISORDER_DUE_TO_HIV_INFECTION",
+      "family_id": "NEUROCOGNITIVE_DISORDERS",
+      "name": "Major or Mild Neurocognitive Disorder Due to HIV Infection",
+      "page_start": 315,
+      "page_end": 315,
+      "disorder_ids": []
+    },
+    {
+      "id": "INFECTIONA_MAJOR_OR_MILD_NEUROCOGNITIVE_DISORDER_DUE_TO_PRION_DISEASE",
+      "family_id": "NEUROCOGNITIVE_DISORDERS",
+      "name": "Infectiona Major or Mild Neurocognitive Disorder Due to Prion Disease",
+      "page_start": 316,
+      "page_end": 315,
+      "disorder_ids": []
+    },
+    {
+      "id": "DISEASEA_MAJOR_OR_MILD_NEUROCOGNITIVE_DISORDER_DUE_TO_PARKINSON_S_DISEASE",
+      "family_id": "NEUROCOGNITIVE_DISORDERS",
+      "name": "Diseasea Major or Mild Neurocognitive Disorder Due to Parkinson\u2019s Disease",
+      "page_start": 316,
+      "page_end": 316,
+      "disorder_ids": [
+        "MILD_NEUROCOGNITIVE_DISORDER_DUE_TO_HIV_INFECTIONA_MAJOR_OR_MILD_NEUROCOGNITIVE_DISORDER_DUE_TO_PRION_DISEASE_331_83",
+        "MILD_NEUROCOGNITIVE_DISORDER_DUE_TO_PRION_DISEASEA_MAJOR_OR_MILD_NEUROCOGNITIVE_DISORDER_DUE_TO_PARKINSON_S_DISEASE_331_83"
+      ]
+    },
+    {
+      "id": "DISEASEA_MAJOR_OR_MILD_NEUROCOGNITIVE_DISORDER_DUE_TO_HUNTINGTON_S_DISEASE",
+      "family_id": "NEUROCOGNITIVE_DISORDERS",
+      "name": "Diseasea Major or Mild Neurocognitive Disorder Due to Huntington\u2019s Disease",
+      "page_start": 317,
+      "page_end": 317,
+      "disorder_ids": [
+        "MILD_NEUROCOGNITIVE_DISORDER_DUE_TO_PARKINSON_S_DISEASEA_MAJOR_OR_MILD_NEUROCOGNITIVE_DISORDER_DUE_TO_HUNTINGTON_S_DISEASE_331_83"
+      ]
+    },
+    {
+      "id": "HUNTINGTON_S_DISEASEA_MAJOR_OR_MILD_NEUROCOGNITIVE_DISORDER_DUE_TO_ANOTHER_MEDICAL_CONDITION",
+      "family_id": "NEUROCOGNITIVE_DISORDERS",
+      "name": "Huntington\u2019s Diseasea Major or Mild Neurocognitive Disorder Due to Another Medical Condition",
+      "page_start": 318,
+      "page_end": 318,
+      "disorder_ids": [
+        "MILD_NEUROCOGNITIVE_DISORDER_DUE_TO_HUNTINGTON_S_DISEASEA_MAJOR_OR_MILD_NEUROCOGNITIVE_DISORDER_DUE_TO_ANOTHER_MEDICAL_CONDITION_331_83"
+      ]
+    },
+    {
+      "id": "MEDICAL_CONDITIONA_MAJOR_OR_MILD_NEUROCOGNITIVE_DISORDER_DUE_TO_MULTIPLE_ETIOLOGIES",
+      "family_id": "NEUROCOGNITIVE_DISORDERS",
+      "name": "Medical Conditiona Major or Mild Neurocognitive Disorder Due to Multiple Etiologies",
+      "page_start": 319,
+      "page_end": 319,
+      "disorder_ids": [
+        "MILD_NEUROCOGNITIVE_DISORDER_DUE_TO_ANOTHER_MEDICAL_CONDITIONA_MAJOR_OR_MILD_NEUROCOGNITIVE_DISORDER_DUE_TO_MULTIPLE_ETIOLOGIES_331_83"
+      ]
+    },
+    {
+      "id": "ETIOLOGIESA_UNSPECIFIED_NEUROCOGNITIVE_DISORDER",
+      "family_id": "NEUROCOGNITIVE_DISORDERS",
+      "name": "Etiologiesa Unspecified Neurocognitive Disorder",
+      "page_start": 320,
+      "page_end": 320,
+      "disorder_ids": [
+        "MILD_NEUROCOGNITIVE_DISORDER_DUE_TO_MULTIPLE_ETIOLOGIESA_UNSPECIFIED_NEUROCOGNITIVE_DISORDER_331_83"
+      ]
+    },
+    {
+      "id": "MEDICAL_CONDITION_2",
+      "family_id": "OTHER_MENTAL_DISORDERS",
+      "name": "Medical Condition",
+      "page_start": 341,
+      "page_end": 341,
+      "disorder_ids": [
+        "OTHER_SPECIFIED_MENTAL_DISORDER_DUE_TO_ANOTHER_MEDICAL_CONDITION_294_8"
+      ]
+    },
+    {
+      "id": "MEDICAL_CONDITION_3",
+      "family_id": "OTHER_MENTAL_DISORDERS",
+      "name": "Medical Condition",
+      "page_start": 342,
+      "page_end": 344,
+      "disorder_ids": [
+        "UNSPECIFIED_MENTAL_DISORDER_DUE_TO_ANOTHER_MEDICAL_CONDITION_294_9",
+        "OTHER_SPECIFIED_MENTAL_DISORDER_300_9",
+        "UNSPECIFIED_MENTAL_DISORDER_300_9"
+      ]
+    },
+    {
+      "id": "RELATIONAL_PROBLEMS",
+      "family_id": "OTHER_CONDITIONS_THAT_MAY_BE_A_FOCUS_OF_CLINICAL_ATTENTION",
+      "name": "Relational Problems",
+      "page_start": 355,
+      "page_end": 355,
+      "disorder_ids": []
+    },
+    {
+      "id": "PROBLEMS_RELATED_TO_FAMILY_UPBRINGING",
+      "family_id": "OTHER_CONDITIONS_THAT_MAY_BE_A_FOCUS_OF_CLINICAL_ATTENTION",
+      "name": "Problems Related to Family Upbringing",
+      "page_start": 356,
+      "page_end": 356,
+      "disorder_ids": []
+    },
+    {
+      "id": "OTHER_PROBLEMS_RELATED_TO_PRIMARY_SUPPORT_GROUP",
+      "family_id": "OTHER_CONDITIONS_THAT_MAY_BE_A_FOCUS_OF_CLINICAL_ATTENTION",
+      "name": "Other Problems Related to Primary Support Group",
+      "page_start": 357,
+      "page_end": 357,
+      "disorder_ids": []
+    },
+    {
+      "id": "ABUSE_AND_NEGLECT",
+      "family_id": "OTHER_CONDITIONS_THAT_MAY_BE_A_FOCUS_OF_CLINICAL_ATTENTION",
+      "name": "Abuse and Neglect",
+      "page_start": 358,
+      "page_end": 358,
+      "disorder_ids": []
+    },
+    {
+      "id": "CHILD_MALTREATMENT_AND_NEGLECT_PROBLEMS",
+      "family_id": "OTHER_CONDITIONS_THAT_MAY_BE_A_FOCUS_OF_CLINICAL_ATTENTION",
+      "name": "Child Maltreatment and Neglect Problems",
+      "page_start": 359,
+      "page_end": 358,
+      "disorder_ids": []
+    },
+    {
+      "id": "CHILD_PHYSICAL_ABUSE",
+      "family_id": "OTHER_CONDITIONS_THAT_MAY_BE_A_FOCUS_OF_CLINICAL_ATTENTION",
+      "name": "Child Physical Abuse",
+      "page_start": 359,
+      "page_end": 358,
+      "disorder_ids": []
+    },
+    {
+      "id": "CHILD_PHYSICAL_ABUSE_CONFIRMED",
+      "family_id": "OTHER_CONDITIONS_THAT_MAY_BE_A_FOCUS_OF_CLINICAL_ATTENTION",
+      "name": "Child Physical Abuse, Confirmed",
+      "page_start": 359,
+      "page_end": 358,
+      "disorder_ids": []
+    },
+    {
+      "id": "CHILD_PHYSICAL_ABUSE_SUSPECTED",
+      "family_id": "OTHER_CONDITIONS_THAT_MAY_BE_A_FOCUS_OF_CLINICAL_ATTENTION",
+      "name": "Child Physical Abuse, Suspected",
+      "page_start": 359,
+      "page_end": 358,
+      "disorder_ids": []
+    },
+    {
+      "id": "OTHER_CIRCUMSTANCES_RELATED_TO_CHILD_PHYSICAL_ABUSE",
+      "family_id": "OTHER_CONDITIONS_THAT_MAY_BE_A_FOCUS_OF_CLINICAL_ATTENTION",
+      "name": "Other Circumstances Related to Child Physical Abuse",
+      "page_start": 359,
+      "page_end": 359,
+      "disorder_ids": [
+        "SUBSEQUENT_ENCOUNTER_CHILD_PHYSICAL_ABUSE_SUSPECTED_995_54",
+        "SUBSEQUENT_ENCOUNTER_OTHER_CIRCUMSTANCES_RELATED_TO_CHILD_PHYSICAL_ABUSE_995_54"
+      ]
+    },
+    {
+      "id": "CHILD_SEXUAL_ABUSE",
+      "family_id": "OTHER_CONDITIONS_THAT_MAY_BE_A_FOCUS_OF_CLINICAL_ATTENTION",
+      "name": "Child Sexual Abuse",
+      "page_start": 360,
+      "page_end": 359,
+      "disorder_ids": []
+    },
+    {
+      "id": "CHILD_SEXUAL_ABUSE_CONFIRMED",
+      "family_id": "OTHER_CONDITIONS_THAT_MAY_BE_A_FOCUS_OF_CLINICAL_ATTENTION",
+      "name": "Child Sexual Abuse, Confirmed",
+      "page_start": 360,
+      "page_end": 359,
+      "disorder_ids": []
+    },
+    {
+      "id": "CHILD_SEXUAL_ABUSE_SUSPECTED",
+      "family_id": "OTHER_CONDITIONS_THAT_MAY_BE_A_FOCUS_OF_CLINICAL_ATTENTION",
+      "name": "Child Sexual Abuse, Suspected",
+      "page_start": 360,
+      "page_end": 359,
+      "disorder_ids": []
+    },
+    {
+      "id": "OTHER_CIRCUMSTANCES_RELATED_TO_CHILD_SEXUAL_ABUSE",
+      "family_id": "OTHER_CONDITIONS_THAT_MAY_BE_A_FOCUS_OF_CLINICAL_ATTENTION",
+      "name": "Other Circumstances Related to Child Sexual Abuse",
+      "page_start": 360,
+      "page_end": 360,
+      "disorder_ids": [
+        "SUBSEQUENT_ENCOUNTER_CHILD_SEXUAL_ABUSE_SUSPECTED_995_53",
+        "SUBSEQUENT_ENCOUNTER_OTHER_CIRCUMSTANCES_RELATED_TO_CHILD_SEXUAL_ABUSE_995_53"
+      ]
+    },
+    {
+      "id": "CHILD_NEGLECT",
+      "family_id": "OTHER_CONDITIONS_THAT_MAY_BE_A_FOCUS_OF_CLINICAL_ATTENTION",
+      "name": "Child Neglect",
+      "page_start": 361,
+      "page_end": 360,
+      "disorder_ids": []
+    },
+    {
+      "id": "CHILD_NEGLECT_CONFIRMED",
+      "family_id": "OTHER_CONDITIONS_THAT_MAY_BE_A_FOCUS_OF_CLINICAL_ATTENTION",
+      "name": "Child Neglect, Confirmed",
+      "page_start": 361,
+      "page_end": 360,
+      "disorder_ids": []
+    },
+    {
+      "id": "CHILD_NEGLECT_SUSPECTED",
+      "family_id": "OTHER_CONDITIONS_THAT_MAY_BE_A_FOCUS_OF_CLINICAL_ATTENTION",
+      "name": "Child Neglect, Suspected",
+      "page_start": 361,
+      "page_end": 360,
+      "disorder_ids": []
+    },
+    {
+      "id": "OTHER_CIRCUMSTANCES_RELATED_TO_CHILD_NEGLECT",
+      "family_id": "OTHER_CONDITIONS_THAT_MAY_BE_A_FOCUS_OF_CLINICAL_ATTENTION",
+      "name": "Other Circumstances Related to Child Neglect",
+      "page_start": 361,
+      "page_end": 361,
+      "disorder_ids": [
+        "SUBSEQUENT_ENCOUNTER_CHILD_NEGLECT_SUSPECTED_995_52",
+        "SUBSEQUENT_ENCOUNTER_OTHER_CIRCUMSTANCES_RELATED_TO_CHILD_NEGLECT_995_52"
+      ]
+    },
+    {
+      "id": "CHILD_PSYCHOLOGICAL_ABUSE",
+      "family_id": "OTHER_CONDITIONS_THAT_MAY_BE_A_FOCUS_OF_CLINICAL_ATTENTION",
+      "name": "Child Psychological Abuse",
+      "page_start": 362,
+      "page_end": 361,
+      "disorder_ids": []
+    },
+    {
+      "id": "CHILD_PSYCHOLOGICAL_ABUSE_CONFIRMED",
+      "family_id": "OTHER_CONDITIONS_THAT_MAY_BE_A_FOCUS_OF_CLINICAL_ATTENTION",
+      "name": "Child Psychological Abuse, Confirmed",
+      "page_start": 362,
+      "page_end": 361,
+      "disorder_ids": []
+    },
+    {
+      "id": "CHILD_PSYCHOLOGICAL_ABUSE_SUSPECTED",
+      "family_id": "OTHER_CONDITIONS_THAT_MAY_BE_A_FOCUS_OF_CLINICAL_ATTENTION",
+      "name": "Child Psychological Abuse, Suspected",
+      "page_start": 362,
+      "page_end": 361,
+      "disorder_ids": []
+    },
+    {
+      "id": "OTHER_CIRCUMSTANCES_RELATED_TO_CHILD_PSYCHOLOGICAL_ABUSE",
+      "family_id": "OTHER_CONDITIONS_THAT_MAY_BE_A_FOCUS_OF_CLINICAL_ATTENTION",
+      "name": "Other Circumstances Related to Child Psychological Abuse",
+      "page_start": 362,
+      "page_end": 362,
+      "disorder_ids": [
+        "SUBSEQUENT_ENCOUNTER_CHILD_PSYCHOLOGICAL_ABUSE_SUSPECTED_995_51",
+        "SUBSEQUENT_ENCOUNTER_OTHER_CIRCUMSTANCES_RELATED_TO_CHILD_PSYCHOLOGICAL_ABUSE_995_51"
+      ]
+    },
+    {
+      "id": "ADULT_MALTREATMENT_AND_NEGLECT_PROBLEMS",
+      "family_id": "OTHER_CONDITIONS_THAT_MAY_BE_A_FOCUS_OF_CLINICAL_ATTENTION",
+      "name": "Adult Maltreatment and Neglect Problems",
+      "page_start": 363,
+      "page_end": 362,
+      "disorder_ids": []
+    },
+    {
+      "id": "SPOUSE_OR_PARTNER_VIOLENCE_PHYSICAL",
+      "family_id": "OTHER_CONDITIONS_THAT_MAY_BE_A_FOCUS_OF_CLINICAL_ATTENTION",
+      "name": "Spouse or Partner Violence, Physical",
+      "page_start": 363,
+      "page_end": 362,
+      "disorder_ids": []
+    },
+    {
+      "id": "SPOUSE_OR_PARTNER_VIOLENCE_PHYSICAL_CONFIRMED",
+      "family_id": "OTHER_CONDITIONS_THAT_MAY_BE_A_FOCUS_OF_CLINICAL_ATTENTION",
+      "name": "Spouse or Partner Violence, Physical, Confirmed",
+      "page_start": 363,
+      "page_end": 362,
+      "disorder_ids": []
+    },
+    {
+      "id": "SPOUSE_OR_PARTNER_VIOLENCE_PHYSICAL_SUSPECTED",
+      "family_id": "OTHER_CONDITIONS_THAT_MAY_BE_A_FOCUS_OF_CLINICAL_ATTENTION",
+      "name": "Spouse or Partner Violence, Physical, Suspected",
+      "page_start": 363,
+      "page_end": 362,
+      "disorder_ids": []
+    },
+    {
+      "id": "OTHER_CIRCUMSTANCES_RELATED_TO_SPOUSE_OR_PARTNER_VIOLENCE_PHYS_ICAL",
+      "family_id": "OTHER_CONDITIONS_THAT_MAY_BE_A_FOCUS_OF_CLINICAL_ATTENTION",
+      "name": "Other Circumstances Related to Spouse or Partner Violence, Phys- ical",
+      "page_start": 363,
+      "page_end": 362,
+      "disorder_ids": []
+    },
+    {
+      "id": "SPOUSE_OR_PARTNER_VIOLENCE_SEXUAL",
+      "family_id": "OTHER_CONDITIONS_THAT_MAY_BE_A_FOCUS_OF_CLINICAL_ATTENTION",
+      "name": "Spouse or Partner Violence, Sexual",
+      "page_start": 363,
+      "page_end": 363,
+      "disorder_ids": [
+        "SUBSEQUENT_ENCOUNTER_OTHER_CIRCUMSTANCES_RELATED_TO_SPOUSE_OR_PARTNER_VIOLENCE_PHYSICAL_995_81"
+      ]
+    },
+    {
+      "id": "SPOUSE_OR_PARTNER_VIOLENCE_SEXUAL_CONFIRMED",
+      "family_id": "OTHER_CONDITIONS_THAT_MAY_BE_A_FOCUS_OF_CLINICAL_ATTENTION",
+      "name": "Spouse or Partner Violence, Sexual, Confirmed",
+      "page_start": 364,
+      "page_end": 363,
+      "disorder_ids": []
+    },
+    {
+      "id": "SPOUSE_OR_PARTNER_VIOLENCE_SEXUAL_SUSPECTED",
+      "family_id": "OTHER_CONDITIONS_THAT_MAY_BE_A_FOCUS_OF_CLINICAL_ATTENTION",
+      "name": "Spouse or Partner Violence, Sexual, Suspected",
+      "page_start": 364,
+      "page_end": 363,
+      "disorder_ids": []
+    },
+    {
+      "id": "OTHER_CIRCUMSTANCES_RELATED_TO_SPOUSE_OR_PARTNER_VIOLENCE_SEX_UAL",
+      "family_id": "OTHER_CONDITIONS_THAT_MAY_BE_A_FOCUS_OF_CLINICAL_ATTENTION",
+      "name": "Other Circumstances Related to Spouse or Partner Violence, Sex- ual",
+      "page_start": 364,
+      "page_end": 363,
+      "disorder_ids": []
+    },
+    {
+      "id": "SPOUSE_OR_PARTNER_NEGLECT",
+      "family_id": "OTHER_CONDITIONS_THAT_MAY_BE_A_FOCUS_OF_CLINICAL_ATTENTION",
+      "name": "Spouse or Partner Neglect",
+      "page_start": 364,
+      "page_end": 363,
+      "disorder_ids": []
+    },
+    {
+      "id": "SPOUSE_OR_PARTNER_NEGLECT_CONFIRMED",
+      "family_id": "OTHER_CONDITIONS_THAT_MAY_BE_A_FOCUS_OF_CLINICAL_ATTENTION",
+      "name": "Spouse or Partner Neglect, Confirmed",
+      "page_start": 364,
+      "page_end": 363,
+      "disorder_ids": []
+    },
+    {
+      "id": "SPOUSE_OR_PARTNER_NEGLECT_SUSPECTED",
+      "family_id": "OTHER_CONDITIONS_THAT_MAY_BE_A_FOCUS_OF_CLINICAL_ATTENTION",
+      "name": "Spouse or Partner Neglect, Suspected",
+      "page_start": 364,
+      "page_end": 364,
+      "disorder_ids": [
+        "SUBSEQUENT_ENCOUNTER_SPOUSE_OR_PARTNER_VIOLENCE_SEXUAL_SUSPECTED_995_83",
+        "SUBSEQUENT_ENCOUNTER_OTHER_CIRCUMSTANCES_RELATED_TO_SPOUSE_OR_PARTNER_VIOLENCE_SEXUAL_995_83"
+      ]
+    },
+    {
+      "id": "OTHER_CIRCUMSTANCES_RELATED_TO_SPOUSE_OR_PARTNER_NEGLECT",
+      "family_id": "OTHER_CONDITIONS_THAT_MAY_BE_A_FOCUS_OF_CLINICAL_ATTENTION",
+      "name": "Other Circumstances Related to Spouse or Partner Neglect",
+      "page_start": 365,
+      "page_end": 364,
+      "disorder_ids": []
+    },
+    {
+      "id": "SPOUSE_OR_PARTNER_ABUSE_PSYCHOLOGICAL",
+      "family_id": "OTHER_CONDITIONS_THAT_MAY_BE_A_FOCUS_OF_CLINICAL_ATTENTION",
+      "name": "Spouse or Partner Abuse, Psychological",
+      "page_start": 365,
+      "page_end": 364,
+      "disorder_ids": []
+    },
+    {
+      "id": "SPOUSE_OR_PARTNER_ABUSE_PSYCHOLOGICAL_CONFIRMED",
+      "family_id": "OTHER_CONDITIONS_THAT_MAY_BE_A_FOCUS_OF_CLINICAL_ATTENTION",
+      "name": "Spouse or Partner Abuse, Psychological, Confirmed",
+      "page_start": 365,
+      "page_end": 364,
+      "disorder_ids": []
+    },
+    {
+      "id": "SPOUSE_OR_PARTNER_ABUSE_PSYCHOLOGICAL_SUSPECTED",
+      "family_id": "OTHER_CONDITIONS_THAT_MAY_BE_A_FOCUS_OF_CLINICAL_ATTENTION",
+      "name": "Spouse or Partner Abuse, Psychological, Suspected",
+      "page_start": 365,
+      "page_end": 364,
+      "disorder_ids": []
+    },
+    {
+      "id": "OTHER_CIRCUMSTANCES_RELATED_TO_SPOUSE_OR_PARTNER_ABUSE_PSYCHO_LOGICAL",
+      "family_id": "OTHER_CONDITIONS_THAT_MAY_BE_A_FOCUS_OF_CLINICAL_ATTENTION",
+      "name": "Other Circumstances Related to Spouse or Partner Abuse, Psycho- logical",
+      "page_start": 365,
+      "page_end": 365,
+      "disorder_ids": [
+        "SUBSEQUENT_ENCOUNTER_OTHER_CIRCUMSTANCES_RELATED_TO_SPOUSE_OR_PARTNER_NEGLECT_995_85",
+        "SUBSEQUENT_ENCOUNTER_SPOUSE_OR_PARTNER_ABUSE_PSYCHOLOGICAL_SUSPECTED_995_82",
+        "SUBSEQUENT_ENCOUNTER_OTHER_CIRCUMSTANCES_RELATED_TO_SPOUSE_OR_PARTNER_ABUSE_PSYCHOLOGICAL_995_82"
+      ]
+    },
+    {
+      "id": "ADULT_ABUSE_BY_NONSPOUSE_OR_NONPARTNER",
+      "family_id": "OTHER_CONDITIONS_THAT_MAY_BE_A_FOCUS_OF_CLINICAL_ATTENTION",
+      "name": "Adult Abuse by Nonspouse or Nonpartner",
+      "page_start": 366,
+      "page_end": 365,
+      "disorder_ids": []
+    },
+    {
+      "id": "ADULT_PHYSICAL_ABUSE_BY_NONSPOUSE_OR_NONPARTNER_CONFIRMED",
+      "family_id": "OTHER_CONDITIONS_THAT_MAY_BE_A_FOCUS_OF_CLINICAL_ATTENTION",
+      "name": "Adult Physical Abuse by Nonspouse or Nonpartner, Confirmed",
+      "page_start": 366,
+      "page_end": 365,
+      "disorder_ids": []
+    },
+    {
+      "id": "ADULT_PHYSICAL_ABUSE_BY_NONSPOUSE_OR_NONPARTNER_SUSPECTED",
+      "family_id": "OTHER_CONDITIONS_THAT_MAY_BE_A_FOCUS_OF_CLINICAL_ATTENTION",
+      "name": "Adult Physical Abuse by Nonspouse or Nonpartner, Suspected",
+      "page_start": 366,
+      "page_end": 366,
+      "disorder_ids": [
+        "SUBSEQUENT_ENCOUNTER_ADULT_PHYSICAL_ABUSE_BY_NONSPOUSE_OR_NONPARTNER_SUSPECTED_995_81"
+      ]
+    },
+    {
+      "id": "EDUCATIONAL_AND_OCCUPATIONAL_PROBLEMS",
+      "family_id": "OTHER_CONDITIONS_THAT_MAY_BE_A_FOCUS_OF_CLINICAL_ATTENTION",
+      "name": "Educational and Occupational Problems",
+      "page_start": 367,
+      "page_end": 366,
+      "disorder_ids": []
+    },
+    {
+      "id": "EDUCATIONAL_PROBLEMS",
+      "family_id": "OTHER_CONDITIONS_THAT_MAY_BE_A_FOCUS_OF_CLINICAL_ATTENTION",
+      "name": "Educational Problems",
+      "page_start": 367,
+      "page_end": 367,
+      "disorder_ids": [
+        "SUBSEQUENT_ENCOUNTER_OTHER_CIRCUMSTANCES_RELATED_TO_ADULT_ABUSE_BY_NONSPOUSE_OR_367_NONPARTNER_V65_49_Z69_81_ENCOUNTER_FOR_MENTAL_HEALTH_SERVICES_FOR_VICTIM_OF_NONSPOUSAL_ADULT_ABUSE_V62_83_Z69_82_ENCOUNTER_FOR_MENTAL_HEALTH_SERVICES_FOR_PERPETRATOR_OF_NONSPOUSAL_ADULT_ABUSE_EDUCATIONAL_AND_OCCUPATIONAL_PROBLEMS_995_82"
+      ]
+    },
+    {
+      "id": "OCCUPATIONAL_PROBLEMS",
+      "family_id": "OTHER_CONDITIONS_THAT_MAY_BE_A_FOCUS_OF_CLINICAL_ATTENTION",
+      "name": "Occupational Problems",
+      "page_start": 368,
+      "page_end": 367,
+      "disorder_ids": []
+    },
+    {
+      "id": "DEPLOYMENT_STATUS",
+      "family_id": "OTHER_CONDITIONS_THAT_MAY_BE_A_FOCUS_OF_CLINICAL_ATTENTION",
+      "name": "Deployment Status",
+      "page_start": 368,
+      "page_end": 367,
+      "disorder_ids": []
+    },
+    {
+      "id": "HOUSING_AND_ECONOMIC_PROBLEMS",
+      "family_id": "OTHER_CONDITIONS_THAT_MAY_BE_A_FOCUS_OF_CLINICAL_ATTENTION",
+      "name": "Housing and Economic Problems",
+      "page_start": 368,
+      "page_end": 367,
+      "disorder_ids": []
+    },
+    {
+      "id": "HOUSING_PROBLEMS",
+      "family_id": "OTHER_CONDITIONS_THAT_MAY_BE_A_FOCUS_OF_CLINICAL_ATTENTION",
+      "name": "Housing Problems",
+      "page_start": 368,
+      "page_end": 368,
+      "disorder_ids": []
+    },
+    {
+      "id": "ECONOMIC_PROBLEMS",
+      "family_id": "OTHER_CONDITIONS_THAT_MAY_BE_A_FOCUS_OF_CLINICAL_ATTENTION",
+      "name": "Economic Problems",
+      "page_start": 369,
+      "page_end": 369,
+      "disorder_ids": []
+    },
+    {
+      "id": "OTHER_PROBLEMS_RELATED_TO_THE_SOCIAL_ENVIRONMENT",
+      "family_id": "OTHER_CONDITIONS_THAT_MAY_BE_A_FOCUS_OF_CLINICAL_ATTENTION",
+      "name": "Other Problems Related to the Social Environment",
+      "page_start": 370,
+      "page_end": 370,
+      "disorder_ids": []
+    },
+    {
+      "id": "PROBLEMS_RELATED_TO_CRIME_OR_INTERACTION_WITH_THE_LEGAL_SYSTEM",
+      "family_id": "OTHER_CONDITIONS_THAT_MAY_BE_A_FOCUS_OF_CLINICAL_ATTENTION",
+      "name": "Problems Related to Crime or Interaction With the Legal System",
+      "page_start": 371,
+      "page_end": 370,
+      "disorder_ids": []
+    },
+    {
+      "id": "WITHOUT_IMPRISONMENT",
+      "family_id": "OTHER_CONDITIONS_THAT_MAY_BE_A_FOCUS_OF_CLINICAL_ATTENTION",
+      "name": "Without Imprisonment",
+      "page_start": 371,
+      "page_end": 370,
+      "disorder_ids": []
+    },
+    {
+      "id": "OTHER_HEALTH_SERVICE_ENCOUNTERS_FOR_COUNSELING_AND_MEDICAL_ADVICE",
+      "family_id": "OTHER_CONDITIONS_THAT_MAY_BE_A_FOCUS_OF_CLINICAL_ATTENTION",
+      "name": "Other Health Service Encounters for Counseling and Medical Advice",
+      "page_start": 371,
+      "page_end": 370,
+      "disorder_ids": []
+    },
+    {
+      "id": "PROBLEMS_RELATED_TO_OTHER_PSYCHOSOCIAL_PERSONAL_AND_ENVIRONMENTAL_CIRCUMSTANCES",
+      "family_id": "OTHER_CONDITIONS_THAT_MAY_BE_A_FOCUS_OF_CLINICAL_ATTENTION",
+      "name": "Problems Related to Other Psychosocial, Personal, and Environmental Circumstances",
+      "page_start": 371,
+      "page_end": 371,
+      "disorder_ids": []
+    },
+    {
+      "id": "INCLUDING_PROBATION_OFFICER_CASE_MANAGER_OR_SOCIAL_SERVICES_WORKER",
+      "family_id": "OTHER_CONDITIONS_THAT_MAY_BE_A_FOCUS_OF_CLINICAL_ATTENTION",
+      "name": "Including Probation Officer, Case Manager, or Social Services Worker",
+      "page_start": 372,
+      "page_end": 371,
+      "disorder_ids": []
+    },
+    {
+      "id": "PSYCHOSOCIAL_CIRCUMSTANCES",
+      "family_id": "OTHER_CONDITIONS_THAT_MAY_BE_A_FOCUS_OF_CLINICAL_ATTENTION",
+      "name": "Psychosocial Circumstances",
+      "page_start": 372,
+      "page_end": 371,
+      "disorder_ids": []
+    },
+    {
+      "id": "OTHER_CIRCUMSTANCES_OF_PERSONAL_HISTORY",
+      "family_id": "OTHER_CONDITIONS_THAT_MAY_BE_A_FOCUS_OF_CLINICAL_ATTENTION",
+      "name": "Other Circumstances of Personal History",
+      "page_start": 372,
+      "page_end": 372,
+      "disorder_ids": []
+    },
+    {
+      "id": "PROBLEMS_RELATED_TO_ACCESS_TO_MEDICAL_AND_OTHER_HEALTH_CARE",
+      "family_id": "OTHER_CONDITIONS_THAT_MAY_BE_A_FOCUS_OF_CLINICAL_ATTENTION",
+      "name": "Problems Related to Access to Medical and Other Health Care",
+      "page_start": 373,
+      "page_end": 372,
+      "disorder_ids": []
+    },
+    {
+      "id": "HELPING_AGENCIES",
+      "family_id": "OTHER_CONDITIONS_THAT_MAY_BE_A_FOCUS_OF_CLINICAL_ATTENTION",
+      "name": "Helping Agencies",
+      "page_start": 373,
+      "page_end": 372,
+      "disorder_ids": []
+    },
+    {
+      "id": "NONADHERENCE_TO_MEDICAL_TREATMENT",
+      "family_id": "OTHER_CONDITIONS_THAT_MAY_BE_A_FOCUS_OF_CLINICAL_ATTENTION",
+      "name": "Nonadherence to Medical Treatment",
+      "page_start": 373,
+      "page_end": 373,
+      "disorder_ids": [
+        "OVERWEIGHT_OR_OBESITY_278_00"
+      ]
+    }
+  ]
+}
