@@ -107,7 +107,7 @@ const EntryEditPage = () => {
         themeIntensities: draftAnalysis?.themeIntensities || [],
       });
       setActionMessage("Entry updated.");
-      navigate(`/entry/${id}`);
+      navigate(`/patient/entry/${id}`);
     } catch {
       // error handled in hook
     }
@@ -194,7 +194,7 @@ const EntryEditPage = () => {
               type="button"
               variant="secondary"
               size="lg"
-              onClick={() => navigate(`/entry/${id}`)}
+              onClick={() => navigate(`/patient/entry/${id}`)}
             >
               Cancel
             </Button>

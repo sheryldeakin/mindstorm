@@ -1,0 +1,10 @@
+{
+  "id": "ptsd_like",
+  "label": "Trauma-like pattern",
+  "description": "Signals that can resemble reactivity or hypervigilance after difficult experiences.",
+  "signals": [
+    { "type": "theme", "anyOf": ["hypervigilance", "avoidance", "flashback"] },
+    { "type": "emotion", "anyOf": ["fear", "on edge"] },
+    { "type": "influence", "anyOf": ["event reminder", "trigger"] }
+  ]
+}

@@ -91,7 +91,7 @@ const JournalDashboard = () => {
                 </button>
               ))}
             </div>
-            <Button variant="secondary" onClick={() => navigate("/entry")}>
+            <Button variant="secondary" onClick={() => navigate("/patient/entry")}>
               New entry
             </Button>
           </div>
@@ -158,7 +158,7 @@ const JournalDashboard = () => {
             <Card className="p-6 text-slate-700">
               <h3 className="text-lg font-semibold text-slate-800">No entries yet</h3>
               <p className="mt-1 text-sm text-slate-600">Log your first reflection to see it here.</p>
-              <Button className="mt-4">New entry</Button>
+              <Button className="mt-4" onClick={() => navigate("/patient/entry")}>New entry</Button>
             </Card>
           ) : recentError ? (
             <Card className="p-6 text-slate-700">

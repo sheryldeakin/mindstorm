@@ -49,7 +49,7 @@ const EntryDetailPage = () => {
             <h2 className="mt-2 text-3xl font-semibold">{data.title || "Untitled reflection"}</h2>
             <p className="mt-2 text-sm text-slate-500">{formattedEntryDate}</p>
           </div>
-          <Button variant="secondary" onClick={() => navigate(`/entry/${data.id}/edit`)}>
+          <Button variant="secondary" onClick={() => navigate(`/patient/entry/${data.id}/edit`)}>
             Edit entry
           </Button>
         </div>

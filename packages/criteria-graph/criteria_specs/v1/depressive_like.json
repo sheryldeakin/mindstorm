@@ -1,0 +1,10 @@
+{
+  "id": "depressive_like",
+  "label": "Depressive-like pattern",
+  "description": "Signals that can resemble low mood, reduced drive, or diminished enjoyment.",
+  "signals": [
+    { "type": "theme", "anyOf": ["low energy", "loss of interest", "withdrawal"] },
+    { "type": "emotion", "anyOf": ["sad", "empty", "numb"] },
+    { "type": "influence", "anyOf": ["sleep disruption", "stress"] }
+  ]
+}

@@ -1,31 +1,17 @@
 {
   "name": "mindstorm",
   "private": true,
-  "version": "0.0.0",
-  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*",
+    "backend"
+  ],
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "preview": "vite preview"
-  },
-  "dependencies": {
-    "clsx": "^2.1.1",
-    "framer-motion": "^11.13.1",
-    "gojs": "^3.1.0",
-    "lucide-react": "^0.475.0",
-    "ollama": "^0.6.3",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "react-router-dom": "^6.28.0"
+    "dev:web": "npm run dev --workspace apps/web",
+    "dev:backend": "npm run dev --workspace backend",
+    "dev": "concurrently -k \"npm run dev:web\" \"npm run dev:backend\""
   },
   "devDependencies": {
-    "@types/react": "^18.3.12",
-    "@types/react-dom": "^18.3.1",
-    "@vitejs/plugin-react": "^4.3.4",
-    "autoprefixer": "^10.4.20",
-    "postcss": "^8.4.49",
-    "tailwindcss": "^3.4.16",
-    "typescript": "~5.9.3",
-    "vite": "^7.2.2"
+    "concurrently": "^9.1.0"
   }
 }

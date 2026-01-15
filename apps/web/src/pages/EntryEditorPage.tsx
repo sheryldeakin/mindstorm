@@ -115,7 +115,7 @@ const EntryEditorPage = () => {
         themeIntensities: analysis.themeIntensities || [],
       });
       if (entry?.id) {
-        navigate(`/entry/${entry.id}`);
+        navigate(`/patient/entry/${entry.id}`);
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : "Could not analyze entry.";

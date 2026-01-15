@@ -3,15 +3,15 @@ import clsx from "clsx";
 import { Activity, BookOpen, CalendarDays, FileText, Settings, Share2, SlidersHorizontal, Sparkles } from "lucide-react";
 
 const navItems = [
-  { label: "Dashboard", to: "/dashboard", icon: CalendarDays },
-  { label: "Journal Library", to: "/journal", icon: BookOpen },
-  { label: "New Entry", to: "/entry", icon: Sparkles },
-  { label: "Check-in", to: "/check-in", icon: SlidersHorizontal },
-  { label: "Connections", to: "/connections", icon: Share2 },
-  { label: "Patterns", to: "/patterns", icon: Activity },
-  { label: "Cycles Graph", to: "/cycles", icon: Activity },
-  { label: "Prepare", to: "/prepare", icon: FileText },
-  { label: "Settings", to: "/settings", icon: Settings },
+  { label: "Dashboard", to: "/patient/home", icon: CalendarDays },
+  { label: "Journal Library", to: "/patient/journal", icon: BookOpen },
+  { label: "New Entry", to: "/patient/entry", icon: Sparkles },
+  { label: "Check-in", to: "/patient/check-in", icon: SlidersHorizontal },
+  { label: "Connections", to: "/patient/connections", icon: Share2 },
+  { label: "Patterns", to: "/patient/patterns", icon: Activity },
+  { label: "Cycles Graph", to: "/patient/cycles", icon: Activity },
+  { label: "Prepare", to: "/patient/prepare", icon: FileText },
+  { label: "Settings", to: "/patient/settings", icon: Settings },
 ];
 
 const SidebarNav = () => {

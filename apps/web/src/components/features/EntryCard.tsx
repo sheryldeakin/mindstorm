@@ -24,7 +24,7 @@ const EntryCard = ({ entry }: EntryCardProps) => (
       ))}
     </div>
     <div className="mt-6 flex justify-end">
-      <Link to={`/entry/${entry.id}`}>
+      <Link to={`/patient/entry/${entry.id}`}>
         <Button variant="secondary" size="sm">
           Open entry
         </Button>

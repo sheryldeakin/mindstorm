@@ -28,7 +28,7 @@ const LoginPage = () => {
 
   useEffect(() => {
     if (status === "authed") {
-      const from = (location.state as { from?: string } | undefined)?.from ?? "/journal";
+      const from = (location.state as { from?: string } | undefined)?.from ?? "/portal";
       navigate(from, { replace: true });
     }
   }, [location.state, navigate, status]);
@@ -95,7 +95,7 @@ const LoginPage = () => {
         await login(email, password);
       } else {
         await register(email, password, name);
-        setActionMessage("Account created. Redirecting to your journal...");
+        setActionMessage("Account created. Redirecting to your portal...");
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unable to sign in right now.";
@@ -317,7 +317,7 @@ const LoginPage = () => {
                   </div>
                 </div>
                 {status === "authed" ? (
-                  <Link to="/journal" className="w-full">
+                  <Link to="/patient/journal" className="w-full">
                     <Button className="w-full">Enter my workspace</Button>
                   </Link>
                 ) : (

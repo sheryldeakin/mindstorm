@@ -18,15 +18,15 @@ const landingLinks = [
 ];
 
 const appLinks = [
-  { label: "Home", to: "/home" },
-  { label: "Journal", to: "/journal" },
-  { label: "Entry", to: "/entry" },
-  { label: "Check-in", to: "/check-in" },
-  { label: "Connections", to: "/connections" },
-  { label: "Patterns", to: "/patterns" },
-  { label: "Cycles", to: "/cycles" },
-  { label: "Prepare", to: "/prepare" },
-  { label: "Settings", to: "/settings" },
+  { label: "Home", to: "/patient/home" },
+  { label: "Journal", to: "/patient/journal" },
+  { label: "Entry", to: "/patient/entry" },
+  { label: "Check-in", to: "/patient/check-in" },
+  { label: "Connections", to: "/patient/connections" },
+  { label: "Patterns", to: "/patient/patterns" },
+  { label: "Cycles", to: "/patient/cycles" },
+  { label: "Prepare", to: "/patient/prepare" },
+  { label: "Settings", to: "/patient/settings" },
 ];
 
 const Navbar = ({ variant = "landing" }: NavbarProps) => {
@@ -99,7 +99,7 @@ const Navbar = ({ variant = "landing" }: NavbarProps) => {
               <>
                 <div className="flex items-center gap-6 md:flex lg:hidden">
                   {appLinks
-                    .filter((link) => link.to === "/home")
+                    .filter((link) => link.to === "/patient/home")
                     .map((link) => (
                       <NavLink
                         key={link.label}
@@ -107,7 +107,9 @@ const Navbar = ({ variant = "landing" }: NavbarProps) => {
                         className={({ isActive }) =>
                           clsx(
                             "transition hover:text-brand",
-                            (link.to === "/home" && (pathname === "/home" || pathname === "/dashboard")) || isActive
+                            (link.to === "/patient/home" &&
+                              (pathname === "/patient/home" || pathname === "/patient/dashboard")) ||
+                              isActive
                               ? "text-brand font-semibold"
                               : "text-brand/60",
                           )
@@ -125,7 +127,9 @@ const Navbar = ({ variant = "landing" }: NavbarProps) => {
                       className={({ isActive }) =>
                         clsx(
                           "transition hover:text-brand",
-                          (link.to === "/home" && (pathname === "/home" || pathname === "/dashboard")) || isActive
+                          (link.to === "/patient/home" &&
+                            (pathname === "/patient/home" || pathname === "/patient/dashboard")) ||
+                            isActive
                             ? "text-brand font-semibold"
                             : "text-brand/60",
                         )
@@ -243,7 +247,9 @@ const Navbar = ({ variant = "landing" }: NavbarProps) => {
                           className={({ isActive }) =>
                             clsx(
                               "rounded-2xl px-3 py-2 text-sm transition",
-                              (link.to === "/home" && (pathname === "/home" || pathname === "/dashboard")) || isActive
+                              (link.to === "/patient/home" &&
+                                (pathname === "/patient/home" || pathname === "/patient/dashboard")) ||
+                                isActive
                                 ? "bg-brand/10 text-brand font-semibold"
                                 : "text-brand/60 hover:bg-brand/5 hover:text-brand",
                             )
