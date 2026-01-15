@@ -20,6 +20,9 @@ body {
   --ms-glass: rgba(255, 255, 255, 0.48);
   /* Blur tuning: increase for stronger frost */
   --ms-blur: 24px;
+  --spark-up: #8fb1e7;
+  --spark-down: #e3a2a2;
+  --spark-steady: #a6b3c6;
 }
 
 html {
@@ -181,6 +184,21 @@ main {
 
 .ms-card-hover {
   transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.ms-card-overlay {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(140px 120px at 85% 0%, rgba(255, 255, 255, 0.6), transparent 55%);
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .ms-card:hover {

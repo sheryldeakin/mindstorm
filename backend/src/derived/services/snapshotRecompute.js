@@ -93,6 +93,7 @@ const buildSnapshot = (entries, rangeKey, weeklySummaries) => {
 
   return {
     rangeKey,
+    entryCount: entries.length,
     snapshotOverview: snapshotParts.join(" "),
     patterns,
     impactAreas,

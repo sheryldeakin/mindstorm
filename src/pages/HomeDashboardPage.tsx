@@ -114,6 +114,52 @@ const LifeAreaRadar = ({ areas }: { areas: string[] }) => {
   );
 };
 
+const buildSnapshotSynthesis = (patterns: HomePatternCard[], influences: string[]) => {
+  const phrases = new Set<string>();
+
+  patterns.forEach((pattern) => {
+    const title = pattern.title.toLowerCase();
+    if (title.includes("self") || title.includes("compassion")) {
+      phrases.add("care toward yourself");
+    }
+    if (title.includes("connection") || title.includes("social") || title.includes("relationships")) {
+      phrases.add("connection with others");
+    }
+    if (title.includes("motivation") || title.includes("energy") || title.includes("activation")) {
+      phrases.add("motivation and energy");
+    }
+    if (title.includes("sleep") || title.includes("rest")) {
+      phrases.add("rest and recovery");
+    }
+    if (title.includes("stress") || title.includes("overwhelm")) {
+      phrases.add("stress and pressure");
+    }
+    if (title.includes("focus") || title.includes("attention")) {
+      phrases.add("focus and presence");
+    }
+  });
+
+  const patternPhrases = Array.from(phrases).slice(0, 3);
+  const baseline =
+    patternPhrases.length > 0
+      ? `Lately, your writing reflects ${patternPhrases
+          .map((phrase, index) => {
+            if (index === patternPhrases.length - 1 && patternPhrases.length > 1) {
+              return `and ${phrase}`;
+            }
+            return phrase;
+          })
+          .join(", ")}.`
+      : "Lately, your writing reflects a few recurring themes that feel closely connected.";
+
+  if (!influences.length) {
+    return baseline;
+  }
+
+  const influenceLine = `Often shaped by ${influences.slice(0, 3).map((item) => item.toLowerCase()).join(", ")}.`;
+  return `${baseline} ${influenceLine}`;
+};
+
 const fallbackPatterns: HomePatternCard[] = [
   {
     id: "pattern-1",
@@ -245,24 +291,27 @@ const HomeDashboardPage = () => {
         : range === "year"
           ? "This year so far"
           : "All-time weekly summary";
+  const rangeLabel =
+    range === "week"
+      ? "this week"
+      : range === "month"
+        ? "this month"
+        : range === "year"
+          ? "this year"
+          : "all time";
   const weeklySubcopy =
     range === "week"
       ? "A snapshot of the current week."
       : range === "all"
         ? "Most recent week in your full history."
         : "Most recent week in this range.";
-  const snapshotOverview =
-    snapshot?.snapshotOverview ||
-    (patterns.length
-      ? `Lately, your writing often touches on ${patterns
-          .slice(0, 3)
-          .map((pattern) => pattern.title.toLowerCase())
-          .join(", ")}.`
-      : "");
   const snapshotImpactAreas = snapshot?.impactAreas || [];
   const snapshotInfluences = snapshot?.influences || [];
   const snapshotQuestions = snapshot?.openQuestions || [];
   const entryCount = snapshot?.entryCount ?? snapshot?.sourceEntryCount ?? patterns.length;
+  const snapshotSynthesis = buildSnapshotSynthesis(patterns, snapshotInfluences);
+  const snapshotNarrative =
+    patterns.length || snapshotInfluences.length ? snapshotSynthesis : "Current snapshot not available yet.";
 
   return (
     <div className="space-y-12 text-slate-900">
@@ -283,73 +332,18 @@ const HomeDashboardPage = () => {
       <Card className="ms-elev-3 p-8">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <h3 className="text-2xl font-semibold">Your current snapshot</h3>
-          <p className="small-label text-slate-400">Updated today • Based on your last {entryCount} entries</p>
+          <p className="small-label text-slate-400">
+            Updated today • Based on {entryCount} entries from {rangeLabel}
+          </p>
         </div>
-        <p className="mt-3 text-sm text-slate-600">
-          {snapshotOverview || "Current snapshot not available yet."}
-        </p>
-        <div className="mt-6 grid gap-6 text-sm text-slate-600 lg:grid-cols-[1.3fr_2fr]">
-          <div className="space-y-3">
-            <p className="small-label text-slate-400">Life areas affected</p>
-            <div className="flex items-start">
-              <LifeAreaRadar areas={snapshotImpactAreas} />
-            </div>
-          </div>
-          <div className="grid gap-6 md:grid-cols-2">
-            <div className="space-y-3">
-              <p className="small-label text-slate-400">Top patterns</p>
-              <div className="space-y-2">
-                {patterns.slice(0, 5).map((pattern) => (
-                  <div key={pattern.id} className="flex items-center gap-2">
-                    <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
-                    <span>{pattern.title}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="space-y-3">
-              <p className="small-label text-slate-400">Influences</p>
-              <div className="space-y-2">
-                {(snapshotInfluences.length ? snapshotInfluences : ["Not available yet."])
-                  .slice(0, 3)
-                  .map((item) => (
-                    <div key={item} className="flex items-center gap-2">
-                      <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
-                      <span>{item}</span>
-                    </div>
-                  ))}
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="mt-6 space-y-3 text-sm text-slate-600">
-          <p className="small-label text-slate-400">Questions you might explore</p>
-          <div className="space-y-2">
-            {(snapshotQuestions.length ? snapshotQuestions : ["Not available yet."])
-              .slice(0, 3)
-              .map((item) => (
-                <div key={item} className="flex items-center gap-2">
-                  <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
-                  <span>{item}</span>
-                </div>
-              ))}
-          </div>
-        </div>
-      </Card>
-
-      <section className="grid gap-10 md:grid-cols-[2fr_1fr]">
-        <div className="space-y-6">
-          <PatternCardGrid patterns={patterns} />
-        </div>
-        <Card className="ms-elev-1 p-6">
-          <h3 className="text-xl font-semibold">{weeklyHeading}</h3>
-          <p className="mt-1 text-sm text-slate-500">{weeklySubcopy}</p>
+        <p className="mt-3 text-sm text-slate-600">{snapshotNarrative}</p>
+        <div className="mt-6">
           {weeklyLoading ? (
             <p className="mt-3 text-sm text-slate-500">Loading weekly summary...</p>
           ) : weeklyError ? (
             <p className="mt-3 text-sm text-rose-600">{weeklyError}</p>
           ) : currentWeekSummary ? (
-            <div className="ms-glass-surface mt-4 rounded-2xl border p-4">
+            <div className="ms-glass-surface rounded-2xl border p-4">
               <p className="small-label text-slate-400">
                 Week of {currentWeekSummary.weekStartISO} - {currentWeekSummary.weekEndISO}
               </p>
@@ -372,7 +366,45 @@ const HomeDashboardPage = () => {
           ) : (
             <p className="mt-3 text-sm text-slate-500">No weekly summary available yet.</p>
           )}
-        </Card>
+        </div>
+        <div className="mt-6 grid gap-6 text-sm text-slate-600 lg:grid-cols-[1.3fr_2fr]">
+          <div className="space-y-3">
+            <p className="small-label text-slate-400">Life areas affected</p>
+            <div className="flex items-start">
+              <LifeAreaRadar areas={snapshotImpactAreas} />
+            </div>
+          </div>
+          <div className="space-y-3">
+            <p className="small-label text-slate-400">Influences</p>
+            <div className="space-y-2">
+              {(snapshotInfluences.length ? snapshotInfluences : ["Not available yet."])
+                .slice(0, 3)
+                .map((item) => (
+                  <div key={item} className="flex items-center gap-2">
+                    <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
+                    <span>{item}</span>
+                  </div>
+                ))}
+            </div>
+          </div>
+        </div>
+        <div className="mt-6 space-y-3 text-sm text-slate-600">
+          <p className="small-label text-slate-400">Questions you might explore</p>
+          <div className="space-y-2">
+            {(snapshotQuestions.length ? snapshotQuestions : ["Not available yet."])
+              .slice(0, 3)
+              .map((item) => (
+                <div key={item} className="flex items-center gap-2">
+                  <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
+                  <span>{item}</span>
+                </div>
+              ))}
+          </div>
+        </div>
+      </Card>
+
+      <section className="space-y-6">
+        <PatternCardGrid patterns={patterns} />
       </section>
 
       <section className="grid gap-10 md:grid-cols-[2fr_1fr]">
