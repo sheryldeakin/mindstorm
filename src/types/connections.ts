@@ -16,4 +16,10 @@ export interface ConnectionEdge {
   label: string;
   strength: number;
   evidence: ConnectionEvidence[];
+  movement?: {
+    fromSeries: number[];
+    toSeries: number[];
+    correlation: number;
+    summary: string;
+  };
 }

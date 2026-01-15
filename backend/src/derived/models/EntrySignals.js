@@ -17,8 +17,11 @@ const entrySignalsSchema = new mongoose.Schema(
       unclearAreas: { type: [String], default: [] },
       questionsToExplore: { type: [String], default: [] },
     },
-    pipelineVersion: { type: Number, default: 1 },
+    pipelineVersion: { type: String, default: "entrySignals_v1" },
+    sourceVersion: { type: String },
     sourceUpdatedAt: { type: Date },
+    computedAt: { type: Date },
+    stale: { type: Boolean, default: false },
   },
   { timestamps: true },
 );

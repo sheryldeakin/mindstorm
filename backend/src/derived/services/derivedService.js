@@ -1,32 +1,13 @@
 const EntrySignals = require("../models/EntrySignals");
+const { PIPELINE_VERSION } = require("../pipelineVersion");
+const { markDerivedStale: markDerivedStaleVersioned } = require("../versioning");
 
 const markDerivedStale = async ({ userId, rangeKey, sourceVersion }) => {
-  const updates = { stale: true, sourceVersion };
-  const models = [
-    require("../models/ThemeSeries"),
-    require("../models/ConnectionsGraph"),
-    require("../models/Cycle"),
-    require("../models/SnapshotSummary"),
-  ];
-  await Promise.all(
-    models.map((Model) =>
-      Model.updateMany({ userId, rangeKey }, { $set: updates }),
-    ),
-  );
-  const SnapshotSummary = require("../models/SnapshotSummary");
-  await SnapshotSummary.findOneAndUpdate(
-    { userId, rangeKey },
-    {
-      userId,
-      rangeKey,
-      stale: true,
-      sourceVersion,
-    },
-    { upsert: true, new: true },
-  );
+  await markDerivedStaleVersioned(userId, [rangeKey], sourceVersion ? new Date(sourceVersion).toISOString() : undefined);
 };
 
 const upsertEntrySignals = async ({ userId, entryId, dateISO, data, sourceUpdatedAt }) => {
+  const sourceVersion = sourceUpdatedAt ? new Date(sourceUpdatedAt).toISOString() : new Date().toISOString();
   return EntrySignals.findOneAndUpdate(
     { userId, entryId },
     {
@@ -34,7 +15,11 @@ const upsertEntrySignals = async ({ userId, entryId, dateISO, data, sourceUpdate
       entryId,
       dateISO,
       ...data,
+      pipelineVersion: PIPELINE_VERSION.entrySignals,
+      sourceVersion,
       sourceUpdatedAt,
+      computedAt: new Date(),
+      stale: false,
     },
     { upsert: true, new: true },
   );

@@ -1,9 +1,34 @@
 import { useEffect, useState } from "react";
 import CausalityDisclaimer from "../components/features/CausalityDisclaimer";
 import ConnectionsGraph from "../components/features/ConnectionsGraph";
+import Sparkline from "../components/charts/Sparkline";
 import type { ConnectionEdge, ConnectionNode } from "../types/connections";
 import { apiFetch } from "../lib/apiClient";
 import { useAuth } from "../contexts/AuthContext";
+
+const CoMovementChart = ({ fromSeries, toSeries }: { fromSeries: number[]; toSeries: number[] }) => (
+  <div className="relative h-16 w-full">
+    <div className="absolute inset-0 rounded-2xl bg-white/40" />
+    <Sparkline
+      data={fromSeries}
+      variant="up"
+      width={240}
+      height={64}
+      showPoints={false}
+      showArea
+    />
+    <div className="absolute inset-0">
+      <Sparkline
+        data={toSeries}
+        variant="steady"
+        width={240}
+        height={64}
+        showPoints={false}
+        showArea={false}
+      />
+    </div>
+  </div>
+);
 
 const ConnectionsPage = () => {
   const { status } = useAuth();
@@ -23,7 +48,7 @@ const ConnectionsPage = () => {
     setLoading(true);
     setError(null);
     apiFetch<{ graph: { nodes: ConnectionNode[]; edges: ConnectionEdge[] } }>(
-      "/derived/connections?rangeKey=last_30_days",
+      "/derived/connections?rangeKey=all_time",
     )
       .then(({ graph }) => {
         setNodes(graph.nodes || []);
@@ -83,6 +108,22 @@ const ConnectionsPage = () => {
             </button>
           )}
         </div>
+        {selectedEdge?.movement ? (
+          <div className="mt-6 space-y-3">
+            <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Movement</p>
+            {selectedEdge.movement.fromSeries.length && selectedEdge.movement.toSeries.length ? (
+              <>
+                <CoMovementChart
+                  fromSeries={selectedEdge.movement.fromSeries || []}
+                  toSeries={selectedEdge.movement.toSeries || []}
+                />
+                <p className="text-sm text-slate-500">{selectedEdge.movement.summary}</p>
+              </>
+            ) : (
+              <p className="text-sm text-slate-500">No co-movement data available yet.</p>
+            )}
+          </div>
+        ) : null}
         {loading ? (
           <p className="mt-4 text-sm text-slate-500">Loading evidence...</p>
         ) : error ? (

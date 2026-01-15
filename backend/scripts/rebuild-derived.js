@@ -5,6 +5,7 @@ const { generateEntryEvidence, generateWeeklySummary } = require("../src/control
 const { recomputeSnapshotForUser } = require("../src/derived/services/snapshotRecompute");
 const { upsertEntrySignals } = require("../src/derived/services/derivedService");
 const { recomputeConnectionsForUser } = require("../src/derived/services/connectionsRecompute");
+const { recomputeThemeSeriesForUser } = require("../src/derived/services/themeSeriesRecompute");
 
 dotenv.config();
 
@@ -87,14 +88,16 @@ const run = async () => {
       });
     }
 
-    await recomputeSnapshotForUser({ userId, rangeKey: "last_30_days" });
-    await recomputeSnapshotForUser({ userId, rangeKey: "last_7_days" });
-    await recomputeSnapshotForUser({ userId, rangeKey: "last_90_days" });
-    await recomputeSnapshotForUser({ userId, rangeKey: "last_365_days" });
-    await recomputeSnapshotForUser({ userId, rangeKey: "all_time" });
-    await recomputeConnectionsForUser({ userId, rangeKey: "last_30_days" });
-    await recomputeConnectionsForUser({ userId, rangeKey: "last_7_days" });
-    await recomputeConnectionsForUser({ userId, rangeKey: "last_90_days" });
+    const rangeKeys = ["last_7_days", "last_30_days", "last_90_days", "last_365_days", "all_time"];
+    for (const rangeKey of rangeKeys) {
+      await recomputeThemeSeriesForUser({ userId, rangeKey });
+    }
+    for (const rangeKey of rangeKeys) {
+      await recomputeSnapshotForUser({ userId, rangeKey });
+    }
+    for (const rangeKey of rangeKeys) {
+      await recomputeConnectionsForUser({ userId, rangeKey });
+    }
     console.log(`Snapshots recomputed for user ${userId}`);
   }
 

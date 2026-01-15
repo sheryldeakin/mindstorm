@@ -7,6 +7,7 @@ import LifeAreasImpactPanel from "../components/features/LifeAreasImpactPanel";
 import PatternDetailHeader from "../components/features/PatternDetailHeader";
 import PatternHighlights from "../components/features/PatternHighlights";
 import PatternTimelineChart from "../components/features/PatternTimelineChart";
+import PatternCardGrid from "../components/features/PatternCardGrid";
 import Tabs from "../components/ui/Tabs";
 import { Card } from "../components/ui/Card";
 import useEntries from "../hooks/useEntries";
@@ -22,6 +23,14 @@ const tabOptions = [
   { id: "quarter", label: "90 days" },
 ];
 
+const rangeOptions = [
+  { id: "last_7_days", label: "7 days" },
+  { id: "last_30_days", label: "30 days" },
+  { id: "last_90_days", label: "90 days" },
+  { id: "last_365_days", label: "365 days" },
+  { id: "all_time", label: "All time" },
+];
+
 const timelineOptions = [
   { id: "week", label: "Week" },
   { id: "month", label: "Month" },
@@ -30,6 +39,7 @@ const timelineOptions = [
 const PatternsPage = () => {
   const { status } = useAuth();
   const [range, setRange] = useState("week");
+  const [patternRange, setPatternRange] = useState("last_30_days");
   const [timelineScale, setTimelineScale] = useState<"week" | "month">("week");
   const [patternList, setPatternList] = useState<PatternSummary[]>([]);
   const [patternDetail, setPatternDetail] = useState<PatternDetail | null>(null);
@@ -129,7 +139,7 @@ const PatternsPage = () => {
     ];
   }, [entriesInRange, range]);
 
-  const rangeKey = range === "week" ? "last_7_days" : range === "month" ? "last_30_days" : "last_90_days";
+  const rangeKey = patternRange;
 
   useEffect(() => {
     if (status !== "authed") {
@@ -160,10 +170,19 @@ const PatternsPage = () => {
   }, [rangeKey, selectedPatternId, status]);
 
   const timelineSeries = patternDetail?.timeline?.[timelineScale];
+  const selectedPattern = patternList.find((pattern) => pattern.id === selectedPatternId) || patternList[0];
+  const selectedEvidence = selectedPattern?.evidence || [];
 
   return (
     <div className="space-y-10 text-slate-900">
       <section className="space-y-6">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <p className="text-xs uppercase tracking-[0.4em] text-brandLight">Range</p>
+            <h2 className="mt-2 text-2xl font-semibold">Patterns over time</h2>
+          </div>
+          <Tabs options={rangeOptions} activeId={patternRange} onValueChange={setPatternRange} />
+        </div>
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <p className="text-xs uppercase tracking-[0.4em] text-brandLight">Patterns</p>
@@ -195,6 +214,37 @@ const PatternsPage = () => {
             <span className="text-sm text-slate-500">Add more entries to surface patterns.</span>
           )}
         </div>
+        {patternList.length ? (
+          <div className="space-y-4">
+            <PatternCardGrid patterns={patternList} />
+            <Card className="p-5 text-slate-900">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Evidence drawer</p>
+                  <h3 className="mt-1 text-lg font-semibold">
+                    {selectedPattern ? `${selectedPattern.title} evidence` : "Pattern evidence"}
+                  </h3>
+                </div>
+                {selectedPattern && (
+                  <span className="text-xs uppercase tracking-[0.3em] text-slate-400">
+                    {selectedEvidence.length ? `${selectedEvidence.length} snippets` : "No snippets yet"}
+                  </span>
+                )}
+              </div>
+              <div className="mt-4 space-y-3">
+                {selectedEvidence.length ? (
+                  selectedEvidence.map((quote) => (
+                    <div key={quote} className="ms-glass-surface rounded-2xl border p-4 text-sm text-slate-600">
+                      “{quote}”
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-slate-500">No evidence snippets available yet.</p>
+                )}
+              </div>
+            </Card>
+          </div>
+        ) : null}
         {patternDetail ? (
           <>
             <PatternDetailHeader

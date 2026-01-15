@@ -6,8 +6,9 @@ const llmGenerationSchema = new mongoose.Schema(
     key: { type: String, required: true, index: true },
     content: { type: mongoose.Schema.Types.Mixed, default: {} },
     computedAt: { type: Date },
-    pipelineVersion: { type: Number, default: 1 },
-    sourceVersion: { type: Date },
+    pipelineVersion: { type: String, default: "llmCopy_v1" },
+    sourceVersion: { type: String },
+    stale: { type: Boolean, default: false },
   },
   { timestamps: true },
 );

@@ -2,6 +2,7 @@ const asyncHandler = require("../utils/asyncHandler");
 const SnapshotSummary = require("../derived/models/SnapshotSummary");
 const ConnectionsGraph = require("../derived/models/ConnectionsGraph");
 const EntrySignals = require("../derived/models/EntrySignals");
+const ThemeSeries = require("../derived/models/ThemeSeries");
 const WeeklySummary = require("../models/WeeklySummary");
 const Entry = require("../models/Entry");
 
@@ -79,6 +80,45 @@ const buildWeekPoints = ({ theme, signals }) => {
     });
   }
   return points;
+};
+
+const compressSeries = (points, maxPoints = 12) => {
+  if (points.length <= maxPoints) return points;
+  const bucketSize = Math.ceil(points.length / maxPoints);
+  const compressed = [];
+  for (let i = 0; i < points.length; i += bucketSize) {
+    const slice = points.slice(i, i + bucketSize);
+    const avg = slice.reduce((sum, value) => sum + value, 0) / slice.length;
+    compressed.push(avg);
+  }
+  return compressed;
+};
+
+const computeTrend = (series) => {
+  if (!series.length) return "steady";
+  const chunk = Math.max(1, Math.floor(series.length / 3));
+  const first = series.slice(0, chunk);
+  const last = series.slice(series.length - chunk);
+  const avg = (arr) => arr.reduce((sum, value) => sum + value, 0) / arr.length;
+  const firstAvg = avg(first);
+  const lastAvg = avg(last);
+  const epsilon = 0.05;
+  if (lastAvg > firstAvg + epsilon) return "up";
+  if (lastAvg < firstAvg - epsilon) return "down";
+  return "steady";
+};
+
+const computeConfidence = (points) => {
+  if (!points.length) return "low";
+  const active = points.filter((point) => point.intensity > 0);
+  const coverage = active.length / points.length;
+  const avgConf = active.length
+    ? active.reduce((sum, point) => sum + (point.confidence || 0.6), 0) / active.length
+    : 0;
+
+  if (coverage >= 0.4 || avgConf >= 0.75) return "high";
+  if (coverage >= 0.2 || avgConf >= 0.55) return "medium";
+  return "low";
 };
 
 const buildMonthPoints = ({ theme, signals }) => {
@@ -384,6 +424,41 @@ const getConnectionsGraph = asyncHandler(async (req, res) => {
   const entries = await Entry.find({ _id: { $in: Array.from(entryIds) }, userId: req.user._id }).lean();
   const entryMap = new Map(entries.map((entry) => [entry._id.toString(), entry]));
 
+  const seriesDocs = await ThemeSeries.find({ userId: req.user._id, rangeKey }).lean();
+  const seriesMap = new Map(seriesDocs.map((doc) => [doc.theme, doc.points || []]));
+
+  const toSeriesArray = (points) => (points || []).map((point) => point.intensity || 0);
+
+  const correlation = (a, b) => {
+    const length = Math.min(a.length, b.length);
+    if (length < 3) return 0;
+    const x = a.slice(0, length);
+    const y = b.slice(0, length);
+    const avg = (arr) => arr.reduce((sum, value) => sum + value, 0) / arr.length;
+    const meanX = avg(x);
+    const meanY = avg(y);
+    const numerator = x.reduce((sum, value, index) => sum + (value - meanX) * (y[index] - meanY), 0);
+    const denomX = Math.sqrt(x.reduce((sum, value) => sum + (value - meanX) ** 2, 0));
+    const denomY = Math.sqrt(y.reduce((sum, value) => sum + (value - meanY) ** 2, 0));
+    if (!denomX || !denomY) return 0;
+    return numerator / (denomX * denomY);
+  };
+
+  const buildMovementSummary = (corr) => {
+    const abs = Math.abs(corr);
+    if (abs >= 0.45) {
+      return corr > 0
+        ? "These signals tend to rise and settle together across the range. This is not causal."
+        : "These signals often move in opposite directions across the range. This is not causal.";
+    }
+    if (abs >= 0.2) {
+      return corr > 0
+        ? "These signals sometimes lift together, though the pattern is mixed. This is not causal."
+        : "These signals sometimes diverge, though the pattern is mixed. This is not causal.";
+    }
+    return "Movement between these signals looks mixed and subtle. This is not causal.";
+  };
+
   const edges = activeGraph.edges.map((edge) => {
     const evidence = (edge.evidenceEntryIds || [])
       .map((id) => entryMap.get(id))
@@ -396,6 +471,10 @@ const getConnectionsGraph = asyncHandler(async (req, res) => {
       }))
       .filter((item) => item.quote);
 
+    const fromSeries = toSeriesArray(seriesMap.get(edge.from));
+    const toSeries = toSeriesArray(seriesMap.get(edge.to));
+    const corr = correlation(fromSeries, toSeries);
+
     return {
       id: edge.id,
       from: edge.from,
@@ -403,6 +482,12 @@ const getConnectionsGraph = asyncHandler(async (req, res) => {
       label: `${toLabel(edge.from)} <-> ${toLabel(edge.to)}`,
       strength: edge.weight || 0,
       evidence,
+      movement: {
+        fromSeries: compressSeries(fromSeries),
+        toSeries: compressSeries(toSeries),
+        correlation: Number.isFinite(corr) ? Number(corr.toFixed(2)) : 0,
+        summary: buildMovementSummary(corr),
+      },
     };
   });
 
@@ -436,27 +521,79 @@ const getPatterns = asyncHandler(async (req, res) => {
   const weeklySummaries = await WeeklySummary.find(weeklyQuery).sort({ weekStartISO: 1 }).lean();
 
   const entryMap = new Map(entries.map((entry) => [entry._id.toString(), entry]));
-  const themeCounts = new Map();
+  const seriesDocs = await ThemeSeries.find({ userId: req.user._id, rangeKey }).lean();
+  const seriesTotals = seriesDocs.map((doc) => ({
+    theme: doc.theme,
+    total: (doc.points || []).reduce((sum, point) => sum + (point.intensity || 0), 0),
+  }));
+
+  let topThemes = seriesTotals
+    .sort((a, b) => b.total - a.total)
+    .slice(0, 5)
+    .map((item) => item.theme);
+
+  if (!topThemes.length) {
+    const themeCounts = new Map();
+    signals.forEach((signal) => {
+      (signal.themes || []).forEach((theme) => {
+        const key = theme.trim().toLowerCase();
+        if (!key) return;
+        themeCounts.set(key, (themeCounts.get(key) || 0) + 1);
+      });
+    });
+    topThemes = Array.from(themeCounts.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([theme]) => theme);
+  }
+
+  const evidencePool = new Map();
   signals.forEach((signal) => {
-    (signal.themes || []).forEach((theme) => {
-      const key = theme.trim().toLowerCase();
-      if (!key) return;
-      themeCounts.set(key, (themeCounts.get(key) || 0) + 1);
+    const themes = (signal.themes || []).map((theme) => theme.trim().toLowerCase());
+    if (!themes.length) return;
+    const evidence = [
+      ...(signal.evidenceBySection?.recurringExperiences || []),
+      ...(signal.evidenceBySection?.impactAreas || []),
+      ...(signal.evidenceBySection?.relatedInfluences || []),
+    ]
+      .map((item) => item.trim())
+      .filter(Boolean);
+    themes.forEach((theme) => {
+      if (!evidencePool.has(theme)) evidencePool.set(theme, []);
+      const list = evidencePool.get(theme);
+      evidence.forEach((quote) => {
+        if (list.length < 6 && !list.includes(quote)) {
+          list.push(quote);
+        }
+      });
     });
   });
-  const topThemes = Array.from(themeCounts.entries())
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 5)
-    .map(([theme]) => theme);
 
-  const patterns = topThemes.map((theme, index) => ({
-    id: theme,
-    title: toTitleCase(theme),
-    description: `Patterns around ${theme} show up across recent entries.`,
-    trend: index === 0 ? "up" : index === 1 ? "steady" : "down",
-    confidence: themeCounts.get(theme) >= 8 ? "high" : themeCounts.get(theme) >= 4 ? "medium" : "low",
-    sparkline: buildWeekPoints({ theme, signals }).map((point) => point.intensity),
-  }));
+  const patterns = topThemes.map((theme) => {
+    const seriesDoc = seriesDocs.find((doc) => doc.theme === theme);
+    const points = seriesDoc?.points || [];
+    const fallbackPoints = points.length
+      ? []
+      : buildWeekPoints({ theme, signals }).map((point) => ({
+          intensity: point.intensity / 100,
+          confidence: point.intensity > 0 ? 0.6 : 0.2,
+        }));
+    const seriesPoints = points.length ? points : fallbackPoints;
+    const sparkline = compressSeries(seriesPoints.map((point) => point.intensity || 0));
+    const trend = computeTrend(seriesPoints.map((point) => point.intensity || 0));
+    const confidence = computeConfidence(seriesPoints);
+    const evidence = (evidencePool.get(theme) || []).slice(0, 3);
+
+    return {
+      id: theme,
+      title: toTitleCase(theme),
+      description: `Patterns around ${theme} show up across recent entries.`,
+      trend,
+      confidence,
+      sparkline,
+      evidence,
+    };
+  });
 
   const selectedTheme = patternId && topThemes.includes(patternId) ? patternId : topThemes[0];
   const detail = selectedTheme

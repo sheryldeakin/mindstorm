@@ -7,6 +7,7 @@ type SparklineProps = {
   variant?: "up" | "down" | "steady";
   showPoints?: boolean;
   smooth?: boolean;
+  showArea?: boolean;
 };
 
 const normalizeData = (data: number[]) => {
@@ -58,6 +59,7 @@ const Sparkline = ({
   variant = "steady",
   showPoints = true,
   smooth = true,
+  showArea = true,
 }: SparklineProps) => {
   const gradientId = useId();
   const stroke =
@@ -76,7 +78,7 @@ const Sparkline = ({
           <stop offset="100%" stopColor={stroke} stopOpacity="0.04" />
         </linearGradient>
       </defs>
-      <path d={areaPath} fill={`url(#${gradientId})`} />
+      {showArea ? <path d={areaPath} fill={`url(#${gradientId})`} /> : null}
       <path d={linePath} fill="none" stroke={stroke} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
       {showPoints &&
         points.map((point, index) => {

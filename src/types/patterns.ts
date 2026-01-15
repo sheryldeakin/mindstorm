@@ -61,4 +61,5 @@ export interface PatternSummary {
   trend: "up" | "down" | "steady";
   confidence: "high" | "medium" | "low";
   sparkline: number[];
+  evidence?: string[];
 }

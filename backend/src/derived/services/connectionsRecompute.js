@@ -1,7 +1,10 @@
 const ConnectionsGraph = require("../models/ConnectionsGraph");
 const EntrySignals = require("../models/EntrySignals");
+const { PIPELINE_VERSION } = require("../pipelineVersion");
+const { computeSourceVersionForRange } = require("../versioning");
 
 const getRangeStartIso = (rangeKey) => {
+  if (rangeKey === "all_time") return null;
   const days = rangeKey === "last_90_days" ? 90 : rangeKey === "last_7_days" ? 7 : 30;
   const end = new Date();
   const start = new Date(end.getFullYear(), end.getMonth(), end.getDate() - (days - 1));
@@ -83,11 +86,12 @@ const buildConnectionsGraph = (signals) => {
 
 const recomputeConnectionsForUser = async ({ userId, rangeKey }) => {
   const startIso = getRangeStartIso(rangeKey);
-  const signals = await EntrySignals.find({ userId, dateISO: { $gte: startIso } })
+  const signalQuery = startIso ? { userId, dateISO: { $gte: startIso } } : { userId };
+  const signals = await EntrySignals.find(signalQuery)
     .sort({ dateISO: 1 })
     .lean();
   const graph = buildConnectionsGraph(signals);
-  const sourceVersion = signals[signals.length - 1]?.sourceUpdatedAt || new Date();
+  const sourceVersion = await computeSourceVersionForRange(userId, rangeKey);
 
   await ConnectionsGraph.findOneAndUpdate(
     { userId, rangeKey },
@@ -97,6 +101,7 @@ const recomputeConnectionsForUser = async ({ userId, rangeKey }) => {
       nodes: graph.nodes,
       edges: graph.edges,
       computedAt: new Date(),
+      pipelineVersion: PIPELINE_VERSION.connectionsGraph,
       sourceVersion,
       stale: false,
     },

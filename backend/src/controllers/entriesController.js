@@ -110,7 +110,7 @@ const createEntry = asyncHandler(async (req, res) => {
   });
   await markDerivedStale({
     userId: req.user._id,
-    rangeKey: "last_30_days",
+    rangeKey: ["last_7_days", "last_30_days", "last_90_days", "last_365_days", "all_time"],
     sourceVersion: entry.updatedAt,
   });
 
@@ -209,7 +209,7 @@ const updateEntry = asyncHandler(async (req, res) => {
   });
   await markDerivedStale({
     userId: req.user._id,
-    rangeKey: "last_30_days",
+    rangeKey: ["last_7_days", "last_30_days", "last_90_days", "last_365_days", "all_time"],
     sourceVersion: entry.updatedAt,
   });
 
