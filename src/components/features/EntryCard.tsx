@@ -9,7 +9,7 @@ interface EntryCardProps {
 }
 
 const EntryCard = ({ entry }: EntryCardProps) => (
-  <Card className="border-slate-100 p-6 text-slate-900 shadow-sm">
+  <Card className="p-6 text-slate-900">
     <div className="flex items-center justify-between text-sm text-brand/60">
       <span>{entry.date}</span>
       <span>{entry.tags.join(" / ")}</span>

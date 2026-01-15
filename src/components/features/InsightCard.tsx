@@ -12,7 +12,7 @@ const trendCopy: Record<Insight["trend"], string> = {
 };
 
 const InsightCard = ({ insight }: InsightCardProps) => (
-  <Card className="border-brand/15 bg-white p-5 text-slate-900 shadow-sm">
+  <Card className="p-5 text-slate-900">
     <p className="text-xs uppercase tracking-[0.4em] text-brand/60">{trendCopy[insight.trend]}</p>
     <h3 className="mt-3 text-lg font-semibold text-brand">{insight.title}</h3>
     <p className="mt-2 text-sm text-slate-500">{insight.description}</p>

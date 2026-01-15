@@ -18,8 +18,8 @@ const Tab = ({ label, isActive, onSelect }: TabProps) => (
     type="button"
     onClick={onSelect}
     className={clsx(
-      "rounded-full px-4 py-1.5 text-sm transition",
-      isActive ? "bg-white text-brand shadow-lg shadow-brandLight/40" : "text-slate-500 hover:text-brand",
+      "ms-tab rounded-full px-4 py-1.5 text-sm transition",
+      isActive ? "ms-tab-active" : "text-slate-600 hover:text-brand",
     )}
   >
     {label}
@@ -34,7 +34,7 @@ const Tabs = ({ options, activeId, className, onValueChange, ...props }: TabsPro
   return (
     <div
       className={clsx(
-        "inline-flex items-center gap-2 rounded-full border border-brand/15 bg-brand/5 p-1",
+        "ms-card ms-elev-1 inline-flex items-center gap-2 rounded-full border border-slate-900/5 bg-white/60 p-1 backdrop-blur",
         className,
       )}
       {...props}

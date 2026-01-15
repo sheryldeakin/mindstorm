@@ -19,7 +19,7 @@ const SettingsPage = () => {
 
   return (
     <div className="space-y-8 text-slate-900">
-      <section className="rounded-3xl border border-brand/15 bg-white p-6 shadow-sm">
+      <section className="rounded-3xl border border-brand/15 p-6">
         <p className="text-xs uppercase tracking-[0.4em] text-brandLight">Settings</p>
         <h2 className="mt-2 text-3xl font-semibold">Boundaries and safety</h2>
         <p className="mt-2 max-w-2xl text-sm text-slate-500">
@@ -28,7 +28,7 @@ const SettingsPage = () => {
         </p>
       </section>
       <section className="grid gap-6 lg:grid-cols-[1fr_1.1fr]">
-        <Card className="border-brand/15 bg-white p-6">
+        <Card className="p-6">
           <div className="flex items-start justify-between gap-4">
             <div>
               <h3 className="text-lg font-semibold">About MindStorm</h3>
@@ -41,7 +41,7 @@ const SettingsPage = () => {
             <li>Your entries are private and only shared with explicit consent.</li>
           </ul>
         </Card>
-        <Card className="border-brand/15 bg-white p-6">
+        <Card className="p-6">
           <h3 className="text-lg font-semibold">Insights and topics</h3>
           <p className="mt-1 text-sm text-slate-500">Turn off insights or hide sensitive topics.</p>
           <div className="mt-4">
@@ -54,14 +54,14 @@ const SettingsPage = () => {
             />
           </div>
         </Card>
-        <Card className="border-brand/15 bg-white p-6">
+        <Card className="p-6">
           <h3 className="text-lg font-semibold">Privacy and exports</h3>
           <p className="mt-1 text-sm text-slate-500">Export a copy of your data or manage sharing.</p>
           <div className="mt-4">
             <PrivacyControls onExportData={() => {}} onDeleteData={() => {}} />
           </div>
         </Card>
-        <Card className="border-brand/15 bg-white p-6">
+        <Card className="p-6">
           <h3 className="text-lg font-semibold">Data deletion</h3>
           <p className="mt-1 text-sm text-slate-500">
             Permanently remove your entries, insights, and exports.
@@ -70,7 +70,7 @@ const SettingsPage = () => {
             <DataDeletionFlows onRequestDeletion={() => {}} onConfirmDeletion={() => {}} />
           </div>
         </Card>
-        <Card className="border-brand/15 bg-white p-6 lg:col-span-2">
+        <Card className="p-6 lg:col-span-2">
           <h3 className="text-lg font-semibold">Safety resources</h3>
           <p className="mt-1 text-sm text-slate-500">Immediate help if you are in danger.</p>
           <div className="mt-4">

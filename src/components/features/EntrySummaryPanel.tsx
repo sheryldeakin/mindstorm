@@ -31,7 +31,7 @@ const EntrySummaryPanel = ({ entry }: EntrySummaryPanelProps) => {
   const whatHelped = buildWhatHelped(entry.summary || "");
 
   return (
-    <aside className="space-y-6 rounded-3xl border border-slate-100 bg-white p-6 text-slate-900 shadow-lg shadow-slate-100">
+    <aside className="ms-card ms-elev-2 space-y-6 p-6 text-slate-900">
       <p className="text-sm font-semibold uppercase tracking-[0.4em] text-brand/60">Entry summary</p>
       <div>
         <h3 className="text-sm font-semibold text-slate-700">Overall emotions</h3>
@@ -61,7 +61,7 @@ const EntrySummaryPanel = ({ entry }: EntrySummaryPanelProps) => {
           )}
         </div>
       </div>
-      <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4 text-sm text-slate-600">
+      <div className="ms-glass-surface rounded-2xl border p-4 text-sm text-slate-600">
         <p className="font-semibold text-slate-700">Language reflections</p>
         <p className="mt-2">
           {languageReflection || "No standout language detected yet in this entry."}
@@ -75,7 +75,7 @@ const EntrySummaryPanel = ({ entry }: EntrySummaryPanelProps) => {
         <h3 className="text-sm font-semibold text-slate-700">Things you might see in Patterns</h3>
         <ul className="mt-2 space-y-2 text-sm text-slate-600">
           {patternHints.map((hint) => (
-            <li key={hint} className="rounded-2xl border border-slate-100 bg-white px-3 py-2">
+            <li key={hint} className="ms-glass-surface rounded-2xl border px-3 py-2">
               {hint}
             </li>
           ))}
@@ -99,7 +99,7 @@ const EntrySummaryPanel = ({ entry }: EntrySummaryPanelProps) => {
         <h3 className="text-sm font-semibold text-slate-700">Questions you might sit with</h3>
         <ul className="mt-2 space-y-2 text-sm text-slate-600">
           {questions.map((question) => (
-            <li key={question} className="rounded-2xl border border-slate-100 bg-white px-3 py-2">
+            <li key={question} className="ms-glass-surface rounded-2xl border px-3 py-2">
               {question}
             </li>
           ))}

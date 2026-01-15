@@ -23,7 +23,7 @@ const FeatureHighlights = () => (
       {features.map((feature) => (
         <div
           key={feature.title}
-          className="rounded-3xl border border-brand/15 bg-white p-6 shadow-lg shadow-brand/10"
+          className="ms-card ms-elev-2 rounded-3xl p-6"
         >
           <h3 className="text-xl font-semibold text-brand">{feature.title}</h3>
           <p className="mt-2 text-sm text-slate-600">{feature.description}</p>

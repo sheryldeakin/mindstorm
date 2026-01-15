@@ -2,31 +2,323 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  background-color: #f9fafb;
+html,
+body {
+  height: 100%;
+  margin: 0;
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Inter", sans-serif;
   color: #0f172a;
+  letter-spacing: -0.01em;
+}
+
+:root {
+  /* Ambient tuning: increase alpha to boost blue */
+  --ms-bg-1: rgba(120, 170, 255, 0.26);
+  --ms-bg-2: rgba(170, 210, 255, 0.2);
+  --ms-bg-3: rgba(120, 170, 255, 0.14);
+  /* Glass tuning: lower alpha = more transparent */
+  --ms-glass: rgba(255, 255, 255, 0.48);
+  /* Blur tuning: increase for stronger frost */
+  --ms-blur: 24px;
+}
+
+html {
+  /* Ambient background belongs here (furthest-back layer) */
+  background:
+    radial-gradient(1200px 800px at 18% 12%, var(--ms-bg-1), transparent 60%),
+    radial-gradient(900px 700px at 82% 18%, var(--ms-bg-2), transparent 58%),
+    radial-gradient(1000px 900px at 55% 92%, var(--ms-bg-3), transparent 62%),
+    linear-gradient(180deg, #fbfcff 0%, #f6f8ff 100%);
+  background-attachment: fixed;
 }
 
 body {
   min-height: 100vh;
-  margin: 0;
-  background-color: #f9fafb;
-  background-image: radial-gradient(circle at 20% 20%, rgba(18, 47, 65, 0.12), transparent 35%),
-    radial-gradient(circle at 80% 0%, rgba(47, 127, 178, 0.12), transparent 25%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.95), #f4f7fb);
+  background: transparent; /* keep transparent so blur has something behind */
   -webkit-font-smoothing: antialiased;
+  line-height: 1.6;
+}
+
+h1,
+h2,
+h3 {
+  letter-spacing: -0.02em;
+  font-weight: 620;
+}
+
+p {
+  line-height: 1.6;
+  color: #1f2937;
+}
+
+.small-label {
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-size: 11px;
+  opacity: 0.65;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.04; /* grain strength (0.03–0.05) */
+  background-image: url("../assets/noise.png");
+  mix-blend-mode: multiply;
+  z-index: 0;
+}
+
+/* Debug mode: toggle "debug-glass" on body to verify blur */
+body.debug-glass::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(1200px 800px at 18% 12%, rgba(120, 170, 255, 0.32), transparent 60%),
+    radial-gradient(900px 700px at 82% 18%, rgba(170, 210, 255, 0.24), transparent 58%),
+    radial-gradient(1000px 900px at 55% 92%, rgba(120, 170, 255, 0.2), transparent 62%);
+  z-index: 0;
 }
 
 #root {
   min-height: 100vh;
+  position: relative;
+  z-index: 1; /* ensure content is above grain */
 }
 
+/* Ensure wrappers stay transparent so cards blur the ambient layer */
+.app-shell,
+.page,
+.layout,
+.container,
+main {
+  background: transparent !important;
+}
+
+.ms-bg {
+  position: relative;
+  min-height: 100vh;
+  background:
+    radial-gradient(1100px 740px at 12% 8%, rgba(120, 170, 255, 0.3), transparent 58%),
+    radial-gradient(1000px 720px at 86% 16%, rgba(170, 210, 255, 0.24), transparent 60%),
+    radial-gradient(1100px 900px at 62% 88%, rgba(120, 170, 255, 0.18), transparent 64%),
+    linear-gradient(180deg, rgba(252, 253, 255, 1), rgba(246, 249, 255, 1));
+}
+
+.ms-card,
 .glass-surface {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(24px);
-  border: 1px solid rgba(18, 47, 65, 0.08);
-  box-shadow: 0 25px 60px rgba(15, 23, 42, 0.08);
+  position: relative;
+  overflow: hidden;
+  background: var(--ms-glass); /* adjust opacity in :root */
+  backdrop-filter: blur(var(--ms-blur));
+  -webkit-backdrop-filter: blur(var(--ms-blur));
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  border-radius: 22px;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.85) inset,
+    0 0 0 1px rgba(255, 255, 255, 0.2) inset,
+    0 14px 40px rgba(15, 23, 42, 0.08),
+    0 4px 14px rgba(15, 23, 42, 0.05);
+}
+
+.ms-card-flat {
+  border-radius: 0;
+}
+
+.ms-card::before,
+.glass-surface::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0)),
+    radial-gradient(320px 220px at 20% 12%, rgba(255, 255, 255, 0.6), transparent 70%);
+  opacity: 0.6;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.ms-card::after,
+.glass-surface::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("../assets/noise.png");
+  background-size: 120px 120px;
+  opacity: 0.05;
+  mix-blend-mode: soft-light;
+  pointer-events: none;
+}
+
+.ms-card > *,
+.glass-surface > * {
+  position: relative;
+  z-index: 1;
+}
+
+.ms-elev-1 {
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.7) inset,
+    0 6px 16px rgba(15, 23, 42, 0.06);
+}
+
+.ms-elev-2 {
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.75) inset,
+    0 10px 30px rgba(15, 23, 42, 0.08),
+    0 2px 10px rgba(15, 23, 42, 0.04);
+}
+
+.ms-elev-3 {
+  border-radius: 24px;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.8) inset,
+    0 14px 36px rgba(15, 23, 42, 0.1),
+    0 4px 14px rgba(15, 23, 42, 0.05);
+}
+
+.ms-card-hover {
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.ms-card:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.85) inset,
+    0 18px 55px rgba(15, 23, 42, 0.1),
+    0 6px 18px rgba(15, 23, 42, 0.06);
+}
+
+@supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+  .ms-card,
+  .glass-surface {
+    background: rgba(255, 255, 255, 0.82);
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.9) inset,
+      0 14px 36px rgba(15, 23, 42, 0.1),
+      0 6px 18px rgba(15, 23, 42, 0.06);
+  }
+}
+
+/* Tailwind-friendly glass card */
+@layer components {
+  .tw-ms-card {
+    @apply rounded-[22px] border border-slate-900/5 bg-white/60 shadow-[0_1px_0_rgba(255,255,255,0.8)_inset,0_14px_40px_rgba(15,23,42,0.08),0_4px_14px_rgba(15,23,42,0.05)] backdrop-blur-[20px];
+  }
+  .tw-ms-card-hover {
+    @apply transition-[transform,box-shadow] duration-150;
+  }
+  .tw-ms-card-hover:hover {
+    @apply -translate-y-[2px] shadow-[0_1px_0_rgba(255,255,255,0.85)_inset,0_18px_55px_rgba(15,23,42,0.10),0_6px_18px_rgba(15,23,42,0.06)];
+  }
+}
+
+@supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+  .ms-card,
+  .glass-surface {
+    background: rgba(255, 255, 255, 0.82);
+  }
+}
+
+@layer components {
+  /* Tailwind-friendly glass card */
+  .tw-ms-card {
+    @apply rounded-[22px] border border-slate-900/5 bg-white/60 shadow-[0_1px_0_rgba(255,255,255,0.8)_inset,0_14px_40px_rgba(15,23,42,0.08),0_4px_14px_rgba(15,23,42,0.05)] backdrop-blur-[18px];
+  }
+  .tw-ms-card-hover {
+    @apply transition-[transform,box-shadow] duration-150;
+  }
+  .tw-ms-card-hover:hover {
+    @apply -translate-y-[2px] shadow-[0_1px_0_rgba(255,255,255,0.8)_inset,0_16px_38px_rgba(15,23,42,0.12),0_6px_18px_rgba(15,23,42,0.06)];
+  }
+}
+
+.ms-tab {
+  transition: transform 120ms ease, opacity 120ms ease, color 120ms ease, box-shadow 120ms ease;
+}
+
+.ms-tab-active {
+  background: rgba(255, 255, 255, 0.7);
+  color: #1d4ed8;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.7) inset,
+    0 8px 18px rgba(15, 23, 42, 0.08);
+  transform: translateY(-1px);
+}
+
+.ms-badge {
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: rgba(255, 255, 255, 0.5);
+  color: #1f2937;
+}
+
+.ms-badge-muted {
+  background: rgba(226, 232, 240, 0.5);
+  border-color: rgba(148, 163, 184, 0.25);
+  color: #475569;
+}
+
+.ms-badge-neutral {
+  background: rgba(99, 102, 241, 0.1);
+  border-color: rgba(99, 102, 241, 0.16);
+  color: #1e3a8a;
+}
+
+.ms-badge-positive {
+  background: rgba(16, 185, 129, 0.12);
+  border-color: rgba(16, 185, 129, 0.18);
+  color: #065f46;
+}
+
+.ms-badge-negative {
+  background: rgba(248, 113, 113, 0.12);
+  border-color: rgba(248, 113, 113, 0.18);
+  color: #991b1b;
+}
+
+.ms-badge-active {
+  background: rgba(99, 102, 241, 0.14);
+  border-color: rgba(99, 102, 241, 0.2);
+  color: #1d4ed8;
+}
+
+.ms-glass-pill {
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.7) inset,
+    0 6px 16px rgba(15, 23, 42, 0.06);
+}
+
+.ms-glass-surface {
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.7) inset,
+    0 10px 26px rgba(15, 23, 42, 0.07),
+    0 3px 10px rgba(15, 23, 42, 0.04);
+}
+
+/* Glass fallback for white utility surfaces */
+.bg-white,
+.bg-white\/95,
+.bg-white\/90,
+.bg-white\/85,
+.bg-white\/80,
+.bg-white\/70,
+.bg-slate-50,
+.bg-slate-50\/80,
+.bg-slate-50\/70 {
+  background-color: rgba(255, 255, 255, 0.62) !important;
+  backdrop-filter: blur(var(--ms-blur));
+  -webkit-backdrop-filter: blur(var(--ms-blur));
+  border: 1px solid rgba(15, 23, 42, 0.06);
 }
 
 ::-webkit-scrollbar {

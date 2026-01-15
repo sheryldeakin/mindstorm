@@ -4,7 +4,7 @@ import clsx from "clsx";
 export const Card = ({ className, ...props }: HTMLAttributes<HTMLDivElement>) => (
   <div
     className={clsx(
-      "glass-surface rounded-3xl border border-slate-100 bg-white",
+      "ms-card ms-elev-2 ms-card-hover",
       className,
     )}
     {...props}

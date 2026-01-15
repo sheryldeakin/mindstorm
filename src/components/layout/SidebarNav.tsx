@@ -17,22 +17,25 @@ const navItems = [
 const SidebarNav = () => {
   return (
     <aside className="hidden w-60 flex-col gap-2 lg:flex">
-      <div className="rounded-3xl border border-brand/10 bg-white p-4 shadow-sm">
-        <p className="text-xs uppercase tracking-[0.3em] text-brand/60">Navigate</p>
+      <div className="ms-card ms-elev-1 p-4">
+        <p className="small-label text-brand/70">Navigate</p>
         <div className="mt-4 flex flex-col gap-1">
           {navItems.map(({ label, to, icon: Icon }) => (
-            <NavLink
-              key={to + label}
-              to={to}
-              className={({ isActive }) =>
-                clsx(
-                  "flex items-center gap-3 rounded-2xl px-3 py-2 text-sm transition",
-                  isActive ? "bg-brand/10 text-brand shadow-sm border border-transparent" : "text-brand/60 hover:bg-brand/5",
-                )
-              }
-            >
-              <Icon className="h-4 w-4" />
-              {label}
+            <NavLink key={to + label} to={to}>
+              {({ isActive }) => (
+                <span
+                  className={clsx(
+                    "relative flex items-center gap-3 rounded-2xl px-3 py-2 text-sm transition",
+                    isActive ? "text-brand" : "text-brand/60 hover:text-brand",
+                  )}
+                >
+                  {isActive && (
+                    <span className="absolute left-1 top-1/2 h-4 w-0.5 -translate-y-1/2 rounded-full bg-brand/60" />
+                  )}
+                  <Icon className="h-4 w-4" strokeWidth={1.6} />
+                  {label}
+                </span>
+              )}
             </NavLink>
           ))}
         </div>

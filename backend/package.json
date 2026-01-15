@@ -16,6 +16,7 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.9.0",
     "node": "^25.3.0",
+    "tailwind": "^2.3.1",
     "wget": "^0.0.1"
   },
   "devDependencies": {

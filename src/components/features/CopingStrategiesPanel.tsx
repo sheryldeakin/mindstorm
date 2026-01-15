@@ -6,7 +6,7 @@ interface CopingStrategiesPanelProps {
 }
 
 const CopingStrategiesPanel = ({ strategies }: CopingStrategiesPanelProps) => (
-  <Card className="border-brand/15 bg-white p-6 text-slate-900">
+  <Card className="p-6 text-slate-900">
     <h3 className="text-xl font-semibold">What helps</h3>
     <p className="mt-1 text-sm text-slate-500">Your tags plus model-suggested supports.</p>
     <div className="mt-6 grid gap-6 md:grid-cols-2">

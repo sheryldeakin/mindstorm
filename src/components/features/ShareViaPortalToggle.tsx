@@ -11,7 +11,7 @@ const ShareViaPortalToggle = ({
   onToggleEnabled,
   onToggleConsent,
 }: ShareViaPortalToggleProps) => (
-  <div className="space-y-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+  <div className="ms-glass-surface space-y-4 rounded-2xl border p-4">
     <label className="flex items-center justify-between gap-3 text-sm font-semibold text-slate-700">
       <span>Share via clinician portal</span>
       <input

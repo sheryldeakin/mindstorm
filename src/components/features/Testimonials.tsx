@@ -17,7 +17,7 @@ const Testimonials = () => (
       {testimonials.map((testimonial) => (
         <div
           key={testimonial.author}
-          className="rounded-3xl border border-brand/15 bg-white p-6 text-slate-700 shadow-brand/10"
+          className="ms-card ms-elev-2 rounded-3xl p-6 text-slate-700"
         >
           <p className="text-lg font-medium text-brand">"{testimonial.quote}"</p>
           <p className="mt-4 text-sm text-brand/70">- {testimonial.author}</p>

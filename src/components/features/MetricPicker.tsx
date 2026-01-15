@@ -8,7 +8,7 @@ interface MetricPickerProps {
 const MetricPicker = ({ metrics, onChange }: MetricPickerProps) => (
   <div className="space-y-4">
     {metrics.map((metric) => (
-      <div key={metric.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+      <div key={metric.id} className="ms-glass-surface rounded-2xl border p-4">
         <div className="flex items-center justify-between text-sm font-semibold text-slate-700">
           <span>{metric.label}</span>
           <span className="text-brand">{metric.value}</span>

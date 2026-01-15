@@ -23,7 +23,7 @@ const HowItWorks = () => (
       {steps.map((step, index) => (
         <div
           key={step.title}
-          className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm"
+          className="ms-card ms-elev-2 rounded-3xl p-6"
         >
           <p className="text-sm font-semibold text-brandLight">Step 0{index + 1}</p>
           <h3 className="mt-2 text-xl font-semibold text-slate-900">{step.title}</h3>

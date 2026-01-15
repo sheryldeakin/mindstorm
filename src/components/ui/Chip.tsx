@@ -8,10 +8,10 @@ interface ChipProps extends HTMLAttributes<HTMLSpanElement> {
 const Chip = ({ className, active, ...props }: ChipProps) => (
   <span
     className={clsx(
-      "inline-flex cursor-pointer items-center rounded-full border px-3 py-1 text-xs font-medium tracking-wide transition",
+      "inline-flex cursor-pointer items-center rounded-full border px-3 py-1 text-[11px] font-medium transition",
       active
-        ? "border-brandLight bg-brandLight/10 text-brand shadow-sm"
-        : "border-slate-200 bg-white text-slate-500 hover:border-brand/40 hover:text-brand",
+        ? "ms-badge ms-badge-active"
+        : "ms-badge ms-badge-neutral text-slate-600 hover:text-brand",
       className,
     )}
     {...props}

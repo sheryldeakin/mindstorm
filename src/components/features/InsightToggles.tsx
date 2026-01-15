@@ -13,7 +13,7 @@ const InsightToggles = ({
   onToggleTopic,
   topics,
 }: InsightTogglesProps) => (
-  <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+  <div className="ms-glass-surface rounded-2xl border p-4">
     <div className="flex items-center justify-between text-sm font-semibold text-slate-700">
       <span>Insights</span>
       <input

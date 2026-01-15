@@ -33,7 +33,7 @@ const ConnectionsGraph = ({
   const positionMap = new Map(positions.map((node) => [node.id, node]));
 
   return (
-    <div className="rounded-3xl border border-brand/15 bg-white p-6 shadow-sm">
+    <div className="ms-card ms-elev-2 rounded-3xl p-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h3 className="text-xl font-semibold">Connections map</h3>
@@ -41,12 +41,12 @@ const ConnectionsGraph = ({
         </div>
         <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Tap an edge</p>
       </div>
-      <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+      <div className="ms-glass-surface mt-6 rounded-2xl border p-4">
         <div className="flex items-center justify-between text-xs uppercase tracking-[0.3em] text-slate-400">
           <span>Map view</span>
           <span>{loading ? "Loading" : "Live"}</span>
         </div>
-        <div className="relative mt-4 h-72 overflow-hidden rounded-2xl border border-slate-200 bg-white">
+        <div className="ms-glass-surface relative mt-4 h-72 overflow-hidden rounded-2xl border">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(59,130,246,0.08),transparent_45%),radial-gradient(circle_at_80%_30%,rgba(16,185,129,0.08),transparent_40%),radial-gradient(circle_at_50%_80%,rgba(14,116,144,0.08),transparent_40%)]" />
           {loading ? (
             <div className="absolute inset-0 flex items-center justify-center text-sm text-slate-500">
@@ -116,7 +116,7 @@ const ConnectionsGraph = ({
         </div>
       </div>
       <div className="mt-6 grid gap-4 lg:grid-cols-[1.2fr_1fr]">
-        <div className="rounded-2xl border border-slate-200 bg-white p-4">
+        <div className="ms-glass-surface rounded-2xl border p-4">
           <p className="text-sm font-semibold text-slate-700">What influences this</p>
           <p className="mt-1 text-xs text-slate-400">Select a connection to view evidence.</p>
           <div className="mt-4 space-y-2">
@@ -141,7 +141,7 @@ const ConnectionsGraph = ({
             )}
           </div>
         </div>
-        <div className="rounded-2xl border border-slate-200 bg-white p-4">
+        <div className="ms-glass-surface rounded-2xl border p-4">
           <p className="text-sm font-semibold text-slate-700">Connection strength</p>
           <div className="mt-4 space-y-3">
             {edges.length ? (

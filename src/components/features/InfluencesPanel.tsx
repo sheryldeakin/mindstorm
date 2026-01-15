@@ -18,12 +18,12 @@ const directionTone: Record<PatternInfluence["direction"], string> = {
 };
 
 const InfluencesPanel = ({ influences }: InfluencesPanelProps) => (
-  <Card className="border-brand/15 bg-white p-6 text-slate-900">
+  <Card className="p-6 text-slate-900">
     <h3 className="text-xl font-semibold">What seems connected</h3>
     <p className="mt-1 text-sm text-slate-500">Influences surfaced from tagged context.</p>
     <div className="mt-6 grid gap-4 md:grid-cols-2">
       {influences.map((influence) => (
-        <div key={influence.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+        <div key={influence.id} className="ms-glass-surface rounded-2xl border p-4">
           <div className="flex items-center justify-between">
             <p className="text-sm font-semibold text-slate-700">{influence.label}</p>
             <span className={`text-xs font-semibold ${directionTone[influence.direction]}`}>
@@ -35,7 +35,7 @@ const InfluencesPanel = ({ influences }: InfluencesPanelProps) => (
             <span>Confidence</span>
             <span>{influence.confidence}%</span>
           </div>
-          <div className="mt-2 h-1.5 rounded-full bg-white">
+          <div className="mt-2 h-1.5 rounded-full">
             <div
               className="h-full rounded-full bg-gradient-to-r from-brand to-sky-400"
               style={{ width: `${influence.confidence}%` }}

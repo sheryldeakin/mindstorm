@@ -124,7 +124,7 @@ const PreparePage = () => {
     return (
       <div className="mt-2 space-y-2 border-l-2 border-slate-200/80 pl-4 text-xs text-slate-500">
         {quotes.map((quote) => (
-          <div key={quote} className="flex items-start justify-between gap-3 rounded-2xl bg-white px-3 py-2">
+          <div key={quote} className="flex items-start justify-between gap-3 rounded-2xl px-3 py-2">
             <span>“{quote}”</span>
             <button
               type="button"
@@ -169,7 +169,7 @@ const PreparePage = () => {
     }
 
     return (
-      <div className="mt-4 divide-y divide-slate-200/70 rounded-2xl border border-slate-200 bg-slate-50">
+      <div className="ms-glass-surface mt-4 divide-y divide-slate-200/70 rounded-2xl border">
         {weeklySummaries.map((week) => (
           <div key={week.weekStartISO} className="p-4">
             <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
@@ -218,7 +218,7 @@ const PreparePage = () => {
 
   return (
     <div className="space-y-8 text-slate-900">
-      <section className="rounded-3xl border border-brand/15 bg-white p-6 shadow-lg shadow-brand/10">
+      <section className="rounded-3xl border border-brand/15 p-6">
         <p className="text-sm uppercase tracking-[0.4em] text-brandLight">Prepare</p>
         <div className="mt-2 flex flex-wrap items-center justify-between gap-4">
           <div>
@@ -230,7 +230,7 @@ const PreparePage = () => {
         </div>
       </section>
       {summaryLoading && (
-        <div className="rounded-2xl border border-slate-200 bg-white/90 p-4 text-xs text-slate-500" role="status" aria-live="polite">
+        <div className="rounded-2xl border border-slate-200 p-4 text-xs text-slate-500" role="status" aria-live="polite">
           <div className="flex items-center justify-between">
             <span>Generating your summary from recent entries…</span>
             <span className="text-[10px] uppercase tracking-[0.3em] text-slate-400">Live</span>
@@ -244,7 +244,7 @@ const PreparePage = () => {
         </div>
       )}
       <section className="space-y-6">
-        <Card className="border-brand/15 bg-white p-0">
+        <Card className="p-0">
           <div className="border-b border-slate-200/70 p-6">
             <h3 className="text-xl font-semibold">This is a personal reflection summary</h3>
             <p className="mt-3 text-sm text-slate-600">
@@ -257,18 +257,18 @@ const PreparePage = () => {
               </div>
             )}
             <div className="mt-4 grid gap-3 text-sm text-slate-500 sm:grid-cols-3">
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+              <div className="ms-glass-surface rounded-2xl border p-3">
                 <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Time range</p>
                 <p className="mt-1 text-sm text-slate-700">
                   {summary?.timeRangeLabel ||
                     (timeRange === "7" ? "Last 7 days" : timeRange === "30" ? "Last 8 weeks" : "Last 12 weeks")}
                 </p>
               </div>
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+              <div className="ms-glass-surface rounded-2xl border p-3">
                 <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Data source</p>
                 <p className="mt-1 text-sm text-slate-700">Personal journal entries</p>
               </div>
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+              <div className="ms-glass-surface rounded-2xl border p-3">
                 <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Confidence</p>
                 <p className="mt-1 text-sm text-slate-700">
                   {summary?.confidenceNote || "Based on patterns in written reflections"}
@@ -330,7 +330,7 @@ const PreparePage = () => {
                 : summary?.overTimeSummary ||
                   "These experiences feel more noticeable lately. Some days are manageable, others feel heavier."}
             </p>
-            <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 font-mono text-xs text-slate-500">
+            <div className="ms-glass-surface mt-4 rounded-2xl border p-4 font-mono text-xs text-slate-500">
               <p>Intensity over time:</p>
               {(summary?.intensityLines?.length ? summary.intensityLines : ["Jan ..", "Feb ...", "Mar ...."]).map(
                 (line, index) => (
@@ -508,7 +508,7 @@ const PreparePage = () => {
             or treatment recommendations. Clinical interpretation is left to a qualified professional.
           </div>
         </Card>
-        <Card className="border-brand/15 bg-white p-6">
+        <Card className="p-6">
           <div className="flex items-center justify-between">
             <h3 className="text-xl font-semibold">Evidence snippets</h3>
             <label className="flex items-center gap-2 text-sm text-slate-600">
@@ -530,7 +530,7 @@ const PreparePage = () => {
             </p>
           ) : null}
         </Card>
-        <Card className="border-brand/15 bg-white p-6">
+        <Card className="p-6">
           <h3 className="text-lg font-semibold">Export controls</h3>
           <p className="mt-1 text-sm text-slate-500">Choose time range, redactions, and formats.</p>
           <div className="mt-4">
@@ -543,7 +543,7 @@ const PreparePage = () => {
               />
             </div>
           </div>
-          <div className="mt-6 flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+          <div className="ms-glass-surface mt-6 flex items-center justify-between rounded-2xl border px-4 py-3 text-sm text-slate-600">
             <span>Hidden items</span>
             <div className="flex items-center gap-3">
               <span className="text-xs text-slate-400">{redactedItems.length} hidden</span>
@@ -559,7 +559,7 @@ const PreparePage = () => {
             </div>
           </div>
         </Card>
-        <Card className="border-brand/15 bg-white p-6">
+        <Card className="p-6">
           <h3 className="text-lg font-semibold">Hidden items</h3>
           <p className="mt-1 text-sm text-slate-500">Restore anything you hid from the summary.</p>
           {redactedItems.length ? (
@@ -567,7 +567,7 @@ const PreparePage = () => {
               {redactedItems.map((item) => (
                 <div
                   key={item}
-                  className="flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3"
+                  className="ms-glass-surface flex items-center justify-between rounded-2xl border px-4 py-3"
                 >
                   <span className="line-through text-slate-400">{item.split("::").slice(1).join("::")}</span>
                   <button
@@ -587,7 +587,7 @@ const PreparePage = () => {
             <p className="mt-3 text-sm text-slate-500">No hidden items.</p>
           )}
         </Card>
-        <Card className="border-brand/15 bg-white p-6">
+        <Card className="p-6">
           <h3 className="text-lg font-semibold">Share options</h3>
           <p className="mt-1 text-sm text-slate-500">PDF, mobile share link, or portal share.</p>
           <div className="mt-4 space-y-4">
@@ -614,14 +614,14 @@ const PreparePage = () => {
             </div>
           </div>
         </Card>
-        <Card className="border-brand/15 bg-white p-6">
+        <Card className="p-6">
           <h3 className="text-lg font-semibold">Audit log</h3>
           <p className="mt-1 text-sm text-slate-500">What was shared and when.</p>
           <div className="mt-4 space-y-3">
             {auditLog.map((entry) => (
               <div
                 key={entry.id}
-                className="flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm"
+                className="ms-glass-surface flex items-center justify-between rounded-2xl border px-4 py-3 text-sm"
               >
                 <span className="text-slate-700">{entry.action}</span>
                 <span className="text-xs text-slate-400">{entry.timestamp}</span>

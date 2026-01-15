@@ -30,7 +30,7 @@ const ScrollToTop = () => {
 
 const App = () => {
   return (
-    <div className="min-h-screen bg-white text-slate-900">
+    <div className="ms-bg min-h-screen text-slate-900">
       <ScrollToTop />
       <Routes>
         <Route

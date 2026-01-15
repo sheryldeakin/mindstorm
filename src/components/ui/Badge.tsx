@@ -6,15 +6,15 @@ interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
 }
 
 const toneStyles: Record<NonNullable<BadgeProps["tone"]>, string> = {
-  neutral: "bg-brand/10 text-brand",
-  positive: "bg-emerald-50 text-emerald-600",
-  negative: "bg-rose-50 text-rose-600",
+  neutral: "ms-badge ms-badge-neutral",
+  positive: "ms-badge ms-badge-positive",
+  negative: "ms-badge ms-badge-negative",
 };
 
 const Badge = ({ className, tone = "neutral", ...props }: BadgeProps) => (
   <span
     className={clsx(
-      "inline-flex items-center rounded-full px-3 py-1 text-xs font-medium tracking-wide",
+      "inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-medium",
       toneStyles[tone],
       className,
     )}

@@ -7,7 +7,7 @@ const footerLinks = [
 
 const Footer = () => {
   return (
-    <footer className="border-t border-brand/10 bg-white/90 backdrop-blur">
+    <footer className="ms-card ms-elev-1 mt-10">
       <div className="mx-auto flex max-w-6xl flex-col gap-6 px-6 py-10 md:flex-row md:items-center md:justify-between">
         <div>
           <p className="text-lg font-semibold text-brand">MindStorm</p>

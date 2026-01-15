@@ -78,13 +78,13 @@ const LiveInsightPanel = ({ analysis, loading, error, draftText }: LiveInsightPa
   const typedQuestionTwo = useTypewriter(questions[1] || "Is this something you've felt before?", revealStep >= 6, 16);
 
   return (
-    <aside className="rounded-3xl border border-slate-100 bg-white p-6 text-slate-900 shadow-lg shadow-slate-100">
+    <aside className="ms-card ms-elev-2 p-6 text-slate-900">
       <p className="text-sm font-semibold uppercase tracking-[0.4em] text-brand/60">Live insight</p>
       {loading && (
         <div className="mt-3 h-1.5 w-full rounded-full bg-slate-100 loading-bar" aria-hidden />
       )}
       {(loading || error) && (
-        <div className="mt-3 flex items-center justify-between gap-3 rounded-2xl border border-slate-100 bg-slate-50 px-3 py-2 text-xs text-slate-500">
+        <div className="ms-glass-surface mt-3 flex items-center justify-between gap-3 rounded-2xl border px-3 py-2 text-xs text-slate-500">
           <div className="flex items-center gap-2" role="status" aria-live="polite">
             {loading ? (
               <>
@@ -151,7 +151,7 @@ const LiveInsightPanel = ({ analysis, loading, error, draftText }: LiveInsightPa
               )}
             </ul>
           </div>
-          <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4 text-sm text-slate-600">
+          <div className="ms-glass-surface rounded-2xl border p-4 text-sm text-slate-600">
             <p className="font-semibold text-slate-700">Language reflections</p>
             <p className="mt-2">
               {loading || revealStep < 4
@@ -172,10 +172,10 @@ const LiveInsightPanel = ({ analysis, loading, error, draftText }: LiveInsightPa
                 <li className="typing-line-no-caret text-sm text-slate-500">Generating reflective prompts...</li>
               ) : (
                 <>
-                  <li className="rounded-2xl border border-slate-100 bg-white px-3 py-2">
+                  <li className="ms-glass-surface rounded-2xl border px-3 py-2">
                     {typedQuestionOne}
                   </li>
-                  <li className="rounded-2xl border border-slate-100 bg-white px-3 py-2">
+                  <li className="ms-glass-surface rounded-2xl border px-3 py-2">
                     {typedQuestionTwo}
                   </li>
                 </>

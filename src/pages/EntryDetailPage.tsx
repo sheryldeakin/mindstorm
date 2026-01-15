@@ -42,7 +42,7 @@ const EntryDetailPage = () => {
 
   return (
     <div className="grid gap-8 lg:grid-cols-3">
-      <Card className="lg:col-span-2 border border-brand/15 bg-white p-8 text-slate-900 shadow-lg shadow-brand/10">
+      <Card className="lg:col-span-2 border p-8 text-slate-900">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <p className="text-sm uppercase tracking-[0.4em] text-brandLight">Entry summary</p>

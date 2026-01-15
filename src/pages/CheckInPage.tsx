@@ -31,7 +31,7 @@ const CheckInPage = () => {
 
   return (
     <div className="space-y-8 text-slate-900">
-      <section className="rounded-3xl border border-brand/15 bg-white p-6 shadow-lg shadow-brand/10">
+      <section className="rounded-3xl border border-brand/15 p-6">
         <p className="text-sm uppercase tracking-[0.4em] text-brandLight">Check-in</p>
         <div className="mt-2 flex flex-wrap items-center justify-between gap-4">
           <div>
@@ -44,7 +44,7 @@ const CheckInPage = () => {
         </div>
       </section>
       <section className="grid gap-6 lg:grid-cols-[1.3fr_1fr]">
-        <Card className="border-brand/15 bg-white p-6">
+        <Card className="p-6">
           <h3 className="text-xl font-semibold">Today's signals</h3>
           <p className="mt-1 text-sm text-slate-500">Energy, mood, stress, sleep, connection, focus.</p>
           <div className="mt-6 space-y-4">
@@ -63,11 +63,11 @@ const CheckInPage = () => {
               </div>
             ))}
           </div>
-          <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
+          <div className="ms-glass-surface mt-6 rounded-2xl border p-4 text-sm text-slate-600">
             Average signal today: <span className="font-semibold text-slate-800">{averageSignal}</span>
           </div>
         </Card>
-        <Card className="border-brand/15 bg-white p-6">
+        <Card className="p-6">
           <p className="text-sm text-slate-500">Add a quick note to capture context your future self might want.</p>
           <div className="mt-6">
             <QuickNoteInput value={checkInNote} onChange={setCheckInNote} />

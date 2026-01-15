@@ -41,7 +41,7 @@ const ConnectionsPage = () => {
 
   return (
     <div className="space-y-8 text-slate-900">
-      <section className="rounded-3xl border border-brand/15 bg-white p-6 shadow-lg shadow-brand/10">
+      <section className="ms-card ms-elev-2 rounded-3xl p-6">
         <p className="text-sm uppercase tracking-[0.4em] text-brandLight">Connections</p>
         <div className="mt-2 flex flex-wrap items-center justify-between gap-4">
           <div>
@@ -61,7 +61,7 @@ const ConnectionsPage = () => {
         loading={loading}
         emptyState={!!error || (!loading && nodes.length === 0)}
       />
-      <section className="rounded-3xl border border-brand/15 bg-white p-6 shadow-sm">
+      <section className="ms-card ms-elev-2 rounded-3xl p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h3 className="text-xl font-semibold">Supporting evidence</h3>
@@ -90,7 +90,7 @@ const ConnectionsPage = () => {
         ) : selectedEdge ? (
           <div className="mt-6 space-y-4">
             {selectedEdge.evidence.length ? selectedEdge.evidence.map((evidence) => (
-              <div key={evidence.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <div key={evidence.id} className="ms-glass-surface rounded-2xl border p-4">
                 <p className="text-sm text-slate-700">“{evidence.quote}”</p>
                 <p className="mt-2 text-xs text-slate-400">{evidence.source}</p>
               </div>

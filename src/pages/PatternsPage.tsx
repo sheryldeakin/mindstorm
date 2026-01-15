@@ -212,7 +212,7 @@ const PatternsPage = () => {
                 spanLinks={timelineSeries.spanLinks}
               />
             ) : (
-              <Card className="border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">
+              <Card className="p-4 text-sm text-slate-500">
                 Timeline not available yet.
               </Card>
             )}
@@ -226,12 +226,12 @@ const PatternsPage = () => {
             </div>
           </>
         ) : (
-          <Card className="border-slate-200 bg-slate-50 p-6 text-sm text-slate-500">
+          <Card className="p-6 text-sm text-slate-500">
             {patternLoading ? "Building your pattern detail..." : "No pattern detail available yet."}
           </Card>
         )}
       </section>
-      <section className="rounded-3xl border border-brand/15 bg-white p-6 shadow-lg shadow-brand/10">
+      <section className="rounded-3xl border border-brand/15 p-6">
         <p className="text-sm uppercase tracking-[0.4em] text-brandLight">Patterns & insights</p>
         <div className="mt-2 flex flex-wrap items-center justify-between gap-4">
           <h2 className="text-3xl font-semibold">Your nervous system trends</h2>
@@ -245,7 +245,7 @@ const PatternsPage = () => {
         </div>
       </section>
       <section className="grid gap-6 lg:grid-cols-2">
-        <Card className="border-brand/15 bg-white p-6">
+        <Card className="p-6">
           <h3 className="text-xl font-semibold">Emotion frequency</h3>
           <div className="mt-6 space-y-4">
             {entriesLoading ? (
@@ -270,7 +270,7 @@ const PatternsPage = () => {
             )}
           </div>
         </Card>
-        <Card className="border-brand/15 bg-white p-6">
+        <Card className="p-6">
           <h3 className="text-xl font-semibold">Trigger categories</h3>
           <div className="mt-6 space-y-4">
             {entriesLoading ? (
@@ -290,13 +290,13 @@ const PatternsPage = () => {
       </section>
       <section className="grid gap-4 md:grid-cols-3">
         {insightsLoading ? (
-          <Card className="h-40 animate-pulse border-brand/10 bg-white" />
+          <Card className="h-40 animate-pulse" />
         ) : insightsError ? (
-          <Card className="border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">
+          <Card className="bg-rose-50 p-4 text-sm text-rose-700">
             {insightsError}
           </Card>
         ) : insightsEmpty ? (
-          <Card className="border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
+          <Card className="p-4 text-sm text-slate-600">
             Add more entries to surface insights here.
           </Card>
         ) : (

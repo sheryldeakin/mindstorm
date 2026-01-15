@@ -17,7 +17,7 @@ const PatternDetailHeader = ({
   rangeLabel,
   intensityLabel,
 }: PatternDetailHeaderProps) => (
-  <Card className="border-brand/15 bg-white p-6 text-slate-900">
+  <Card className="p-6 text-slate-900">
     <p className="text-xs uppercase tracking-[0.4em] text-brand/60">Pattern deep dive</p>
     <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
       <div>
@@ -44,7 +44,7 @@ const PatternDetailHeader = ({
           ))}
         </div>
       </div>
-      <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+      <div className="ms-glass-surface rounded-2xl border p-4">
         <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Paraphrase</p>
         <p className="mt-2 text-sm text-slate-600">{paraphrase}</p>
       </div>

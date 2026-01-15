@@ -21,7 +21,7 @@ const HeroMockup = () => {
     <div className="relative">
       <div className="absolute -left-6 -right-6 top-10 mx-auto h-72 max-w-3xl rounded-[40px] bg-hero-glow blur-3xl" />
       <motion.div {...animation}>
-        <Card className="relative bg-gradient-to-br from-brand/5 via-white to-white text-slate-900 shadow-glow">
+        <Card className="relative bg-gradient-to-br from-brand/5 via-white to-white text-slate-900">
           <div className="flex flex-col gap-6 p-8 text-slate-900">
             <div>
               <p className="text-xs uppercase tracking-[0.4em] text-brand/60">{entry.date}</p>
@@ -35,7 +35,7 @@ const HeroMockup = () => {
                 </Badge>
               ))}
             </div>
-            <div className="rounded-3xl border border-brand/15 bg-white/90 p-4 shadow-inner">
+            <div className="rounded-3xl border border-brand/15 p-4">
               <p className="text-sm font-semibold text-slate-800">Pattern flash</p>
               <p className="text-sm text-slate-600">
                 Emotion spikes around <span className="font-semibold text-slate-900">work stand-ups (3x/week)</span>.
@@ -46,7 +46,7 @@ const HeroMockup = () => {
       </motion.div>
       <div className="mt-6 grid gap-4 md:grid-cols-3">
         {insightCards.slice(0, 3).map((insight) => (
-          <Card key={insight.id} className="border-brand/10 bg-white text-slate-900 shadow-sm">
+          <Card key={insight.id} className="text-slate-900">
             <div className="p-5">
               <p className="text-sm font-semibold">{insight.title}</p>
               <p className="mt-1 text-sm text-slate-500">{insight.description}</p>

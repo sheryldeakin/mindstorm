@@ -3,7 +3,7 @@ interface WhatHelpedSummaryProps {
 }
 
 const WhatHelpedSummary = ({ highlights }: WhatHelpedSummaryProps) => (
-  <div className="rounded-3xl border border-brand/15 bg-white p-6 shadow-sm">
+  <div className="ms-card ms-elev-2 rounded-3xl p-6">
     <h3 className="text-xl font-semibold">What helped</h3>
     <p className="mt-1 text-sm text-slate-500">Supports that softened the week.</p>
     <div className="mt-4 flex flex-wrap gap-2">

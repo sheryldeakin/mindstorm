@@ -76,7 +76,7 @@ const Navbar = ({ variant = "landing" }: NavbarProps) => {
   };
 
   return (
-    <header className="sticky top-0 z-50 border-b border-brand/10 bg-white/85 backdrop-blur-xl">
+    <header className="ms-card ms-card-flat ms-elev-1 sticky top-0 z-50">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
         <Link to="/" className="flex items-center gap-3 text-lg font-semibold tracking-tight text-brand">
           <span className="inline-flex h-14 w-14 items-center justify-center">
@@ -153,7 +153,7 @@ const Navbar = ({ variant = "landing" }: NavbarProps) => {
               <button
                 type="button"
                 onClick={() => setMobileOpen((prev) => !prev)}
-                className="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white p-2 text-slate-600 shadow-sm transition hover:border-slate-300 lg:hidden"
+                className="ms-glass-pill inline-flex items-center justify-center rounded-full p-2 text-slate-600 transition hover:border-slate-300 lg:hidden"
                 aria-label="Open navigation menu"
                 aria-expanded={mobileOpen}
               >
@@ -167,7 +167,7 @@ const Navbar = ({ variant = "landing" }: NavbarProps) => {
                 <button
                   type="button"
                   onClick={() => setMenuOpen((prev) => !prev)}
-                  className="flex items-center gap-3 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-700 shadow-sm transition hover:border-slate-300"
+                  className="ms-glass-pill flex items-center gap-3 rounded-full px-3 py-1.5 text-sm text-slate-700 transition hover:border-slate-300"
                 >
                   <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand/10 text-xs font-semibold text-brand">
                     {initials}
@@ -177,7 +177,7 @@ const Navbar = ({ variant = "landing" }: NavbarProps) => {
                   </span>
                 </button>
                 {menuOpen && (
-                  <div className="absolute right-0 mt-2 w-56 rounded-2xl border border-slate-200 bg-white p-2 text-sm text-slate-700 shadow-lg">
+                  <div className="ms-glass-surface absolute right-0 mt-2 w-56 rounded-2xl p-2 text-sm text-slate-700">
                     <div className="px-3 py-2">
                       <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Signed in as</p>
                       <p className="mt-1 truncate text-sm font-semibold text-slate-800">
@@ -188,7 +188,7 @@ const Navbar = ({ variant = "landing" }: NavbarProps) => {
                     <button
                       type="button"
                       onClick={handleSignOut}
-                      className="w-full rounded-xl px-3 py-2 text-left text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                      className="w-full rounded-xl px-3 py-2 text-left text-sm font-medium text-slate-700 transition hover:bg-white/60"
                     >
                       Sign out
                     </button>
@@ -208,13 +208,13 @@ const Navbar = ({ variant = "landing" }: NavbarProps) => {
                 className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
                 aria-label="Close navigation menu"
               />
-              <div className="relative z-[1000] h-full w-72 max-w-[85vw] border-r border-slate-200 bg-white p-5 shadow-2xl">
+              <div className="ms-glass-surface relative z-[1000] h-full w-72 max-w-[85vw] p-5">
                 <div className="flex items-center justify-between">
                   <span className="text-xs uppercase tracking-[0.3em] text-slate-400">Navigation</span>
                   <button
                     type="button"
                     onClick={() => setMobileOpen(false)}
-                    className="rounded-full border border-slate-200 bg-white p-2 text-slate-600"
+                    className="ms-glass-pill rounded-full p-2 text-slate-600"
                     aria-label="Close navigation menu"
                   >
                     <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">

@@ -131,13 +131,13 @@ const EntryEditPage = () => {
 
   return (
     <div className="grid gap-8 lg:grid-cols-3">
-      <Card className="lg:col-span-2 border border-brand/15 bg-white p-8 text-slate-900 shadow-lg shadow-brand/10">
+      <Card className="lg:col-span-2 border p-8 text-slate-900">
         <p className="text-sm uppercase tracking-[0.4em] text-brandLight">Edit entry</p>
         <div className="mt-2 flex flex-wrap items-center gap-3">
           <button
             type="button"
             onClick={() => setIsEditingDate(true)}
-            className="rounded-full border border-slate-200 bg-white px-4 py-1.5 text-2xl font-semibold text-slate-900 shadow-sm transition hover:border-slate-300"
+            className="rounded-full border border-slate-200 px-4 py-1.5 text-2xl font-semibold text-slate-900 transition hover:border-slate-300"
             aria-label="Edit entry date"
           >
             {formattedEntryDate}

@@ -12,11 +12,11 @@ const PDFPreview = ({ sections, redactedTopics, redactedQuotes }: PDFPreviewProp
   );
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-4">
+    <div className="ms-glass-surface rounded-2xl border p-4">
       <p className="text-sm font-semibold text-slate-700">Patient-facing summary preview</p>
       <div className="mt-4 space-y-4">
         {visibleSections.map((section) => (
-          <div key={section.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+          <div key={section.id} className="ms-glass-surface rounded-2xl border p-4">
             <h4 className="text-sm font-semibold text-slate-700">{section.title}</h4>
             <p className="mt-2 text-xs text-slate-600">{section.content}</p>
             {section.quotes.length > 0 && (

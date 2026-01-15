@@ -40,7 +40,7 @@ const ExportWizard = ({
   sections,
 }: ExportWizardProps) => (
   <div className="space-y-6">
-    <Card className="border-brand/15 bg-white p-6">
+    <Card className="p-6">
       <p className="text-xs uppercase tracking-[0.4em] text-brand/60">Export + Share</p>
       <h3 className="mt-2 text-2xl font-semibold">Bring this to your clinician</h3>
       <p className="mt-2 text-sm text-slate-500">
@@ -58,7 +58,7 @@ const ExportWizard = ({
       </div>
     </Card>
     <div className="grid gap-6 lg:grid-cols-[1.1fr_1fr]">
-      <Card className="border-brand/15 bg-white p-6">
+      <Card className="p-6">
         <h4 className="text-lg font-semibold">Privacy controls</h4>
         <p className="mt-1 text-sm text-slate-500">Redact quotes, remove topics, and curate what is shared.</p>
         <div className="mt-5">
@@ -72,7 +72,7 @@ const ExportWizard = ({
           />
         </div>
       </Card>
-      <Card className="border-brand/15 bg-white p-6">
+      <Card className="p-6">
         <h4 className="text-lg font-semibold">Share options</h4>
         <p className="mt-1 text-sm text-slate-500">PDF download or portal share with consent gate.</p>
         <div className="mt-4 space-y-4">

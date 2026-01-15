@@ -437,7 +437,7 @@ const CyclesGraphPage = () => {
 
   return (
     <div className="space-y-10 text-slate-900">
-      <section className="rounded-3xl border border-brand/15 bg-white/90 p-6 shadow-lg shadow-brand/10">
+      <section className="rounded-3xl border border-brand/15 p-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="space-y-2">
             <p className="text-xs uppercase tracking-[0.4em] text-brand/60">Quick intel</p>
@@ -453,7 +453,7 @@ const CyclesGraphPage = () => {
             <div>
               <p className="text-xs uppercase tracking-[0.4em] text-slate-400">From</p>
               <select
-                className="mt-1 rounded-2xl border border-slate-200 bg-white/80 px-3 py-2 text-sm text-slate-700"
+                className="mt-1 rounded-2xl border border-slate-200 px-3 py-2 text-sm text-slate-700"
                 value={pairFrom}
                 onChange={(e) => setPairFrom(e.target.value)}
               >
@@ -467,7 +467,7 @@ const CyclesGraphPage = () => {
             <div>
               <p className="text-xs uppercase tracking-[0.4em] text-slate-400">To</p>
               <select
-                className="mt-1 rounded-2xl border border-slate-200 bg-white/80 px-3 py-2 text-sm text-slate-700"
+                className="mt-1 rounded-2xl border border-slate-200 px-3 py-2 text-sm text-slate-700"
                 value={pairTo}
                 onChange={(e) => setPairTo(e.target.value)}
               >
@@ -484,12 +484,12 @@ const CyclesGraphPage = () => {
         </div>
 
         <div className="mt-6 grid gap-6 lg:grid-cols-3">
-          <Card className="border-brand/10 bg-white/80 p-5 shadow-sm">
+          <Card className="p-5">
             <p className="text-xs uppercase tracking-[0.4em] text-slate-400">Frequency</p>
             <h3 className="mt-3 text-3xl font-semibold text-brand">{pairPaths.length}</h3>
             <p className="text-sm text-slate-500">{pairPercent}% of paths starting at {nodeKeyToText[pairFrom]}</p>
           </Card>
-          <Card className="border-brand/10 bg-white/80 p-5 shadow-sm lg:col-span-2">
+          <Card className="p-5 lg:col-span-2">
             <p className="text-xs uppercase tracking-[0.4em] text-slate-400">Top paths</p>
             {pairPaths.length ? (
               <div className="mt-3 flex flex-wrap gap-2">
@@ -518,7 +518,7 @@ const CyclesGraphPage = () => {
 
       {showAdvanced && (
         <>
-          <section className="rounded-3xl border border-brand/15 bg-gradient-to-br from-white via-white to-brand/5 p-6 shadow-lg shadow-brand/10">
+          <section className="rounded-3xl border border-brand/15 bg-gradient-to-br from-white via-white to-brand/5 p-6">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
                 <p className="text-xs uppercase tracking-[0.4em] text-brand/60">MindStorm network</p>
@@ -531,13 +531,13 @@ const CyclesGraphPage = () => {
                 Fit to screen
               </Button>
             </div>
-            <div className="mt-6 rounded-3xl border border-slate-100 bg-white/80 p-4 shadow-inner">
+            <div className="mt-6 rounded-3xl border border-slate-100 p-4">
               <div ref={diagramRef} className="h-[460px] w-full" />
             </div>
           </section>
 
-          <section className="space-y-6 rounded-3xl border border-brand/15 bg-white p-6 shadow-sm">
-            <div className="rounded-2xl border border-brand/15 bg-slate-50 p-4 text-sm text-slate-600">
+          <section className="space-y-6 rounded-3xl border border-brand/15 p-6">
+            <div className="ms-glass-surface rounded-2xl border p-4 text-sm text-slate-600">
               <p className="font-semibold text-brand">How to use this map</p>
               <p className="mt-2 leading-relaxed">
                 Select one issue to explore its internal loops. Select a second to surface every path between the two. Hover or click any path in the list to
@@ -546,7 +546,7 @@ const CyclesGraphPage = () => {
             </div>
 
             <div className="grid gap-6 lg:grid-cols-[2fr,1fr]">
-              <Card className="border-brand/15 bg-white p-6 text-slate-700 shadow-sm">
+              <Card className="p-6 text-slate-700">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
                     <h2 className="text-lg font-semibold text-brand">
@@ -582,7 +582,7 @@ const CyclesGraphPage = () => {
                     </p>
                   </div>
                 </div>
-                <div className="mt-6 h-72 overflow-y-auto rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                <div className="ms-glass-surface mt-6 h-72 overflow-y-auto rounded-2xl border p-3">
                   {cycles.length === 0 ? (
                     <p className="text-sm text-slate-500">
                       {selection.primary
@@ -605,7 +605,7 @@ const CyclesGraphPage = () => {
                         >
                           {cycle.map((label, idx) => (
                             <span key={`${label}-${idx}`} className="flex items-center">
-                              <span className="rounded-full bg-white/70 px-3 py-1 text-xs font-semibold text-brand">
+                              <span className="rounded-full px-3 py-1 text-xs font-semibold text-brand">
                                 {nodeDataArray.find((node) => node.key === label)?.text ?? label}
                               </span>
                               {idx < cycle.length - 1 && <span className="px-2 text-slate-400">→</span>}
@@ -618,7 +618,7 @@ const CyclesGraphPage = () => {
                 </div>
               </Card>
 
-              <Card className="border-brand/15 bg-white p-6 text-slate-700 shadow-sm">
+              <Card className="p-6 text-slate-700">
                 <h2 className="text-lg font-semibold text-brand">Cycle metrics</h2>
                 <dl className="mt-4 space-y-3 text-sm">
                   <div>
@@ -657,7 +657,7 @@ const CyclesGraphPage = () => {
               </Card>
             </div>
 
-            <div className="rounded-3xl border border-brand/15 bg-white p-6 shadow-sm">
+            <div className="rounded-3xl border border-brand/15 p-6">
               <h2 className="text-lg font-semibold text-brand">Selected path diagram</h2>
               {activeCycle ? (
                 <div className="mt-4 flex flex-wrap items-center gap-2">

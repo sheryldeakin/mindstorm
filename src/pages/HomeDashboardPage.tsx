@@ -1,7 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import PatternCardGrid from "../components/features/PatternCardGrid";
-import TodayPromptCard from "../components/features/TodayPromptCard";
-import WhatHelpedSummary from "../components/features/WhatHelpedSummary";
 import { Card } from "../components/ui/Card";
 import Tabs from "../components/ui/Tabs";
 import { apiFetch } from "../lib/apiClient";
@@ -72,6 +70,8 @@ const HomeDashboardPage = () => {
     impactAreas?: string[];
     influences?: string[];
     openQuestions?: string[];
+    entryCount?: number;
+    sourceEntryCount?: number;
   } | null>(null);
   const [stale, setStale] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -155,35 +155,36 @@ const HomeDashboardPage = () => {
   const snapshotImpactAreas = snapshot?.impactAreas || [];
   const snapshotInfluences = snapshot?.influences || [];
   const snapshotQuestions = snapshot?.openQuestions || [];
+  const entryCount = snapshot?.entryCount ?? snapshot?.sourceEntryCount ?? patterns.length;
 
   return (
-    <div className="space-y-8 text-slate-900">
-      <section className="rounded-3xl border border-brand/15 bg-white p-6 shadow-lg shadow-brand/10">
-        <p className="text-sm uppercase tracking-[0.4em] text-brandLight">Home</p>
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <h2 className="text-3xl font-semibold">{headingLabel}</h2>
-            <p className="mt-2 text-sm text-slate-500">
-              A quick read on how your nervous system shifted over the selected range.
-            </p>
-          </div>
-          <div className="flex flex-wrap items-center gap-3">
-            <Tabs options={rangeOptions} activeId={range} onValueChange={setRange} />
-            {(loading || stale) && (
-              <span className="text-xs uppercase tracking-[0.3em] text-slate-400">Updating</span>
-            )}
-          </div>
+    <div className="space-y-12 text-slate-900">
+      <section className="flex flex-wrap items-start justify-between gap-6">
+        <div>
+          <p className="small-label text-brandLight">Home</p>
+          <h2 className="mt-2 text-3xl font-semibold">{headingLabel}</h2>
+          <p className="mt-2 text-sm text-slate-500">
+            A quick read on how your nervous system shifted over the selected range.
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-3">
+          <Tabs options={rangeOptions} activeId={range} onValueChange={setRange} />
+          {(loading || stale) && <span className="small-label text-slate-400">Updating</span>}
         </div>
       </section>
-      <Card className="border-brand/15 bg-white p-6">
-        <h3 className="text-xl font-semibold">Your current snapshot</h3>
-        <p className="mt-2 text-sm text-slate-600">
+
+      <Card className="ms-elev-3 p-8">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <h3 className="text-2xl font-semibold">Your current snapshot</h3>
+          <p className="small-label text-slate-400">Updated today • Based on your last {entryCount} entries</p>
+        </div>
+        <p className="mt-3 text-sm text-slate-600">
           {snapshotOverview || "Current snapshot not available yet."}
         </p>
-        <div className="mt-5 grid gap-6 text-sm text-slate-600 md:grid-cols-2">
-          <div>
-            <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Top patterns</p>
-            <div className="mt-3 space-y-2">
+        <div className="mt-6 grid gap-6 text-sm text-slate-600 md:grid-cols-2 xl:grid-cols-4">
+          <div className="space-y-3">
+            <p className="small-label text-slate-400">Top patterns</p>
+            <div className="space-y-2">
               {patterns.slice(0, 5).map((pattern) => (
                 <div key={pattern.id} className="flex items-center gap-2">
                   <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
@@ -192,9 +193,9 @@ const HomeDashboardPage = () => {
               ))}
             </div>
           </div>
-          <div>
-            <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Life areas affected</p>
-            <div className="mt-3 space-y-2">
+          <div className="space-y-3">
+            <p className="small-label text-slate-400">Life areas affected</p>
+            <div className="space-y-2">
               {(snapshotImpactAreas.length ? snapshotImpactAreas : ["Not available yet."])
                 .slice(0, 3)
                 .map((item) => (
@@ -205,9 +206,9 @@ const HomeDashboardPage = () => {
                 ))}
             </div>
           </div>
-          <div>
-            <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Influences</p>
-            <div className="mt-3 space-y-2">
+          <div className="space-y-3">
+            <p className="small-label text-slate-400">Influences</p>
+            <div className="space-y-2">
               {(snapshotInfluences.length ? snapshotInfluences : ["Not available yet."])
                 .slice(0, 3)
                 .map((item) => (
@@ -218,9 +219,9 @@ const HomeDashboardPage = () => {
                 ))}
             </div>
           </div>
-          <div>
-            <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Questions you might explore</p>
-            <div className="mt-3 space-y-2">
+          <div className="space-y-3">
+            <p className="small-label text-slate-400">Questions you might explore</p>
+            <div className="space-y-2">
               {(snapshotQuestions.length ? snapshotQuestions : ["Not available yet."])
                 .slice(0, 3)
                 .map((item) => (
@@ -233,58 +234,81 @@ const HomeDashboardPage = () => {
           </div>
         </div>
       </Card>
-      <Card className="border-brand/15 bg-white p-6">
-        <h3 className="text-xl font-semibold">{weeklyHeading}</h3>
-        <p className="mt-1 text-sm text-slate-500">{weeklySubcopy}</p>
-        {weeklyLoading ? (
-          <p className="mt-3 text-sm text-slate-500">Loading weekly summary...</p>
-        ) : weeklyError ? (
-          <p className="mt-3 text-sm text-rose-600">{weeklyError}</p>
-        ) : currentWeekSummary ? (
-          <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-            <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
-              Week of {currentWeekSummary.weekStartISO} - {currentWeekSummary.weekEndISO}
-            </p>
-            <p className="mt-2 text-sm text-slate-600">
-              {currentWeekSummary.summary?.overTimeSummary || "No summary generated for this week yet."}
-            </p>
-            <div className="mt-3 text-sm text-slate-600">
-              {(currentWeekSummary.summary?.recurringExperiences?.length
-                ? currentWeekSummary.summary.recurringExperiences
-                : ["No recurring themes captured."])
-                .slice(0, 3)
-                .map((item) => (
-                  <div key={item} className="flex items-center gap-2">
-                    <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
-                    <span>{item}</span>
-                  </div>
-                ))}
+
+      <section className="grid gap-10 md:grid-cols-[2fr_1fr]">
+        <div className="space-y-6">
+          <PatternCardGrid patterns={patterns} />
+        </div>
+        <Card className="ms-elev-1 p-6">
+          <h3 className="text-xl font-semibold">{weeklyHeading}</h3>
+          <p className="mt-1 text-sm text-slate-500">{weeklySubcopy}</p>
+          {weeklyLoading ? (
+            <p className="mt-3 text-sm text-slate-500">Loading weekly summary...</p>
+          ) : weeklyError ? (
+            <p className="mt-3 text-sm text-rose-600">{weeklyError}</p>
+          ) : currentWeekSummary ? (
+            <div className="ms-glass-surface mt-4 rounded-2xl border p-4">
+              <p className="small-label text-slate-400">
+                Week of {currentWeekSummary.weekStartISO} - {currentWeekSummary.weekEndISO}
+              </p>
+              <p className="mt-2 text-sm text-slate-600">
+                {currentWeekSummary.summary?.overTimeSummary || "No summary generated for this week yet."}
+              </p>
+              <div className="mt-3 text-sm text-slate-600">
+                {(currentWeekSummary.summary?.recurringExperiences?.length
+                  ? currentWeekSummary.summary.recurringExperiences
+                  : ["No recurring themes captured."])
+                  .slice(0, 3)
+                  .map((item) => (
+                    <div key={item} className="flex items-center gap-2">
+                      <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
+                      <span>{item}</span>
+                    </div>
+                  ))}
+              </div>
             </div>
-          </div>
-        ) : (
-          <p className="mt-3 text-sm text-slate-500">No weekly summary available yet.</p>
-        )}
-      </Card>
-      <PatternCardGrid patterns={patterns} />
-      <section className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-        <Card className="border-brand/15 bg-white p-6">
-          <h3 className="text-xl font-semibold">How it's changing</h3>
+          ) : (
+            <p className="mt-3 text-sm text-slate-500">No weekly summary available yet.</p>
+          )}
+        </Card>
+      </section>
+
+      <section className="grid gap-10 md:grid-cols-[2fr_1fr]">
+        <Card className="ms-elev-2 p-6">
+          <p className="small-label text-slate-400">This week, in context</p>
+          <h3 className="mt-2 text-xl font-semibold">How it's changing</h3>
           {timeRangeSummary ? (
             <>
               <p className="mt-1 text-sm text-slate-500">{timeRangeSummary.weekOverWeekDelta}</p>
-              <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Missing signals</p>
-                <div className="mt-3 space-y-2 text-sm text-slate-600">
-                  {timeRangeSummary.missingSignals.length ? (
-                    timeRangeSummary.missingSignals.map((item) => (
-                      <div key={item} className="flex items-center gap-2">
-                        <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
-                        <span>{item}</span>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="text-sm text-slate-500">No missing signals right now.</div>
-                  )}
+              <div className="mt-5 grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+                <div className="ms-glass-surface rounded-2xl border p-4">
+                  <p className="small-label text-slate-400">Missing signals</p>
+                  <div className="mt-3 space-y-2 text-sm text-slate-600">
+                    {timeRangeSummary.missingSignals.length ? (
+                      timeRangeSummary.missingSignals.map((item) => (
+                        <div key={item} className="flex items-center gap-2">
+                          <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
+                          <span>{item}</span>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-sm text-slate-500">No missing signals right now.</div>
+                    )}
+                  </div>
+                </div>
+                <div className="ms-glass-surface rounded-2xl border p-4">
+                  <p className="small-label text-slate-400">What helped</p>
+                  <p className="mt-2 text-sm text-slate-500">Supports that softened the week.</p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {helpedHighlights.map((item) => (
+                      <span
+                        key={item}
+                        className="ms-glass-pill rounded-full border border-emerald-200/60 px-3 py-1 text-xs text-emerald-700"
+                      >
+                        {item}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               </div>
             </>
@@ -292,10 +316,17 @@ const HomeDashboardPage = () => {
             <p className="mt-2 text-sm text-slate-500">No change summary available yet.</p>
           )}
         </Card>
-        <div className="space-y-6">
-          <WhatHelpedSummary highlights={helpedHighlights} />
-          <TodayPromptCard prompts={gentlePrompts} />
-        </div>
+        <Card className="ms-elev-1 p-6">
+          <h3 className="text-lg font-semibold text-slate-700">Gentle prompts</h3>
+          <p className="mt-1 text-sm text-slate-500">Small nudges to reflect on today.</p>
+          <div className="mt-4 space-y-3">
+            {gentlePrompts.map((prompt) => (
+              <div key={prompt} className="ms-glass-surface rounded-2xl border px-4 py-3 text-sm text-slate-600">
+                {prompt}
+              </div>
+            ))}
+          </div>
+        </Card>
       </section>
     </div>
   );
