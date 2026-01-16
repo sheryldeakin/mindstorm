@@ -1,0 +1,38 @@
+{
+  "spec_version": "0.1.0",
+  "domain": "depressive_disorders",
+  "updated_at": "2026-01-16",
+  "diagnoses": [
+    {
+      "id": "MDD",
+      "node_id": "DX_MDD",
+      "title": {
+        "clinician": "Major Depressive Disorder",
+        "self": "Low mood pattern (reflection view)"
+      },
+      "root_node_id": "DX_MDD",
+      "severity_policy": "coverage_only",
+      "groups": [],
+      "nodes": [],
+      "edges": []
+    }
+  ],
+  "node_type_definitions": {
+    "DIAGNOSIS": {},
+    "SYMPTOM": {},
+    "THRESHOLD": {},
+    "DURATION": {},
+    "IMPAIRMENT": {},
+    "RULE_OUT": {},
+    "CONTEXT": {},
+    "SPECIFIER": {}
+  },
+  "edge_type_definitions": {
+    "requires": {},
+    "counts_toward": {},
+    "at_least_one_of": {},
+    "excludes": {},
+    "qualified_by": {},
+    "supported_by_evidence": {}
+  }
+}

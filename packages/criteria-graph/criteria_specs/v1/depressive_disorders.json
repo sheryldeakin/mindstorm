@@ -1,0 +1,1770 @@
+{
+  "spec_version": "0.1.0",
+  "domain": "depressive_disorders",
+  "updated_at": "2026-01-16",
+  "diagnoses": [
+    {
+      "id": "MDD",
+      "node_id": "DX_MDD",
+      "title": {
+        "clinician": "Major Depressive Disorder",
+        "self": "Low mood + reduced interest pattern (reflection view)"
+      },
+      "root_node_id": "DX_MDD",
+
+      "groups": [
+        {
+          "id": "MDD_SYMPTOMS_9",
+          "label": "MDD symptom set (9)",
+          "member_node_ids": [
+            "MDD_A1_DEPRESSED_MOOD",
+            "MDD_A2_ANHEDONIA",
+            "MDD_A3_APPETITE_WEIGHT_CHANGE",
+            "MDD_A4_SLEEP_DISTURBANCE",
+            "MDD_A5_PSYCHOMOTOR_CHANGE",
+            "MDD_A6_FATIGUE",
+            "MDD_A7_WORTHLESSNESS_GUILT",
+            "MDD_A8_CONCENTRATION_DIFFICULTY",
+            "MDD_A9_SUICIDALITY"
+          ]
+        },
+        {
+          "id": "MDD_CORE_SYMPTOMS",
+          "label": "MDD core symptom set",
+          "member_node_ids": [
+            "MDD_A1_DEPRESSED_MOOD",
+            "MDD_A2_ANHEDONIA"
+          ]
+        }
+      ],
+
+      "nodes": [
+        {
+          "id": "DX_MDD",
+          "type": "DIAGNOSIS",
+          "labels": {
+            "clinician": "Major Depressive Disorder (coverage)",
+            "self": "Mood/interest pattern (not a diagnosis)"
+          },
+          "description": {
+            "clinician": "Criteria coverage view for MDD-style symptom pattern; not an automated diagnosis.",
+            "self": "A way to reflect on themes in mood, interest, energy, and daily functioning over time."
+          },
+          "policy": {
+            "output_mode": "coverage_only"
+          }
+        },
+
+        {
+          "id": "MDD_A1_DEPRESSED_MOOD",
+          "type": "SYMPTOM",
+          "labels": { "clinician": "Depressed mood", "self": "Low mood / feeling down" },
+          "description": {
+            "clinician": "Low mood most of the day (as described by the person or observed).",
+            "self": "Feeling down, empty, or sad for much of the day."
+          },
+          "evidence_binding": { "signal_types": ["SYMPTOM"], "aliases": ["low_mood", "sadness"] }
+        },
+        {
+          "id": "MDD_CHILD_VARIANT_A1",
+          "type": "SYMPTOM",
+          "labels": { "clinician": "Irritable mood (Children/Adolescents)", "self": "Irritability or frustration" },
+          "description": { "clinician": "In children and adolescents, mood can be irritable rather than depressed." },
+          "rule": { "kind": "age_dependent_variant", "max_age": 18, "maps_to": "MDD_A1_DEPRESSED_MOOD" }
+        },
+        {
+          "id": "MDD_A2_ANHEDONIA",
+          "type": "SYMPTOM",
+          "labels": { "clinician": "Markedly reduced interest or pleasure", "self": "Reduced enjoyment" },
+          "description": {
+            "clinician": "Noticeably less interest/pleasure in most activities.",
+            "self": "Things that usually matter feel less engaging."
+          },
+          "evidence_binding": { "signal_types": ["SYMPTOM"], "aliases": ["anhedonia", "reduced_interest"] }
+        },
+        {
+          "id": "MDD_A3_APPETITE_WEIGHT_CHANGE",
+          "type": "SYMPTOM",
+          "labels": { "clinician": "Appetite or weight change", "self": "Appetite/weight changes" },
+          "description": {
+            "clinician": "Significant appetite or weight change (up or down).",
+            "self": "Eating noticeably more/less, or weight shifts you’ve noticed."
+          },
+          "evidence_binding": { "signal_types": ["SYMPTOM"], "aliases": ["appetite_change", "weight_change"] }
+        },
+        {
+          "id": "MDD_CHILD_VARIANT_A3",
+          "type": "SYMPTOM",
+          "labels": { "clinician": "Weight gain failure (Children)", "self": "Not growing/gaining as expected" },
+          "description": { "clinician": "In children, consider failure to make expected weight gain." },
+          "rule": { "kind": "age_dependent_variant", "max_age": 18, "maps_to": "MDD_A3_APPETITE_WEIGHT_CHANGE" }
+        },
+        {
+          "id": "MDD_A4_SLEEP_DISTURBANCE",
+          "type": "SYMPTOM",
+          "labels": { "clinician": "Sleep disturbance", "self": "Sleep changes" },
+          "description": {
+            "clinician": "Insomnia or hypersomnia (sleeping too little or too much).",
+            "self": "Trouble sleeping, waking often, or sleeping much more than usual."
+          },
+          "evidence_binding": { "signal_types": ["SYMPTOM"], "aliases": ["insomnia", "hypersomnia"] }
+        },
+        {
+          "id": "MDD_A5_PSYCHOMOTOR_CHANGE",
+          "type": "SYMPTOM",
+          "labels": { "clinician": "Psychomotor agitation/retardation", "self": "Feeling slowed down or restless" },
+          "description": {
+            "clinician": "Observable restlessness or slowed movements/speech.",
+            "self": "Feeling unusually restless, or like everything takes extra effort and time."
+          },
+          "evidence_binding": { "signal_types": ["SYMPTOM"], "aliases": ["agitation", "slowed_down"] }
+        },
+        {
+          "id": "MDD_A5_AGITATION",
+          "type": "SYMPTOM",
+          "labels": { "clinician": "Psychomotor agitation", "self": "Restlessness" },
+          "description": { "clinician": "Observable restlessness or agitation." },
+          "rule": { "kind": "variant_of", "maps_to": "MDD_A5_PSYCHOMOTOR_CHANGE" }
+        },
+        {
+          "id": "MDD_A6_FATIGUE",
+          "type": "SYMPTOM",
+          "labels": { "clinician": "Fatigue / low energy", "self": "Low energy" },
+          "description": {
+            "clinician": "Low energy or fatigue nearly every day.",
+            "self": "Feeling drained, heavy, or exhausted."
+          },
+          "evidence_binding": { "signal_types": ["SYMPTOM"], "aliases": ["fatigue", "low_energy"] }
+        },
+        {
+          "id": "MDD_A7_WORTHLESSNESS_GUILT",
+          "type": "SYMPTOM",
+          "labels": { "clinician": "Worthlessness or excessive guilt", "self": "Harsh self-judgment" },
+          "description": {
+            "clinician": "Feelings of worthlessness or disproportionate guilt; not merely self-reproach or guilt about being sick.",
+            "self": "Feeling like you’re a burden, not enough, or blaming yourself intensely."
+          },
+          "rule": { "kind": "logic_gate", "exclude_if_only": "guilt_about_being_ill" },
+          "evidence_binding": { "signal_types": ["SYMPTOM"], "aliases": ["worthlessness", "guilt"] }
+        },
+        {
+          "id": "MDD_A7_REFINEMENT",
+          "type": "CONTEXT",
+          "labels": { "clinician": "Guilt Exception: Illness" },
+          "description": { "clinician": "Exclude if guilt is merely related to being sick." },
+          "rule": { "kind": "exclusion_logic", "target_id": "MDD_A7_WORTHLESSNESS_GUILT" }
+        },
+        {
+          "id": "MDD_A8_CONCENTRATION_DIFFICULTY",
+          "type": "SYMPTOM",
+          "labels": { "clinician": "Concentration / decision difficulty", "self": "Focus or decision difficulty" },
+          "description": {
+            "clinician": "Reduced ability to think, concentrate, or make decisions.",
+            "self": "Brain fog, indecision, or difficulty staying on track."
+          },
+          "evidence_binding": { "signal_types": ["SYMPTOM"], "aliases": ["brain_fog", "indecision"] }
+        },
+        {
+          "id": "MDD_A9_SUICIDALITY",
+          "type": "SYMPTOM",
+          "labels": { "clinician": "Suicidality", "self": "Safety concerns" },
+          "description": {
+            "clinician": "Thoughts about death/self-harm or suicidal ideation/behavior.",
+            "self": "Feeling unsafe, hopeless, or having thoughts about not wanting to be here."
+          },
+          "evidence_binding": { "signal_types": ["SYMPTOM", "SAFETY"], "aliases": ["suicidal_thoughts", "self_harm"] },
+          "policy": { "priority": "high" }
+        },
+        {
+          "id": "MDD_A9_REFINEMENT",
+          "type": "CONTEXT",
+          "labels": { "clinician": "Death Thought Distinction" },
+          "description": { "clinician": "Must be thoughts of death, not just fear of dying." },
+          "rule": { "kind": "exclusion_logic", "target_id": "MDD_A9_SUICIDALITY" }
+        },
+
+        {
+          "id": "MDD_T1_AT_LEAST_5_OF_9",
+          "type": "THRESHOLD",
+          "labels": { "clinician": "Symptom count threshold", "self": "Pattern strength (symptoms present)" },
+          "description": {
+            "clinician": "Requires at least 5 symptoms from the defined symptom set.",
+            "self": "How many different themes are showing up."
+          },
+          "rule": {
+            "kind": "k_of_n",
+            "k": 5,
+            "group_id": "MDD_SYMPTOMS_9",
+            "count_statuses_as_present": ["PRESENT"],
+            "unknown_handling": "do_not_count"
+          }
+        },
+        {
+          "id": "MDD_T2_CORE_SYMPTOM_REQUIRED",
+          "type": "THRESHOLD",
+          "labels": { "clinician": "Core symptom requirement", "self": "Core theme present" },
+          "description": {
+            "clinician": "Requires at least one core symptom to be present (mood or interest).",
+            "self": "At least one core theme is showing up."
+          },
+          "rule": {
+            "kind": "at_least_one",
+            "group_id": "MDD_CORE_SYMPTOMS",
+            "present_statuses": ["PRESENT"]
+          }
+        },
+        {
+          "id": "MDD_D1_DURATION_SAME_2W_PERIOD",
+          "type": "DURATION",
+          "labels": { "clinician": "Duration requirement", "self": "Time window" },
+          "description": {
+            "clinician": "Symptoms cluster within the same minimum time window; indicates a meaningful change from baseline.",
+            "self": "How long this has been going on, and whether it feels like a change."
+          },
+          "rule": {
+            "kind": "min_duration",
+            "min_days": 14,
+            "needs_cooccurrence_window": true
+          },
+          "evidence_binding": { "signal_types": ["DURATION", "TEMPORALITY"], "aliases": ["two_weeks", "since", "for"] }
+        },
+        {
+          "id": "MDD_D2_RECURRENCE_INTERVAL",
+          "type": "DURATION",
+          "labels": { "clinician": "Recurrence Interval Requirement" },
+          "description": { "clinician": "Interval of at least 2 consecutive months between separate episodes in which criteria are not met for an MDE." },
+          "rule": { "kind": "min_asymptomatic_interval", "min_days": 60 }
+        },
+        {
+          "id": "DEF_MDD_RECURRENCE",
+          "type": "DEFINITION",
+          "labels": { "clinician": "Recurrence Criteria" },
+          "description": { "clinician": "To classify as Recurrent, there must be an interval of at least 2 consecutive months between separate episodes where MDE criteria were not met." }
+        },
+        {
+          "id": "MDD_I1_IMPAIRMENT_OR_DISTRESS",
+          "type": "IMPAIRMENT",
+          "labels": { "clinician": "Clinically significant distress/impairment", "self": "Life impact" },
+          "description": {
+            "clinician": "Indicates notable impact on work, school, relationships, or self-care.",
+            "self": "Where this is showing up in your day-to-day life."
+          },
+          "rule": { "kind": "gate_any_present" },
+          "evidence_binding": { "signal_types": ["IMPAIRMENT"], "aliases": ["missed_work", "cant_function"] }
+        },
+        {
+          "id": "MDD_S1_FULL_REMISSION",
+          "type": "THRESHOLD",
+          "labels": { "clinician": "Full Remission Status" },
+          "description": { "clinician": "During the past 2 months, no significant signs or symptoms of the disturbance were present." },
+          "rule": { "kind": "asymptomatic_window", "min_days": 60 }
+        },
+        {
+          "id": "MDD_S2_PARTIAL_REMISSION",
+          "type": "THRESHOLD",
+          "labels": { "clinician": "Partial Remission Status" },
+          "description": { "clinician": "Full criteria not met or symptom-free period is less than 2 months." },
+          "rule": { "kind": "partial_remission_window", "max_days": 59 }
+        },
+
+        {
+          "id": "MDD_R1_RULEOUT_MANIA_HX",
+          "type": "RULE_OUT",
+          "labels": { "clinician": "Rule-out: manic/hypomanic history", "self": "Periods of unusually high energy" },
+          "description": {
+            "clinician": "Exclude if there is evidence of manic/hypomanic episodes.",
+            "self": "Some people also have periods of unusually high energy or racing thoughts—worth discussing."
+          },
+          "rule": { "kind": "exclusion_if_present" },
+          "evidence_binding": { "signal_types": ["RULE_OUT"], "aliases": ["mania", "hypomania"] },
+          "policy": { "priority": "highest" }
+        },
+        {
+          "id": "MDD_R1_EXCEPTION",
+          "type": "CONTEXT",
+          "labels": { "clinician": "Exclusion Exception: Substance/Medical Manic Episodes" },
+          "description": { "clinician": "The manic/hypomanic exclusion does not apply if episodes were substance-induced or attributable to another medical condition." },
+          "rule": { "kind": "override_exclusion", "target_id": "MDD_R1_RULEOUT_MANIA_HX" }
+        },
+        {
+          "id": "MDD_R2_RULEOUT_SUBSTANCE_OR_MEDICAL",
+          "type": "RULE_OUT",
+          "labels": { "clinician": "Rule-out: substance/medical attribution", "self": "Medications/health influences" },
+          "description": {
+            "clinician": "Exclude or flag if symptoms are better explained by substances or medical conditions.",
+            "self": "Sometimes sleep, meds, substances, or health issues affect mood—worth exploring."
+          },
+          "rule": { "kind": "exclusion_if_present" },
+          "evidence_binding": { "signal_types": ["RULE_OUT", "CONTEXT"], "aliases": ["thyroid", "med_change", "substances"] },
+          "policy": { "priority": "highest" }
+        },
+        {
+          "id": "MDD_R3_RULEOUT_SCHIZOPHRENIA_SPECTRUM",
+          "type": "RULE_OUT",
+          "labels": { "clinician": "Rule-out: Schizophrenia Spectrum", "self": "Other clinical patterns" },
+          "description": { "clinician": "Disturbance is not better explained by schizoaffective disorder, schizophrenia, or other psychotic disorders." },
+          "rule": { "kind": "exclusion_if_present" },
+          "policy": { "priority": "highest" }
+        },
+
+        {
+          "id": "MDD_META_NEEDS_CLARIFICATION",
+          "type": "CONTEXT",
+          "labels": { "clinician": "Needs clarification", "self": "Questions to reflect on" },
+          "description": {
+            "clinician": "Generated when key gates remain unknown.",
+            "self": "Questions that might help you understand the pattern better."
+          }
+        },
+        {
+          "id": "MDD_GRIEF_DIFFERENTIAL",
+          "type": "DIFFERENTIAL",
+          "labels": { "clinician": "Grief vs. MDE Distinctions" },
+          "description": { "clinician": "Differentiation based on affect, thought content, and self-esteem preservation." },
+          "evaluator_hints": {
+            "affect_pattern": "Grief: Emptiness/loss in waves that decrease over days; MDE: Persistent depressed mood not tied to specific thoughts.",
+            "self_esteem": "Grief: Self-esteem preserved; MDE: Worthlessness and self-loathing are common.",
+            "thought_content": "Grief: Preoccupation with deceased; MDE: Self-critical, pessimistic ruminations.",
+            "death_ideation": "Grief: Thoughts of joining the deceased; MDE: Thoughts of ending life due to worthlessness/pain.",
+            "humor_capacity": "Grief: Pain may be accompanied by positive emotions/humor; MDE: Pervasive unhappiness/misery."
+          }
+        },
+        {
+          "id": "MDD_CONTEXT_BEREAVEMENT",
+          "type": "CONTEXT",
+          "labels": { "clinician": "Differentiation from Grief" },
+          "description": { "clinician": "In Grief: affect is emptiness/loss, occurs in waves ('pangs'), self-esteem preserved. In MDE: mood is persistent depressed/inability to anticipate happiness, self-loathing is common." }
+        }
+      ],
+
+      "edges": [
+        { "type": "requires", "from": "DX_MDD", "to": "MDD_T1_AT_LEAST_5_OF_9" },
+        { "type": "requires", "from": "DX_MDD", "to": "MDD_T2_CORE_SYMPTOM_REQUIRED" },
+        { "type": "requires", "from": "DX_MDD", "to": "MDD_D1_DURATION_SAME_2W_PERIOD" },
+        { "type": "requires", "from": "DX_MDD", "to": "MDD_I1_IMPAIRMENT_OR_DISTRESS" },
+
+        { "type": "excludes", "from": "DX_MDD", "to": "MDD_R1_RULEOUT_MANIA_HX" },
+        { "type": "excludes", "from": "DX_MDD", "to": "MDD_R2_RULEOUT_SUBSTANCE_OR_MEDICAL" },
+        { "type": "excludes", "from": "DX_MDD", "to": "MDD_R3_RULEOUT_SCHIZOPHRENIA_SPECTRUM" },
+        { "type": "qualified_by", "from": "MDD_R1_RULEOUT_MANIA_HX", "to": "MDD_R1_EXCEPTION" },
+
+        { "type": "counts_toward", "from": "MDD_A1_DEPRESSED_MOOD", "to": "MDD_T1_AT_LEAST_5_OF_9" },
+        { "type": "counts_toward", "from": "MDD_A2_ANHEDONIA", "to": "MDD_T1_AT_LEAST_5_OF_9" },
+        { "type": "counts_toward", "from": "MDD_A3_APPETITE_WEIGHT_CHANGE", "to": "MDD_T1_AT_LEAST_5_OF_9" },
+        { "type": "counts_toward", "from": "MDD_A4_SLEEP_DISTURBANCE", "to": "MDD_T1_AT_LEAST_5_OF_9" },
+        { "type": "counts_toward", "from": "MDD_A5_PSYCHOMOTOR_CHANGE", "to": "MDD_T1_AT_LEAST_5_OF_9" },
+        { "type": "counts_toward", "from": "MDD_A6_FATIGUE", "to": "MDD_T1_AT_LEAST_5_OF_9" },
+        { "type": "counts_toward", "from": "MDD_A7_WORTHLESSNESS_GUILT", "to": "MDD_T1_AT_LEAST_5_OF_9" },
+        { "type": "counts_toward", "from": "MDD_A8_CONCENTRATION_DIFFICULTY", "to": "MDD_T1_AT_LEAST_5_OF_9" },
+        { "type": "counts_toward", "from": "MDD_A9_SUICIDALITY", "to": "MDD_T1_AT_LEAST_5_OF_9" },
+
+        { "type": "qualified_by", "from": "MDD_A7_WORTHLESSNESS_GUILT", "to": "MDD_A7_REFINEMENT" },
+        { "type": "qualified_by", "from": "MDD_A9_SUICIDALITY", "to": "MDD_A9_REFINEMENT" },
+        { "type": "contextualizes", "from": "MDD_CONTEXT_BEREAVEMENT", "to": "DX_MDD" },
+        { "type": "defines", "from": "DEF_MDD_RECURRENCE", "to": "DX_MDD" },
+
+        { "type": "at_least_one_of", "from": "MDD_A1_DEPRESSED_MOOD", "to": "MDD_T2_CORE_SYMPTOM_REQUIRED" },
+        { "type": "at_least_one_of", "from": "MDD_A2_ANHEDONIA", "to": "MDD_T2_CORE_SYMPTOM_REQUIRED" },
+
+        { "type": "qualified_by", "from": "MDD_T1_AT_LEAST_5_OF_9", "to": "MDD_D1_DURATION_SAME_2W_PERIOD" },
+
+        { "type": "qualified_by", "from": "DX_MDD", "to": "MDD_META_NEEDS_CLARIFICATION" },
+        { "type": "can_be_qualified_by", "from": "DX_MDD", "to": "SPEC_REMISSION_STATUS" },
+        { "type": "can_be_qualified_by", "from": "DX_MDD", "to": "SPEC_SEVERITY_GROUP" },
+        { "type": "can_be_qualified_by", "from": "DX_MDD", "to": "SPEC_ANXIOUS_DISTRESS" },
+        { "type": "can_be_qualified_by", "from": "DX_MDD", "to": "SPEC_MIXED_FEATURES" },
+        { "type": "can_be_qualified_by", "from": "DX_MDD", "to": "SPEC_PSYCHOTIC_FEATURES" }
+      ],
+
+      "evaluator_hints": {
+        "required_gate_node_ids": [
+          "MDD_D1_DURATION_SAME_2W_PERIOD",
+          "MDD_I1_IMPAIRMENT_OR_DISTRESS"
+        ],
+        "ruleout_node_ids": [
+          "MDD_R1_RULEOUT_MANIA_HX",
+          "MDD_R2_RULEOUT_SUBSTANCE_OR_MEDICAL"
+        ],
+        "symptom_group_id": "MDD_SYMPTOMS_9",
+        "core_group_id": "MDD_CORE_SYMPTOMS",
+        "note_1_grief_vs_mde": "Flag if affect is 'emptiness and loss' (grief) vs 'persistent depressed mood' (MDE). In grief, self-esteem is preserved; in MDE, worthlessness is common.",
+        "cultural_gate": "Do not include symptoms if they are culturally sanctioned responses to a common stressor or loss."
+      },
+      "coding_metadata": {
+        "icd_10_cm": {
+          "single_mild": "F32.0",
+          "single_moderate": "F32.1",
+          "single_severe": "F32.2",
+          "recurrent_mild": "F33.0",
+          "recurrent_moderate": "F33.1",
+          "recurrent_severe": "F33.2"
+        },
+        "recording_order": "[Diagnosis] \u2192 [Episode Type] \u2192 [Severity/Psychotic/Remission Specifiers] \u2192 [Additional Specifiers]",
+        "catatonia_coding": "Use additional code 293.89 (F06.1) if catatonic features are present.",
+        "psychotic_features_coding": "Code 'with psychotic features' specifier irrespective of episode severity.",
+        "coding_priority_rules": [
+          {
+            "trigger": "SPEC_PSYCHOTIC_FEATURES",
+            "action": "override_base_code",
+            "instruction": "If psychotic features are present, use the psychotic code regardless of severity (Mild/Mod/Severe).",
+            "map": {
+              "single_episode": { "default": "F32.3" },
+              "recurrent_episode": { "default": "F33.3" }
+            },
+            "priority": 10
+          },
+          {
+            "trigger": "SPEC_REMISSION_STATUS",
+            "action": "override_base_code",
+            "instruction": "If remission specifiers are present, ignore severity codes (Mild/Mod/Severe). Use Remission codes from Source table.",
+            "map": {
+              "single_episode": {
+                "REM_PARTIAL": "F32.4",
+                "REM_FULL": "F32.5"
+              },
+              "recurrent_episode": {
+                "REM_PARTIAL": "F33.41",
+                "REM_FULL": "F33.42"
+              }
+            }
+          }
+        ],
+        "medical_condition_ordering": "For depressive disorder due to another medical condition, list the medical condition code/name first, immediately before the mental disorder."
+      }
+    },
+
+    {
+      "id": "PDD",
+      "node_id": "DX_PDD",
+      "title": {
+        "clinician": "Persistent Depressive Disorder",
+        "self": "Long-lasting low mood pattern (reflection view)"
+      },
+      "root_node_id": "DX_PDD",
+      "groups": [
+        {
+          "id": "PDD_SECONDARY_6",
+          "label": "PDD secondary symptom set (6)",
+          "member_node_ids": [
+            "PDD_B1_APPETITE_CHANGE",
+            "PDD_B2_SLEEP_CHANGE",
+            "PDD_B3_LOW_ENERGY",
+            "PDD_B4_LOW_SELF_ESTEEM",
+            "PDD_B5_POOR_CONCENTRATION",
+            "PDD_B6_HOPELESSNESS"
+          ]
+        }
+      ],
+      "evaluator_hints": {
+        "differential_note": "PDD lacks 4 symptoms present in MDE. If an individual has 2+ years of symptoms but meets MDE criteria rather than PDD, assign MDD.",
+        "child_variant_note": "In children/adolescents, duration requirement is reduced to 1 year."
+      },
+      "specifiers": [
+        {
+          "id": "PDD_SPEC_ONSET_AGE",
+          "type": "SPECIFIER_GROUP",
+          "title": "Age of Onset",
+          "nodes": [
+            {
+              "id": "PDD_EARLY_ONSET",
+              "type": "SPECIFIER",
+              "labels": { "clinician": "Early onset" },
+              "description": { "clinician": "Onset of symptoms is before age 21 years." },
+              "rule": { "kind": "max_age_at_onset", "age": 20 }
+            },
+            {
+              "id": "PDD_LATE_ONSET",
+              "type": "SPECIFIER",
+              "labels": { "clinician": "Late onset" },
+              "description": { "clinician": "Onset of symptoms is at age 21 years or older." },
+              "rule": { "kind": "min_age_at_onset", "age": 21 }
+            }
+          ]
+        }
+      ],
+      "nodes": [
+        { "id": "DX_PDD", "type": "DIAGNOSIS",
+          "labels": { "clinician": "Persistent Depressive Disorder (coverage)", "self": "Long-lasting low mood pattern" },
+          "description": { "clinician": "Coverage view for PDD-style chronic pattern.", "self": "Reflection view for longer-term patterns." }
+        },
+        { "id": "PDD_A1_CHRONIC_LOW_MOOD", "type": "SYMPTOM",
+          "labels": { "clinician": "Chronic depressed mood", "self": "Ongoing low mood" },
+          "description": { "clinician": "Low mood most days over an extended period.", "self": "Feeling down more days than not." }
+        },
+        {
+          "id": "PDD_CHILD_VARIANT_A1",
+          "type": "SYMPTOM",
+          "labels": { "clinician": "Irritable mood (Children/Adolescents)", "self": "Irritability or frustration" },
+          "description": { "clinician": "In children and adolescents, mood can be irritable rather than depressed." },
+          "rule": { "kind": "age_dependent_variant", "max_age": 18, "maps_to": "PDD_A1_CHRONIC_LOW_MOOD" }
+        },
+        { "id": "PDD_D1_MIN_DURATION_YEARS", "type": "DURATION",
+          "labels": { "clinician": "2 Years (1 Year for Children/Adolescents)", "self": "How long this has been present" },
+          "description": { "clinician": "Minimum duration gate for chronic pattern.", "self": "Has this been around for a long time?" },
+          "rule": {
+            "kind": "conditional_duration",
+            "default_months": 24,
+            "exceptions": [
+              { "condition": "age_under_18", "required_months": 12 }
+            ]
+          }
+        },
+        {
+          "id": "PDD_C1_ASYMPTOMATIC_LIMIT",
+          "type": "DURATION",
+          "labels": { "clinician": "2-Month Symptom-Free Limit" },
+          "description": { "clinician": "During the 2-year period, the individual has never been without symptoms for more than 2 months at a time." },
+          "rule": { "kind": "max_asymptomatic_gap", "max_days": 60 }
+        },
+        { "id": "PDD_T1_AT_LEAST_2_OF_6", "type": "THRESHOLD",
+          "labels": { "clinician": "Secondary symptom threshold", "self": "Pattern strength" },
+          "description": { "clinician": "At least 2 secondary symptoms present.", "self": "Multiple related themes show up." },
+          "rule": { "kind": "k_of_n", "k": 2, "group_id": "PDD_SECONDARY_6", "unknown_handling": "do_not_count" }
+        },
+
+        { "id": "PDD_B1_APPETITE_CHANGE", "type": "SYMPTOM",
+          "labels": { "clinician": "Appetite change", "self": "Eating changes" },
+          "description": { "clinician": "Appetite changes.", "self": "Eating more/less than usual." }
+        },
+        { "id": "PDD_B2_SLEEP_CHANGE", "type": "SYMPTOM",
+          "labels": { "clinician": "Sleep change", "self": "Sleep changes" },
+          "description": { "clinician": "Sleep disruption.", "self": "Trouble sleeping or sleeping too much." }
+        },
+        { "id": "PDD_B3_LOW_ENERGY", "type": "SYMPTOM",
+          "labels": { "clinician": "Low energy", "self": "Low energy" },
+          "description": { "clinician": "Fatigue/low energy.", "self": "Feeling drained." }
+        },
+        { "id": "PDD_B4_LOW_SELF_ESTEEM", "type": "SYMPTOM",
+          "labels": { "clinician": "Low self-esteem", "self": "Feeling not good enough" },
+          "description": { "clinician": "Low self-worth.", "self": "Feeling inadequate or diminished." }
+        },
+        { "id": "PDD_B5_POOR_CONCENTRATION", "type": "SYMPTOM",
+          "labels": { "clinician": "Poor concentration/decision difficulty", "self": "Focus difficulty" },
+          "description": { "clinician": "Concentration issues.", "self": "Brain fog or indecision." }
+        },
+        { "id": "PDD_B6_HOPELESSNESS", "type": "SYMPTOM",
+          "labels": { "clinician": "Hopelessness", "self": "Feeling stuck / no way out" },
+          "description": { "clinician": "Hopelessness.", "self": "Feeling like things won’t change." }
+        },
+        {
+          "id": "PDD_E1_RULEOUT_CYCLOTHYMIA",
+          "type": "RULE_OUT",
+          "labels": { "clinician": "Rule-out: Cyclothymic Disorder" },
+          "rule": { "kind": "exclusion_if_present" }
+        },
+        {
+          "id": "PDD_R2_RULEOUT_SCHIZOPHRENIA_SPECTRUM",
+          "type": "RULE_OUT",
+          "labels": { "clinician": "Rule-out: Schizophrenia Spectrum", "self": "Other clinical patterns" },
+          "description": { "clinician": "Disturbance is not better explained by schizoaffective disorder, schizophrenia, or other psychotic disorders." },
+          "rule": { "kind": "exclusion_if_present" },
+          "policy": { "priority": "highest" }
+        },
+        {
+          "id": "PDD_R3_MDE_PRECEDENCE_GATE",
+          "type": "RULE_OUT",
+          "labels": { "clinician": "MDD Precedence Gate" },
+          "description": { "clinician": "If full MDE criteria are met at any point during the current 2-year episode, assign MDD." },
+          "rule": { "kind": "exclusion_if_present", "target_diagnosis": "DX_MDD" },
+          "policy": { "priority": "highest" },
+          "evaluator_hints": { "note": "PDD lacks 4 symptoms present in MDE; if these 4 are met, MDD is the correct diagnosis." }
+        },
+        {
+          "id": "MDE_CRITERIA_MET_2_YEARS",
+          "type": "HISTORY",
+          "labels": { "clinician": "MDE Criteria in Last 2 Years" },
+          "description": { "clinician": "Have full criteria for a Major Depressive Episode been met at any point in the preceding 2 years?" },
+          "rule": { "kind": "reference_check", "target": "DX_MDD", "time_window": "2_years", "operator": "exists" }
+        },
+        {
+          "id": "MDE_CRITERIA_MET_THROUGHOUT",
+          "type": "HISTORY",
+          "labels": { "clinician": "MDE Criteria Met Throughout" },
+          "description": { "clinician": "Have full criteria for a Major Depressive Episode been met continuously throughout the preceding 2-year period?" },
+          "rule": { "kind": "reference_check", "target": "DX_MDD", "time_window": "2_years", "operator": "continuous" }
+        }
+      ],
+      "edges": [
+        { "type": "requires", "from": "DX_PDD", "to": "PDD_A1_CHRONIC_LOW_MOOD" },
+        { "type": "requires", "from": "DX_PDD", "to": "PDD_D1_MIN_DURATION_YEARS" },
+        { "type": "requires", "from": "DX_PDD", "to": "PDD_C1_ASYMPTOMATIC_LIMIT" },
+        { "type": "requires", "from": "DX_PDD", "to": "PDD_T1_AT_LEAST_2_OF_6" },
+        { "type": "excludes", "from": "DX_PDD", "to": "PDD_E1_RULEOUT_CYCLOTHYMIA" },
+        { "type": "excludes", "from": "DX_PDD", "to": "PDD_R2_RULEOUT_SCHIZOPHRENIA_SPECTRUM" },
+        { "type": "excludes", "from": "DX_PDD", "to": "PDD_R3_MDE_PRECEDENCE_GATE" },
+
+        { "type": "counts_toward", "from": "PDD_B1_APPETITE_CHANGE", "to": "PDD_T1_AT_LEAST_2_OF_6" },
+        { "type": "counts_toward", "from": "PDD_B2_SLEEP_CHANGE", "to": "PDD_T1_AT_LEAST_2_OF_6" },
+        { "type": "counts_toward", "from": "PDD_B3_LOW_ENERGY", "to": "PDD_T1_AT_LEAST_2_OF_6" },
+        { "type": "counts_toward", "from": "PDD_B4_LOW_SELF_ESTEEM", "to": "PDD_T1_AT_LEAST_2_OF_6" },
+        { "type": "counts_toward", "from": "PDD_B5_POOR_CONCENTRATION", "to": "PDD_T1_AT_LEAST_2_OF_6" },
+        { "type": "counts_toward", "from": "PDD_B6_HOPELESSNESS", "to": "PDD_T1_AT_LEAST_2_OF_6" },
+        { "type": "can_be_qualified_by", "from": "DX_PDD", "to": "SPEC_REMISSION_STATUS" },
+        { "type": "can_be_qualified_by", "from": "DX_PDD", "to": "SPEC_SEVERITY_GROUP" },
+        { "type": "can_be_qualified_by", "from": "DX_PDD", "to": "SPEC_ANXIOUS_DISTRESS" },
+        { "type": "can_be_qualified_by", "from": "DX_PDD", "to": "SPEC_MIXED_FEATURES" },
+        { "type": "can_be_qualified_by", "from": "DX_PDD", "to": "SPEC_PSYCHOTIC_FEATURES" },
+        { "type": "can_be_qualified_by", "from": "DX_PDD", "to": "SPEC_PDD_ONSET" },
+        { "type": "can_be_qualified_by", "from": "DX_PDD", "to": "SPEC_PDD_SYNDROME" }
+      ]
+    },
+
+    {
+      "id": "DMDD",
+      "node_id": "DX_DMDD",
+      "title": {
+        "clinician": "Disruptive Mood Dysregulation Disorder",
+        "self": "Frequent intense irritability/outbursts pattern (reflection view)"
+      },
+      "root_node_id": "DX_DMDD",
+      "groups": [],
+      "evaluator_hints": {
+        "cooccurrence_permission": "DMDD can coexist with ADHD, Conduct Disorder, and Substance Use Disorders.",
+        "anticipation_exception": "Developmentally appropriate mood elevation (e.g., anticipation of a highly positive event) does not count as manic/hypomanic symptoms."
+      },
+      "nodes": [
+        { "id": "DX_DMDD", "type": "DIAGNOSIS",
+          "labels": { "clinician": "DMDD (coverage)", "self": "Irritability/outbursts pattern" },
+          "description": { "clinician": "Coverage view for DMDD-style pattern.", "self": "Reflection view for outbursts/irritability." }
+        },
+        { "id": "DMDD_A1_OUTBURSTS", "type": "SYMPTOM",
+          "labels": { "clinician": "Severe temper outbursts", "self": "Intense outbursts" },
+          "description": { "clinician": "Recurrent severe outbursts.", "self": "Moments where emotions escalate quickly." }
+        },
+        { "id": "DMDD_T1_FREQ_3X_WEEK", "type": "THRESHOLD",
+          "labels": { "clinician": "Frequency requirement", "self": "How often it happens" },
+          "description": { "clinician": "Outbursts occur frequently on average.", "self": "How often these moments happen." },
+          "rule": { "kind": "min_frequency", "min_per_week": 3 }
+        },
+        {
+          "id": "DMDD_D1_OBSERVABLE_BY_OTHERS",
+          "type": "SYMPTOM",
+          "labels": { "clinician": "Mood observable by others", "self": "Others notice my irritability" },
+          "description": { "clinician": "Persistently irritable mood most of the day is observable by parents, teachers, or peers." },
+          "rule": { "kind": "experiencer_attribute", "required_experiencer": "third_party" }
+        },
+        {
+          "id": "DMDD_D2_THREE_MONTH_STABILITY",
+          "type": "DURATION",
+          "labels": { "clinician": "Symptom-free gap limit (3 months)" },
+          "description": { "clinician": "No period of 3+ consecutive months without symptoms in Criteria A–D." },
+          "rule": { "kind": "max_consecutive_asymptomatic_gap", "max_days": 90 }
+        },
+        {
+          "id": "DMDD_F1_SETTINGS_GATE",
+          "type": "THRESHOLD",
+          "labels": { "clinician": "Setting/Severity Requirement", "self": "Where this happens" },
+          "description": { "clinician": "Present in >= 2 of 3 settings (home, school, peers) and severe in at least one." },
+          "rule": { "kind": "multi_setting_gate", "min_settings": 2, "required_severe_count": 1 }
+        },
+        { "id": "DMDD_D1_DURATION_12_MONTHS", "type": "DURATION",
+          "labels": { "clinician": "Duration requirement", "self": "How long this has been present" },
+          "description": { "clinician": "Pattern persists over time with limited gaps.", "self": "Has this pattern been ongoing?" },
+          "rule": { "kind": "min_duration", "min_days": 365, "max_gap_days": 90 }
+        },
+        { "id": "DMDD_C1_AGE_RANGE", "type": "CONTEXT",
+          "labels": { "clinician": "Age/onset constraints", "self": "Age context" },
+          "description": { "clinician": "Onset/age constraints gate.", "self": "When this started can matter." },
+          "rule": { "kind": "age_gate", "min_age": 6, "max_age": 18, "onset_before_age": 10 }
+        },
+        {
+          "id": "DMDD_R3_CO_OCCURRENCE_EXCLUSION",
+          "type": "RULE_OUT",
+          "labels": { "clinician": "Rule-out: Bipolar/ODD/IED", "self": "Overlapping patterns" },
+          "description": { "clinician": "Cannot coexist with Bipolar, ODD, or Intermittent Explosive Disorder. If ODD/DMDD both met, only DMDD is assigned." },
+          "rule": { "kind": "exclusion_priority_override", "excludes": ["ODD", "IED", "BIPOLAR"] },
+          "policy": { "priority": "highest" }
+        },
+        {
+          "id": "DMDD_R4_MANIA_LIMIT",
+          "type": "RULE_OUT",
+          "labels": { "clinician": "Rule-out: >1 Day Manic Symptoms" },
+          "description": { "clinician": "There has never been a distinct period lasting more than 1 day during which full manic/hypomanic criteria were met." },
+          "rule": { "kind": "max_duration_exclusion", "limit_days": 1, "target": "mania_hypomania_criteria" },
+          "policy": { "priority": "highest" }
+        },
+        {
+          "id": "DMDD_R4_DEVELOPMENTAL_EXCEPTION",
+          "type": "CONTEXT",
+          "labels": { "clinician": "Exception: Developmental Mood Elevation" },
+          "description": { "clinician": "Developmentally appropriate mood elevation (e.g., anticipating a positive event) is not counted as mania." },
+          "rule": { "kind": "override_exclusion", "target_id": "DMDD_R4_MANIA_LIMIT" }
+        },
+        {
+          "id": "DMDD_HIERARCHY_EXCLUSIONS",
+          "type": "RULE_OUT",
+          "labels": { "clinician": "Diagnostic Hierarchy" },
+          "description": { "clinician": "DMDD cannot coexist with ODD, IED, or Bipolar Disorder. If ODD and DMDD criteria are both met, diagnose DMDD only." },
+          "rule": {
+            "kind": "hierarchy_exclusion",
+            "supersedes_diagnosis": "DX_ODD",
+            "incompatible_diagnoses": ["DX_IED", "DX_BIPOLAR"]
+          }
+        },
+        {
+          "id": "DMDD_J1_MDE_EXCLUSIVITY_CHECK",
+          "type": "CONTEXT",
+          "labels": { "clinician": "Non-exclusivity during MDE" },
+          "description": { "clinician": "Behaviors do not occur exclusively during an episode of major depressive disorder." },
+          "rule": { "kind": "gate_absent", "condition": "only_occurs_during_mde" }
+        }
+      ],
+      "edges": [
+        { "type": "requires", "from": "DX_DMDD", "to": "DMDD_A1_OUTBURSTS" },
+        { "type": "requires", "from": "DX_DMDD", "to": "DMDD_T1_FREQ_3X_WEEK" },
+        { "type": "requires", "from": "DX_DMDD", "to": "DMDD_D1_OBSERVABLE_BY_OTHERS" },
+        { "type": "requires", "from": "DX_DMDD", "to": "DMDD_F1_SETTINGS_GATE" },
+        { "type": "requires", "from": "DX_DMDD", "to": "DMDD_D1_DURATION_12_MONTHS" },
+        { "type": "requires", "from": "DX_DMDD", "to": "DMDD_D2_THREE_MONTH_STABILITY" },
+        { "type": "requires", "from": "DX_DMDD", "to": "DMDD_C1_AGE_RANGE" },
+        { "type": "requires", "from": "DX_DMDD", "to": "DMDD_J1_MDE_EXCLUSIVITY_CHECK" },
+        { "type": "requires", "from": "DX_DMDD", "to": "DMDD_HIERARCHY_EXCLUSIONS" },
+        { "type": "excludes", "from": "DX_DMDD", "to": "DMDD_R3_CO_OCCURRENCE_EXCLUSION" },
+        { "type": "excludes", "from": "DX_DMDD", "to": "DMDD_R4_MANIA_LIMIT" },
+        { "type": "qualified_by", "from": "DMDD_R4_MANIA_LIMIT", "to": "DMDD_R4_DEVELOPMENTAL_EXCEPTION" }
+      ]
+    },
+
+    {
+      "id": "PMDD",
+      "node_id": "DX_PMDD",
+      "title": {
+        "clinician": "Premenstrual Dysphoric Disorder",
+        "self": "Monthly mood and physical pattern (reflection view)"
+      },
+      "coding_metadata": {
+        "naming_rules": [
+          {
+            "condition": {
+              "input_check": "prospective_ratings_confirmed",
+              "operator": "equals",
+              "value": false
+            },
+            "suffix": ", Provisional",
+            "instruction": "Append 'Provisional' if diagnosis is based on retrospective history rather than 2 cycles of prospective daily ratings."
+          }
+        ]
+      },
+      "root_node_id": "DX_PMDD",
+      "groups": [
+        {
+          "id": "PMDD_CORE_B",
+          "label": "PMDD Core Symptoms (Criterion B)",
+          "member_node_ids": [
+            "PMDD_B1_AFFECTIVE_LABILITY",
+            "PMDD_B2_IRRITABILITY",
+            "PMDD_B3_DEPRESSED_MOOD",
+            "PMDD_B4_ANXIETY"
+          ]
+        },
+        {
+          "id": "PMDD_TOTAL_SET",
+          "label": "PMDD Total Symptom Set (B + C)",
+          "member_node_ids": [
+            "PMDD_B1_AFFECTIVE_LABILITY",
+            "PMDD_B2_IRRITABILITY",
+            "PMDD_B3_DEPRESSED_MOOD",
+            "PMDD_B4_ANXIETY",
+            "PMDD_C5_INTEREST",
+            "PMDD_C6_CONCENTRATION",
+            "PMDD_C7_LETHARGY",
+            "PMDD_C8_APPETITE",
+            "PMDD_C9_SLEEP",
+            "PMDD_C10_OVERWHELMED",
+            "PMDD_C11_PHYSICAL_SYMPTOMS"
+          ]
+        }
+      ],
+      "nodes": [
+        {
+          "id": "DX_PMDD",
+          "type": "DIAGNOSIS",
+          "labels": { "clinician": "PMDD (coverage)", "self": "Monthly cycle-linked pattern" }
+        },
+        {
+          "id": "PMDD_B1_AFFECTIVE_LABILITY",
+          "type": "SYMPTOM",
+          "labels": { "clinician": "Affective lability", "self": "Mood swings" }
+        },
+        {
+          "id": "PMDD_B2_IRRITABILITY",
+          "type": "SYMPTOM",
+          "labels": { "clinician": "Irritability or anger", "self": "Irritability" }
+        },
+        {
+          "id": "PMDD_B3_DEPRESSED_MOOD",
+          "type": "SYMPTOM",
+          "labels": { "clinician": "Depressed mood", "self": "Low mood" }
+        },
+        {
+          "id": "PMDD_B4_ANXIETY",
+          "type": "SYMPTOM",
+          "labels": { "clinician": "Anxiety or tension", "self": "Anxiety" }
+        },
+        {
+          "id": "PMDD_C5_INTEREST",
+          "type": "SYMPTOM",
+          "labels": { "clinician": "Decreased interest", "self": "Less interest" }
+        },
+        {
+          "id": "PMDD_C6_CONCENTRATION",
+          "type": "SYMPTOM",
+          "labels": { "clinician": "Concentration difficulty", "self": "Focus difficulty" }
+        },
+        {
+          "id": "PMDD_C7_LETHARGY",
+          "type": "SYMPTOM",
+          "labels": { "clinician": "Lethargy or low energy", "self": "Low energy" }
+        },
+        {
+          "id": "PMDD_C8_APPETITE",
+          "type": "SYMPTOM",
+          "labels": { "clinician": "Appetite change or cravings", "self": "Appetite changes" }
+        },
+        {
+          "id": "PMDD_C9_SLEEP",
+          "type": "SYMPTOM",
+          "labels": { "clinician": "Sleep change", "self": "Sleep changes" }
+        },
+        {
+          "id": "PMDD_C10_OVERWHELMED",
+          "type": "SYMPTOM",
+          "labels": { "clinician": "Overwhelmed or out of control", "self": "Feeling overwhelmed" }
+        },
+        {
+          "id": "PMDD_C11_PHYSICAL_SYMPTOMS",
+          "type": "SYMPTOM",
+          "labels": { "clinician": "Physical symptoms", "self": "Physical symptoms" }
+        },
+        {
+          "id": "PMDD_T1_CORE_REQUIRED",
+          "type": "THRESHOLD",
+          "rule": { "kind": "at_least_one", "group_id": "PMDD_CORE_B", "present_statuses": ["PRESENT"] },
+          "labels": { "clinician": "Criterion B requirement", "self": "Core monthly theme" }
+        },
+        {
+          "id": "PMDD_T2_TOTAL_5",
+          "type": "THRESHOLD",
+          "rule": { "kind": "k_of_n", "k": 5, "group_id": "PMDD_TOTAL_SET" },
+          "labels": { "clinician": "Total symptom threshold (5)", "self": "Pattern strength" }
+        },
+        {
+          "id": "PMDD_D1_TEMPORAL_LUTEAL",
+          "type": "DURATION",
+          "labels": { "clinician": "Luteal phase temporality", "self": "Timing within your cycle" },
+          "description": {
+            "clinician": "Symptoms present week before menses, improve within days of onset, absent postmenses.",
+            "self": "Patterns that show up before your period and clear up shortly after it starts."
+          },
+          "rule": { "kind": "cycle_alignment", "improvement_post_onset": true }
+        },
+        {
+          "id": "PMDD_D2_PRECEDING_YEAR_LIMIT",
+          "type": "DURATION",
+          "labels": { "clinician": "Preceding year requirement" },
+          "description": { "clinician": "Criteria A–C met for most cycles in the preceding year." },
+          "rule": { "kind": "min_duration", "min_days": 365 }
+        },
+        {
+          "id": "PMDD_F_CONFIRMATION",
+          "type": "PROCESS",
+          "labels": { "clinician": "Prospective Daily Ratings" },
+          "description": { "clinician": "Criterion A confirmed by daily ratings during at least two symptomatic cycles." },
+          "rule": { "kind": "procedural_check", "required": false },
+          "metadata": {
+            "provisional_flag_if_fail": true,
+            "recording_procedure": "If ratings are incomplete, record as 'Premenstrual dysphoric disorder, provisional'."
+          }
+        },
+        {
+          "id": "PMDD_R1_NOT_EXACERBATION",
+          "type": "RULE_OUT",
+          "labels": { "clinician": "Rule-out: Clinical Exacerbation" },
+          "description": { "clinician": "The disturbance is not merely an exacerbation of the symptoms of another disorder (e.g., MDD, Panic Disorder, PDD)." },
+          "rule": { "kind": "primary_pattern_check", "exclude_if_merely_worsening_of": ["MDD", "PDD", "PANIC_DX", "PERSONALITY_DX"] }
+        },
+        {
+          "id": "PMDD_R2_NOT_SUBSTANCE_MEDICAL",
+          "type": "RULE_OUT",
+          "labels": { "clinician": "Rule-out: Substance/Medical Attribution", "self": "Health/Medication rule-out" },
+          "description": { "clinician": "Symptoms are not attributable to the physiological effects of a substance or another medical condition (e.g., hyperthyroidism)." },
+          "rule": { "kind": "exclusion_if_present" },
+          "policy": { "priority": "highest" }
+        },
+        {
+          "id": "PMDD_I1_DISTRESS_INTERFERENCE",
+          "type": "IMPAIRMENT",
+          "labels": { "clinician": "Distress or Interference", "self": "Life impact" },
+          "rule": { "kind": "gate_any_present" }
+        }
+      ],
+      "edges": [
+        { "type": "requires", "from": "DX_PMDD", "to": "PMDD_T1_CORE_REQUIRED" },
+        { "type": "requires", "from": "DX_PMDD", "to": "PMDD_T2_TOTAL_5" },
+        { "type": "requires", "from": "DX_PMDD", "to": "PMDD_D1_TEMPORAL_LUTEAL" },
+        { "type": "requires", "from": "DX_PMDD", "to": "PMDD_D2_PRECEDING_YEAR_LIMIT" },
+        { "type": "requires", "from": "DX_PMDD", "to": "PMDD_I1_DISTRESS_INTERFERENCE" },
+        { "type": "excludes", "from": "DX_PMDD", "to": "PMDD_R1_NOT_EXACERBATION" },
+        { "type": "excludes", "from": "DX_PMDD", "to": "PMDD_R2_NOT_SUBSTANCE_MEDICAL" },
+
+        { "type": "counts_toward", "from": "PMDD_B1_AFFECTIVE_LABILITY", "to": "PMDD_T2_TOTAL_5" },
+        { "type": "counts_toward", "from": "PMDD_B2_IRRITABILITY", "to": "PMDD_T2_TOTAL_5" },
+        { "type": "counts_toward", "from": "PMDD_B3_DEPRESSED_MOOD", "to": "PMDD_T2_TOTAL_5" },
+        { "type": "counts_toward", "from": "PMDD_B4_ANXIETY", "to": "PMDD_T2_TOTAL_5" },
+        { "type": "counts_toward", "from": "PMDD_C5_INTEREST", "to": "PMDD_T2_TOTAL_5" },
+        { "type": "counts_toward", "from": "PMDD_C6_CONCENTRATION", "to": "PMDD_T2_TOTAL_5" },
+        { "type": "counts_toward", "from": "PMDD_C7_LETHARGY", "to": "PMDD_T2_TOTAL_5" },
+        { "type": "counts_toward", "from": "PMDD_C8_APPETITE", "to": "PMDD_T2_TOTAL_5" },
+        { "type": "counts_toward", "from": "PMDD_C9_SLEEP", "to": "PMDD_T2_TOTAL_5" },
+        { "type": "counts_toward", "from": "PMDD_C10_OVERWHELMED", "to": "PMDD_T2_TOTAL_5" },
+        { "type": "counts_toward", "from": "PMDD_C11_PHYSICAL_SYMPTOMS", "to": "PMDD_T2_TOTAL_5" },
+
+        { "type": "at_least_one_of", "from": "PMDD_B1_AFFECTIVE_LABILITY", "to": "PMDD_T1_CORE_REQUIRED" },
+        { "type": "at_least_one_of", "from": "PMDD_B2_IRRITABILITY", "to": "PMDD_T1_CORE_REQUIRED" },
+        { "type": "at_least_one_of", "from": "PMDD_B3_DEPRESSED_MOOD", "to": "PMDD_T1_CORE_REQUIRED" },
+        { "type": "at_least_one_of", "from": "PMDD_B4_ANXIETY", "to": "PMDD_T1_CORE_REQUIRED" }
+      ]
+    },
+
+    {
+      "id": "SMIDD",
+      "node_id": "DX_SMIDD",
+      "title": {
+        "clinician": "Substance/Medication-Induced Depressive Disorder",
+        "self": "Mood changes related to substances or medications"
+      },
+      "nodes": [
+        {
+          "id": "DX_SMIDD",
+          "type": "DIAGNOSIS",
+          "labels": { "clinician": "SMIDD (coverage)", "self": "Medication or substance influence" }
+        },
+        {
+          "id": "SMIDD_A1_MOOD_DISTURBANCE",
+          "type": "SYMPTOM",
+          "labels": { "clinician": "Prominent mood disturbance", "self": "Noticeable mood changes" },
+          "description": { "clinician": "Depressed mood or anhedonia predominates the clinical picture." }
+        },
+        {
+          "id": "SMIDD_B1_ATTRIBUTION_GATE",
+          "type": "RULE_OUT",
+          "labels": { "clinician": "Direct substance linkage", "self": "Medication/Substance timing" },
+          "description": { "clinician": "Developed during/soon after intoxication, withdrawal, or exposure." },
+          "rule": { "kind": "temporal_linkage", "target": "substance_medication" },
+          "policy": { "priority": "highest" }
+        },
+        {
+          "id": "SMIDD_C1_INDEPENDENT_EVIDENCE",
+          "type": "RULE_OUT",
+          "labels": { "clinician": "Evidence of independent disorder" },
+          "description": { "clinician": "Symptoms preceded use or persist ~1 month after cessation." },
+          "rule": {
+            "kind": "exclusion_if_present",
+            "criteria": ["preceded_use", "persisted_30_days_post_cessation", "recurrent_history"]
+          }
+        },
+        {
+          "id": "SMIDD_R1_NOT_DELIRIUM",
+          "type": "RULE_OUT",
+          "labels": { "clinician": "Rule-out: Delirium", "self": "State of awareness" },
+          "rule": { "kind": "exclusion_if_present" }
+        }
+      ],
+      "edges": [
+        { "type": "requires", "from": "DX_SMIDD", "to": "SMIDD_A1_MOOD_DISTURBANCE" },
+        { "type": "requires", "from": "DX_SMIDD", "to": "SMIDD_B1_ATTRIBUTION_GATE" },
+        { "type": "excludes", "from": "DX_SMIDD", "to": "SMIDD_C1_INDEPENDENT_EVIDENCE" },
+        { "type": "excludes", "from": "DX_SMIDD", "to": "SMIDD_R1_NOT_DELIRIUM" }
+      ],
+      "coding_metadata": {
+        "icd_10_variations": "ICD-10 position 4 is '1' for mild use disorder, '2' for moderate/severe, and '9' if no comorbid use disorder exists.",
+        "icd_10_matrix": {
+          "mild_use_disorder": "Character 1",
+          "moderate_severe_use_disorder": "Character 2",
+          "no_use_disorder": "Character 9"
+        },
+        "naming_convention": "Record comorbid use disorder first (if any), then 'with', then substance-induced depressive disorder.",
+        "icd_10_dynamic_logic": {
+          "base_instruction": "Select code row based on substance class (e.g., Cocaine = F14).",
+          "fourth_character_rules": [
+            {
+              "condition": "comorbid_mild_use_disorder",
+              "suffix": ".14",
+              "instruction": "Record 'Mild [Substance] Use Disorder' before diagnosis."
+            },
+            {
+              "condition": "comorbid_moderate_or_severe_use_disorder",
+              "suffix": ".24",
+              "instruction": "Record 'Moderate/Severe [Substance] Use Disorder' before diagnosis."
+            },
+            {
+              "condition": "no_comorbid_use_disorder",
+              "suffix": ".94",
+              "instruction": "Record only the substance-induced depressive disorder."
+            }
+          ]
+        }
+      }
+    },
+
+    {
+      "id": "DDAMC",
+      "node_id": "DX_DDAMC",
+      "title": {
+        "clinician": "Depressive Disorder Due to Another Medical Condition",
+        "self": "Mood changes related to physical health"
+      },
+      "nodes": [
+        {
+          "id": "DX_DDAMC",
+          "type": "DIAGNOSIS",
+          "labels": { "clinician": "DDAMC (coverage)", "self": "Physical health influence" }
+        },
+        {
+          "id": "DD_AMC_SUBTYPES",
+          "type": "SUBTYPE_GROUP",
+          "title": "Clinical Presentation",
+          "nodes": [
+            {
+              "id": "DD_AMC_DEPRESSIVE_FEATURES",
+              "type": "SUBTYPE",
+              "labels": { "clinician": "With depressive features" },
+              "description": { "clinician": "Full criteria are not met for a major depressive episode." },
+              "coding": { "icd10": "F06.31" }
+            },
+            {
+              "id": "DD_AMC_LIKE_EPISODE",
+              "type": "SUBTYPE",
+              "labels": { "clinician": "With major depressive-like episode" },
+              "description": { "clinician": "Full criteria are met (except Criterion C) for a major depressive episode." },
+              "coding": { "icd10": "F06.32" }
+            },
+            {
+              "id": "DD_AMC_MIXED",
+              "type": "SUBTYPE",
+              "labels": { "clinician": "With mixed features" },
+              "description": { "clinician": "Symptoms of mania or hypomania are also present but do not predominate." },
+              "coding": { "icd10": "F06.34" }
+            }
+          ]
+        },
+        {
+          "id": "DDAMC_B1_MEDICAL_CONSEQUENCE",
+          "type": "RULE_OUT",
+          "labels": { "clinician": "Pathophysiological consequence", "self": "Physical health link" },
+          "description": { "clinician": "Evidence that the disturbance is the direct consequence of a medical condition." },
+          "rule": { "kind": "direct_causality_link" },
+          "policy": { "priority": "highest" }
+        },
+        {
+          "id": "DDAMC_S1_ANHEDONIA_MOOD",
+          "type": "SYMPTOM",
+          "labels": { "clinician": "Depressed mood or Anhedonia", "self": "Low mood or reduced interest" },
+          "rule": { "kind": "at_least_one" }
+        }
+      ],
+      "edges": [
+        { "type": "requires", "from": "DX_DDAMC", "to": "DDAMC_B1_MEDICAL_CONSEQUENCE" },
+        { "type": "requires", "from": "DX_DDAMC", "to": "DDAMC_S1_ANHEDONIA_MOOD" }
+      ],
+      "coding_metadata": {
+        "recording_order": "Record the medical condition code/name first, immediately followed by the depressive disorder due to another medical condition.",
+        "medical_condition_ordering": "The code and name for the etiological medical condition must be listed first, immediately before the mental disorder name.",
+        "icd_10_matrix": {
+          "with_depressive_features": {
+            "code": "F06.31",
+            "criteria": "Full criteria not met for Major Depressive Episode."
+          },
+          "with_major_depressive_like_episode": {
+            "code": "F06.32",
+            "criteria": "Full criteria met (except Criterion C) for Major Depressive Episode."
+          },
+          "with_mixed_features": {
+            "code": "F06.34",
+            "criteria": "Symptoms of mania/hypomania present but do not predominate."
+          }
+        }
+      }
+    },
+
+    {
+      "id": "OSDD",
+      "node_id": "DX_OSDD",
+      "title": {
+        "clinician": "Other Specified Depressive Disorder (F32.8)",
+        "self": "Varying mood patterns (reflection view)"
+      },
+      "nodes": [
+        {
+          "id": "DX_OSDD",
+          "type": "DIAGNOSIS",
+          "labels": { "clinician": "OSDD (coverage)", "self": "Varying patterns" }
+        },
+        {
+          "id": "OSDD_TYPES",
+          "type": "SPECIFIER_GROUP",
+          "title": "Specific OSDD Presentations",
+          "nodes": [
+            {
+              "id": "OSDD_RECURRENT_BRIEF",
+              "type": "DIAGNOSIS_SUBTYPE",
+              "labels": { "clinician": "Recurrent Brief Depression" },
+              "description": { "clinician": "Depressed mood + 4 symptoms for 2-13 days, at least once per month, for 12 months." },
+              "criteria": [
+                { "symptom_count": 5, "duration_days_min": 2, "duration_days_max": 13 },
+                { "frequency": "once_per_month", "min_months": 12 },
+                { "exclusion": "not_associated_with_menstrual_cycle" }
+              ]
+            },
+            {
+              "id": "OSDD_SHORT_DURATION",
+              "type": "DIAGNOSIS_SUBTYPE",
+              "labels": { "clinician": "Short-Duration Depressive Episode" },
+              "description": { "clinician": "Depressed affect + 4 symptoms for 4-13 days." },
+              "criteria": [
+                { "symptom_count": 5, "duration_days_min": 4, "duration_days_max": 13 },
+                { "persistence": "no_other_depressive_criteria_met" }
+              ]
+            },
+            {
+              "id": "OSDD_INSUFFICIENT_SYMPTOMS",
+              "type": "DIAGNOSIS_SUBTYPE",
+              "labels": { "clinician": "Depressive Episode with Insufficient Symptoms" },
+              "description": { "clinician": "Depressed affect + 1 symptom for at least 2 weeks." },
+              "criteria": [
+                { "symptom_count": 2, "duration_weeks_min": 2 },
+                { "exclusion": "does_not_meet_mixed_anxiety_criteria" }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "OSDD_1_RECURRENT_BRIEF",
+          "type": "THRESHOLD",
+          "labels": { "clinician": "Recurrent brief depression", "self": "Brief monthly themes" },
+          "description": { "clinician": "Depressed mood + 4 symptoms for 2-13 days monthly for >= 12 months." },
+          "rule": { "kind": "logic_gate", "min_days": 2, "max_days": 13, "min_months": 12 }
+        },
+        {
+          "id": "OSDD_2_SHORT_DURATION",
+          "type": "THRESHOLD",
+          "labels": { "clinician": "Short-duration episode (4-13 days)", "self": "Short-term mood shift" },
+          "description": { "clinician": "Depressed affect + 4 of 8 MDD symptoms for 4-13 days." },
+          "rule": { "kind": "logic_gate", "min_days": 4, "max_days": 13, "symptom_k": 4 }
+        },
+        {
+          "id": "OSDD_2_R1_NOT_RECURRENT_BRIEF",
+          "type": "RULE_OUT",
+          "labels": { "clinician": "Exclusion: Recurrent Brief Priority" },
+          "description": { "clinician": "Pattern 2 (Short-duration) is only diagnosed if criteria for Pattern 1 (Recurrent Brief) are not met." },
+          "rule": { "kind": "exclusion_if_present", "target_node": "OSDD_1_RECURRENT_BRIEF" }
+        },
+        {
+          "id": "OSDD_3_INSUFFICIENT",
+          "type": "THRESHOLD",
+          "labels": { "clinician": "Depressive episode with insufficient symptoms", "self": "Partial mood pattern" },
+          "description": { "clinician": "Depressed affect + at least 1 other MDD symptom for >= 2 weeks." },
+          "rule": { "kind": "logic_gate", "min_days": 14, "symptom_k": 1 }
+        },
+        {
+          "id": "OSDD_3_R1_NOT_MIXED_ANXIETY",
+          "type": "RULE_OUT",
+          "labels": { "clinician": "Exclusion: Mixed Anxiety Priority" },
+          "description": { "clinician": "Pattern 3 (Insufficient symptoms) is only diagnosed if criteria for Mixed Anxiety/Depressive Disorder are not met." },
+          "rule": { "kind": "exclusion_if_present", "target_diagnosis": "DX_MIXED_ANXIETY" }
+        },
+        {
+          "id": "OSDD_I1_IMPAIRMENT",
+          "type": "IMPAIRMENT",
+          "labels": { "clinician": "Distress/Impairment Gate", "self": "Life impact" },
+          "rule": { "kind": "gate_any_present" }
+        },
+        {
+          "id": "OSDD_GLOBAL_RULEOUT",
+          "type": "RULE_OUT",
+          "labels": { "clinician": "History: Never met other Depressive/Bipolar criteria" },
+          "rule": {
+            "kind": "lifetime_history_exclusion",
+            "targets": ["DX_MDD", "DX_PDD", "DX_BIPOLAR_I", "DX_BIPOLAR_II", "PSYCHOTIC_DISORDER"]
+          }
+        }
+      ],
+      "edges": [
+        { "type": "at_least_one_of", "from": "OSDD_1_RECURRENT_BRIEF", "to": "DX_OSDD" },
+        { "type": "at_least_one_of", "from": "OSDD_2_SHORT_DURATION", "to": "DX_OSDD" },
+        { "type": "at_least_one_of", "from": "OSDD_3_INSUFFICIENT", "to": "DX_OSDD" },
+        { "type": "requires", "from": "OSDD_2_SHORT_DURATION", "to": "OSDD_2_R1_NOT_RECURRENT_BRIEF" },
+        { "type": "requires", "from": "OSDD_3_INSUFFICIENT", "to": "OSDD_3_R1_NOT_MIXED_ANXIETY" },
+        { "type": "requires", "from": "DX_OSDD", "to": "OSDD_I1_IMPAIRMENT" },
+        { "type": "excludes", "from": "DX_OSDD", "to": "OSDD_GLOBAL_RULEOUT" },
+        { "type": "excludes", "from": "DX_MDD", "to": "DX_OSDD" },
+        { "type": "excludes", "from": "DX_PDD", "to": "DX_OSDD" },
+        { "type": "excludes", "from": "DX_BIPOLAR_I", "to": "DX_OSDD" },
+        { "type": "excludes", "from": "DX_BIPOLAR_II", "to": "DX_OSDD" }
+      ]
+    },
+
+    {
+      "id": "UDD",
+      "node_id": "DX_UDD",
+      "title": {
+        "clinician": "Unspecified Depressive Disorder (F32.9)",
+        "self": "General mood themes (reflection view)"
+      },
+      "groups": [
+        {
+          "id": "ALL_DEPRESSIVE_SYMPTOMS",
+          "label": "General depressive signals",
+          "member_node_ids": [
+            "MDD_A1_DEPRESSED_MOOD",
+            "MDD_A2_ANHEDONIA",
+            "MDD_A3_APPETITE_WEIGHT_CHANGE",
+            "MDD_A4_SLEEP_DISTURBANCE",
+            "MDD_A5_PSYCHOMOTOR_CHANGE",
+            "MDD_A6_FATIGUE",
+            "MDD_A7_WORTHLESSNESS_GUILT",
+            "MDD_A8_CONCENTRATION_DIFFICULTY",
+            "MDD_A9_SUICIDALITY",
+            "PDD_A1_CHRONIC_LOW_MOOD",
+            "PDD_B1_APPETITE_CHANGE",
+            "PDD_B2_SLEEP_CHANGE",
+            "PDD_B3_LOW_ENERGY",
+            "PDD_B4_LOW_SELF_ESTEEM",
+            "PDD_B5_POOR_CONCENTRATION",
+            "PDD_B6_HOPELESSNESS",
+            "PMDD_B1_AFFECTIVE_LABILITY",
+            "PMDD_B2_IRRITABILITY",
+            "PMDD_B3_DEPRESSED_MOOD",
+            "PMDD_B4_ANXIETY",
+            "PMDD_C5_INTEREST",
+            "PMDD_C6_CONCENTRATION",
+            "PMDD_C7_LETHARGY",
+            "PMDD_C8_APPETITE",
+            "PMDD_C9_SLEEP",
+            "PMDD_C10_OVERWHELMED",
+            "PMDD_C11_PHYSICAL_SYMPTOMS"
+          ]
+        }
+      ],
+      "nodes": [
+        {
+          "id": "DX_UDD",
+          "type": "DIAGNOSIS",
+          "labels": { "clinician": "Unspecified Depressive Disorder", "self": "General themes" },
+          "description": { "clinician": "Used when information is insufficient for a more specific diagnosis." }
+        },
+        {
+          "id": "UDD_GLOBAL_RULEOUT",
+          "type": "RULE_OUT",
+          "labels": { "clinician": "History: Never met other Depressive/Bipolar criteria" },
+          "rule": {
+            "kind": "lifetime_history_exclusion",
+            "targets": ["DX_MDD", "DX_PDD", "DX_BIPOLAR_I", "DX_BIPOLAR_II", "PSYCHOTIC_DISORDER"]
+          }
+        },
+        {
+          "id": "UDD_S1_GENERAL_SIGNALS",
+          "type": "THRESHOLD",
+          "labels": { "clinician": "General depressive class signals", "self": "Lived experiences" },
+          "rule": { "kind": "at_least_one", "group_id": "ALL_DEPRESSIVE_SYMPTOMS" }
+        },
+        {
+          "id": "UDD_I1_IMPAIRMENT",
+          "type": "IMPAIRMENT",
+          "labels": { "clinician": "Distress/Impairment Gate", "self": "Life impact" },
+          "rule": { "kind": "gate_any_present" }
+        }
+      ],
+      "edges": [
+        { "type": "requires", "from": "DX_UDD", "to": "UDD_S1_GENERAL_SIGNALS" },
+        { "type": "requires", "from": "DX_UDD", "to": "UDD_I1_IMPAIRMENT" },
+        { "type": "excludes", "from": "DX_UDD", "to": "UDD_GLOBAL_RULEOUT" }
+      ]
+    },
+    {
+      "id": "BIPOLAR_I",
+      "node_id": "DX_BIPOLAR_I",
+      "title": { "clinician": "Bipolar I Disorder", "self": "Bipolar I pattern" },
+      "nodes": [
+        { "id": "DX_BIPOLAR_I", "type": "DIAGNOSIS" }
+      ]
+    },
+    {
+      "id": "BIPOLAR_II",
+      "node_id": "DX_BIPOLAR_II",
+      "title": { "clinician": "Bipolar II Disorder", "self": "Bipolar II pattern" },
+      "nodes": [
+        { "id": "DX_BIPOLAR_II", "type": "DIAGNOSIS" }
+      ]
+    },
+    {
+      "id": "ODD",
+      "node_id": "DX_ODD",
+      "title": { "clinician": "Oppositional Defiant Disorder", "self": "Oppositional defiant pattern" },
+      "nodes": [
+        {
+          "id": "DX_ODD",
+          "type": "EXTERNAL_DIAGNOSIS",
+          "labels": { "clinician": "Oppositional Defiant Disorder" },
+          "description": { "clinician": "External diagnosis referenced for DMDD hierarchy exclusion." }
+        }
+      ]
+    },
+    {
+      "id": "MIXED_ANXIETY",
+      "node_id": "DX_MIXED_ANXIETY",
+      "title": { "clinician": "Mixed Anxiety and Depressive Disorder", "self": "Mixed anxiety/depressive pattern" },
+      "nodes": [
+        {
+          "id": "DX_MIXED_ANXIETY",
+          "type": "EXTERNAL_DIAGNOSIS",
+          "labels": { "clinician": "Mixed Anxiety and Depressive Disorder" },
+          "description": { "clinician": "External diagnosis referenced for OSDD exclusion." }
+        }
+      ]
+    }
+  ],
+  "specifiers": [
+    {
+      "id": "SPEC_MELANCHOLIC",
+      "title": "With melancholic features",
+      "logic": "Requires at least one core (anhedonia/nonreactivity) plus 3 of 6 secondary melancholic symptoms.",
+      "nodes": [
+        {
+          "id": "MEL_T1_CORE_REQUIRED",
+          "type": "THRESHOLD",
+          "labels": { "clinician": "Criterion A (Core) Requirement" },
+          "rule": { "kind": "at_least_one", "member_ids": ["MEL_A1", "MEL_A2"] }
+        },
+        {
+          "id": "MEL_T2_SECONDARY_THRESHOLD",
+          "type": "THRESHOLD",
+          "labels": { "clinician": "Criterion B (Secondary) Threshold" },
+          "rule": {
+            "kind": "k_of_n",
+            "k": 3,
+            "member_ids": ["MEL_B1", "MEL_B2", "MEL_B3", "MEL_B4", "MEL_B5", "MEL_B6"]
+          }
+        },
+        {
+          "id": "MEL_B1_QUALITATIVE_CHECK",
+          "type": "CONTEXT",
+          "labels": { "clinician": "Qualitative Mood Distinction" },
+          "description": { "clinician": "Mood is qualitatively different, not merely 'more severe' or 'longer lasting'." },
+          "rule": { "kind": "evaluator_confirmation_required" }
+        },
+        {
+          "id": "MEL_A2_REFINEMENT",
+          "type": "CONTEXT",
+          "labels": { "clinician": "Reactivity Threshold Guideline" },
+          "description": { "clinician": "Mood does not brighten at all, or brightens only partially (e.g., up to 20%–40% of normal for only minutes at a time)." },
+          "rule": { "kind": "threshold_guideline", "max_brightening_pct": 40, "max_duration_minutes": 30 }
+        },
+        {
+          "id": "MEL_CONTEXT_MOST_SEVERE_PERIOD",
+          "type": "CONTEXT",
+          "labels": { "clinician": "Most severe period evaluation" },
+          "description": { "clinician": "Apply melancholic features if present during the most severe stage of the current episode." },
+          "rule": { "kind": "context_gate", "window": "most_severe_period" }
+        },
+        { "id": "MEL_A1", "label": "Loss of pleasure in all activities" },
+        { "id": "MEL_A2", "label": "Lack of reactivity to pleasurable stimuli" },
+        { "id": "MEL_B1", "label": "Distinct quality of depressed mood" },
+        { "id": "MEL_B2", "label": "Depression regularly worse in the morning" },
+        { "id": "MEL_B3", "label": "Early-morning awakening" },
+        { "id": "MEL_B4", "label": "Marked psychomotor changes" },
+        { "id": "MEL_B5", "label": "Significant anorexia or weight loss" },
+        { "id": "MEL_B6", "label": "Excessive or inappropriate guilt" }
+      ]
+    },
+    {
+      "id": "SPEC_ATYPICAL",
+      "title": "With atypical features",
+      "logic": "Requires mood reactivity plus 2 or more atypical symptoms; excludes melancholic/catatonia.",
+      "nodes": [
+        {
+          "id": "SPEC_ATYPICAL_EXCLUSIVITY",
+          "type": "RULE_OUT",
+          "labels": { "clinician": "Atypical/Melancholic Exclusivity" },
+          "description": { "clinician": "Criteria not met for melancholic or catatonic features in the same episode." },
+          "rule": { "kind": "exclusion_if_present", "target_specifiers": ["SPEC_MELANCHOLIC", "SPEC_CATATONIA_GROUP"] }
+        },
+        { "id": "ATYP_A", "label": "Mood reactivity" },
+        { "id": "ATYP_B1", "label": "Significant weight gain/appetite increase" },
+        {
+          "id": "ATYP_B2",
+          "label": "Hypersomnia",
+          "description": { "clinician": "At least 10 hours of sleep per day or at least 2 hours more than when not depressed." }
+        },
+        {
+          "id": "ATYP_B2_ATOMIC",
+          "type": "THRESHOLD",
+          "labels": { "clinician": "Hypersomnia (Atomic Definition)" },
+          "description": { "clinician": "Total sleep >= 10 hours/day OR >= 2 hours more than non-depressed baseline." },
+          "rule": { "kind": "or", "conditions": [ { "min_hours": 10 }, { "min_increase_hours": 2 } ] }
+        },
+        {
+          "id": "ATYP_B3",
+          "label": "Leaden paralysis",
+          "description": { "clinician": "Feeling heavy or weighted down for at least 1 hour per day." }
+        },
+        {
+          "id": "ATYP_B3_ATOMIC",
+          "type": "THRESHOLD",
+          "labels": { "clinician": "Leaden Paralysis Definition" },
+          "description": { "clinician": "Feeling heavy, leaden, or weighted down (arms/legs) present for at least 1 hour a day." },
+          "rule": { "kind": "min_duration_per_day_hours", "hours": 1 },
+          "edges": [
+            { "type": "qualified_by", "from": "ATYP_B3", "to": "ATYP_B3_ATOMIC" }
+          ]
+        },
+        {
+          "id": "ATYP_B4",
+          "label": "Long-standing interpersonal rejection sensitivity",
+          "description": { "clinician": "Long-standing trait that persists even when the individual is not depressed." }
+        },
+        {
+          "id": "ATYP_B4_TRAIT_CONTEXT",
+          "type": "CONTEXT",
+          "labels": { "clinician": "Trait Definition" },
+          "description": { "clinician": "Must be a long-standing trait (early onset, persists in adult life) occurring when depressed AND when not depressed." }
+        }
+      ],
+      "edges": [
+        { "type": "requires", "from": "SPEC_ATYPICAL", "to": "SPEC_ATYPICAL_EXCLUSIVITY" },
+        { "type": "qualified_by", "from": "ATYP_B4", "to": "ATYP_B4_TRAIT_CONTEXT" }
+      ]
+    },
+    {
+      "id": "SPEC_PDD_COURSE_ONSET",
+      "diagnosis_id": "PDD",
+      "nodes": [
+        {
+          "id": "PDD_COURSE_PURE_DYSTHYMIC",
+          "labels": { "clinician": "With pure dysthymic syndrome" },
+          "rule": { "kind": "gate_absent", "target_id": "MDE_CRITERIA_MET_2_YEARS" }
+        },
+        {
+          "id": "PDD_COURSE_PERSISTENT_MDE",
+          "labels": { "clinician": "With persistent major depressive episode" },
+          "rule": { "kind": "gate_present", "target_id": "MDE_CRITERIA_MET_THROUGHOUT" }
+        },
+        {
+          "id": "PDD_COURSE_INTERMITTENT_MDE_CURRENT",
+          "labels": { "clinician": "With intermittent major depressive episodes, with current episode" },
+          "description": { "clinician": "Full MDE criteria currently met, but periods of >= 8 weeks in past 2 years were sub-threshold." },
+          "rule": { "kind": "logic_gate", "current_mde": true, "min_subthreshold_gap_days": 56 }
+        },
+        {
+          "id": "PDD_COURSE_INTERMITTENT_MDE_PAST",
+          "labels": { "clinician": "With intermittent major depressive episodes, without current episode" },
+          "description": { "clinician": "Full MDE criteria not currently met, but one or more MDEs occurred in the preceding 2 years." },
+          "rule": { "kind": "logic_gate", "current_mde": false, "past_2y_mde_count": 1 }
+        },
+        {
+          "id": "PDD_ONSET_EARLY",
+          "labels": { "clinician": "Early onset", "self": "Started before age 21" },
+          "rule": { "kind": "age_gate", "max_age": 21 }
+        },
+        {
+          "id": "PDD_ONSET_LATE",
+          "labels": { "clinician": "Late onset", "self": "Started at age 21 or older" },
+          "description": { "clinician": "If onset is at age 21 years or older." },
+          "rule": { "kind": "age_gate", "min_age": 21 }
+        }
+      ]
+    },
+    {
+      "id": "SPEC_PDD_ONSET",
+      "type": "SPECIFIER_GROUP",
+      "title": "Age of Onset",
+      "member_node_ids": [
+        "PDD_EARLY_ONSET",
+        "PDD_LATE_ONSET"
+      ]
+    },
+    {
+      "id": "SPEC_PDD_SYNDROME",
+      "type": "SPECIFIER_GROUP",
+      "title": "Current Severity/Course (Last 2 Years)",
+      "member_node_ids": [
+        "PDD_COURSE_PURE_DYSTHYMIC",
+        "PDD_COURSE_PERSISTENT_MDE",
+        "PDD_COURSE_INTERMITTENT_MDE_CURRENT",
+        "PDD_COURSE_INTERMITTENT_MDE_PAST"
+      ]
+    },
+    {
+      "id": "PDD_COURSE_SPECIFIERS",
+      "type": "SPECIFIER_GROUP",
+      "title": "Course Specifiers (Last 2 Years)",
+      "member_node_ids": [
+        "PDD_COURSE_PURE_DYSTHYMIC",
+        "PDD_COURSE_PERSISTENT_MDE",
+        "PDD_COURSE_INTERMITTENT_MDE_CURRENT",
+        "PDD_COURSE_INTERMITTENT_MDE_PAST"
+      ]
+    },
+    {
+      "id": "SPEC_PDD_SEVERITY",
+      "type": "SPECIFIER",
+      "diagnosis_id": "PDD",
+      "nodes": [
+        {
+          "id": "PDD_SEVERITY_MILD",
+          "labels": { "clinician": "Mild" },
+          "rule": { "kind": "severity_gate", "symptom_count": "few", "functional_impairment": "mild" }
+        },
+        {
+          "id": "PDD_SEVERITY_MODERATE",
+          "labels": { "clinician": "Moderate" },
+          "rule": { "kind": "severity_gate", "symptom_count": "moderate", "functional_impairment": "moderate" }
+        },
+        {
+          "id": "PDD_SEVERITY_SEVERE",
+          "labels": { "clinician": "Severe" },
+          "rule": { "kind": "severity_gate", "symptom_count": "many", "functional_impairment": "severe" }
+        }
+      ]
+    },
+    {
+      "id": "SPEC_REMISSION_STATUS",
+      "type": "SPECIFIER_GROUP",
+      "title": "Remission Status",
+      "nodes": [
+        {
+          "id": "REM_PARTIAL",
+          "type": "SPECIFIER",
+          "labels": { "clinician": "In Partial Remission" },
+          "description": { "clinician": "Symptoms present but full criteria not met, OR period < 2 months without symptoms." },
+          "rule": { "kind": "or", "conditions": ["sub_threshold_symptoms", "symptom_free_less_than_2_months"] }
+        },
+        {
+          "id": "REM_FULL",
+          "type": "SPECIFIER",
+          "labels": { "clinician": "In Full Remission" },
+          "description": { "clinician": "No significant signs/symptoms present during the past 2 months." },
+          "rule": { "kind": "symptom_free_duration", "min_months": 2 }
+        }
+      ],
+      "edges": [
+        { "type": "mutually_exclusive", "from": "SPEC_REMISSION_STATUS", "to": "SPEC_SEVERITY_GROUP" }
+      ]
+    },
+    {
+      "id": "SPEC_SEVERITY_GROUP",
+      "type": "SPECIFIER_GROUP",
+      "title": "Current Severity",
+      "nodes": [
+        {
+          "id": "SEV_MILD",
+          "type": "SPECIFIER",
+          "labels": { "clinician": "Mild" },
+          "description": { "clinician": "Few symptoms in excess of required; distressing but manageable; minor impairment." },
+          "rule": { "kind": "severity_check", "level": "mild" }
+        },
+        {
+          "id": "SEV_MODERATE",
+          "type": "SPECIFIER",
+          "labels": { "clinician": "Moderate" },
+          "description": { "clinician": "Number/intensity of symptoms and impairment are between mild and severe." },
+          "rule": { "kind": "severity_check", "level": "moderate" }
+        },
+        {
+          "id": "SEV_SEVERE",
+          "type": "SPECIFIER",
+          "labels": { "clinician": "Severe" },
+          "description": { "clinician": "Symptoms substantially in excess; seriously distressing/unmanageable; marked interference." },
+          "rule": { "kind": "severity_check", "level": "severe" }
+        }
+      ],
+      "edges": [
+        { "type": "mutually_exclusive", "from": "SPEC_SEVERITY_GROUP", "to": "SPEC_REMISSION_STATUS" }
+      ]
+    },
+    {
+      "id": "SPEC_ANXIOUS_DISTRESS",
+      "type": "SPECIFIER_GROUP",
+      "title": "With Anxious Distress",
+      "nodes": [
+        { "id": "ANX_1_KEYED_UP", "type": "SYMPTOM", "labels": { "clinician": "Feeling keyed up or tense" } },
+        { "id": "ANX_2_RESTLESS", "type": "SYMPTOM", "labels": { "clinician": "Feeling unusually restless" } },
+        { "id": "ANX_3_CONCENTRATION_WORRY", "type": "SYMPTOM", "labels": { "clinician": "Difficulty concentrating because of worry" } },
+        { "id": "ANX_4_FEAR_AWFUL", "type": "SYMPTOM", "labels": { "clinician": "Fear that something awful may happen" } },
+        { "id": "ANX_5_LOSE_CONTROL", "type": "SYMPTOM", "labels": { "clinician": "Feeling that the individual might lose control" } }
+      ],
+      "rule": {
+        "kind": "graded_severity",
+        "threshold_min": 2,
+        "levels": {
+          "mild": { "min": 2, "max": 2, "label": "Mild (2 symptoms)" },
+          "moderate": { "min": 3, "max": 3, "label": "Moderate (3 symptoms)" },
+          "moderate_severe": { "min": 4, "max": 5, "label": "Moderate-Severe (4-5 symptoms)" },
+          "severe": { "min": 4, "max": 5, "condition": "motor_agitation", "label": "Severe (4-5 symptoms with motor agitation)" }
+        }
+      }
+    },
+    {
+      "id": "SPEC_SEASONAL_PATTERN_LOGIC",
+      "type": "SPECIFIER",
+      "exclusion_criteria": [
+        {
+          "id": "EXCL_SEASONAL_STRESSORS",
+          "criteria": "Pattern is better explained by seasonally linked psychosocial stressors (e.g., unemployment, school schedule)."
+        }
+      ],
+      "nodes": [
+        {
+          "id": "SEA_D1_LIFETIME_RATIO",
+          "type": "DURATION",
+          "labels": { "clinician": "Lifetime seasonal ratio" },
+          "description": { "clinician": "Seasonal episodes must substantially outnumber nonseasonal episodes over the individual’s lifetime." },
+          "rule": { "kind": "frequency_ratio_gate", "target": "lifetime_history" }
+        },
+        {
+          "id": "SEA_LIFETIME_RATIO",
+          "type": "HISTORY",
+          "labels": { "clinician": "Lifetime Episode Ratio" },
+          "description": { "clinician": "Seasonal episodes must substantially outnumber nonseasonal episodes over the individual's lifetime." },
+          "rule": {
+            "kind": "comparison",
+            "operator": "substantially_greater_than",
+            "operand_a": "count_seasonal_episodes",
+            "operand_b": "count_nonseasonal_episodes"
+          }
+        },
+        {
+          "id": "SEA_SYMPTOM_CLUSTER",
+          "type": "CONTEXT",
+          "labels": { "clinician": "Seasonal Symptom Cluster" },
+          "description": { "clinician": "Characterized by low energy, hypersomnia, overeating, weight gain, and a craving for carbohydrates." },
+          "evidence_binding": { "signal_types": ["SYMPTOM"], "aliases": ["carb_cravings", "winter_overeating"] }
+        },
+        {
+          "id": "SEA_B1_TEMPORAL_REMISSION",
+          "type": "DURATION",
+          "labels": { "clinician": "Characteristic temporal remission" },
+          "description": { "clinician": "Full remissions (or a change from major depression to mania or hypomania) also occur at a characteristic time of the year." },
+          "rule": { "kind": "seasonal_remission_gate", "characteristic_window": "e.g., spring" }
+        },
+        {
+          "id": "SEA_EXCLUSION_STRESSORS",
+          "type": "RULE_OUT",
+          "labels": { "clinician": "Psychosocial Stressor Exclusion" },
+          "description": { "clinician": "Pattern is NOT better explained by seasonally linked psychosocial stressors (e.g., seasonal unemployment, school schedule)." },
+          "rule": { "kind": "exclusion_check" }
+        },
+        {
+          "id": "SEA_R1_NO_NONSEASONAL_2Y",
+          "type": "RULE_OUT",
+          "description": { "clinician": "No nonseasonal episodes of that polarity have occurred in the last 2 years." },
+          "rule": { "kind": "exclusion_if_present", "window": "730_days" }
+        }
+      ],
+      "edges": [
+        { "type": "requires", "from": "SPEC_SEASONAL_PATTERN_LOGIC", "to": "SEA_EXCLUSION_STRESSORS" }
+      ],
+      "evaluator_hints": {
+        "prevalence_context": "Risk varies by latitude, age, and sex; higher at higher latitudes and in younger individuals."
+      }
+    },
+    {
+      "id": "SPEC_PSYCHOTIC_FEATURES",
+      "type": "SPECIFIER_GROUP",
+      "title": "With Psychotic Features",
+      "nodes": [],
+      "edges": [
+        { "type": "requires", "from": "SPEC_PSYCHOTIC_FEATURES", "to": "SPEC_PSYCHOTIC_SUBTYPES" },
+        { "type": "can_be_qualified_by", "from": "SPEC_PSYCHOTIC_FEATURES", "to": "SPEC_PSYCHOTIC_SUBTYPES" }
+      ]
+    },
+    {
+      "id": "SPEC_PSYCHOTIC_SUBTYPES",
+      "type": "SPECIFIER_GROUP",
+      "title": "Psychotic Feature Content",
+      "nodes": [
+        {
+          "id": "PSY_CONGRUENT",
+          "type": "SPECIFIER",
+          "labels": { "clinician": "Mood-congruent" },
+          "description": { "clinician": "Content is consistent with typical depressive themes (inadequacy, guilt, disease, death, nihilism, punishment)." }
+        },
+        {
+          "id": "PSY_INCONGRUENT",
+          "type": "SPECIFIER",
+          "labels": { "clinician": "Mood-incongruent" },
+          "description": { "clinician": "Content does not involve typical depressive themes, or is a mixture." }
+        }
+      ]
+    },
+    {
+      "id": "PDD_SPEC_INTERMITTENT_MDE",
+      "diagnosis_id": "PDD",
+      "type": "SPECIFIER",
+      "labels": { "clinician": "With intermittent major depressive episodes" },
+      "description": { "clinician": "Periods of at least 8 weeks in at least the preceding 2 years with symptoms below the threshold for a full MDE." },
+      "rule": { "kind": "intermittent_gate", "min_subthreshold_days": 56 }
+    },
+    {
+      "id": "SPEC_PERIPARTUM_ONSET",
+      "type": "SPECIFIER",
+      "labels": { "clinician": "With peripartum onset", "self": "Onset during or after pregnancy" },
+      "rule": { "kind": "temporal_gate", "window": "during_pregnancy_or_4_weeks_postpartum" },
+      "evaluator_hints": {
+        "comorbidity_note": "Severe anxiety and panic attacks are frequent in peripartum episodes.",
+        "safety_risk_alert": "High risk of infanticide associated with peripartum psychotic features (command hallucinations/delusions of possession).",
+        "onset_clarification": "50% of peripartum episodes begin prior to delivery."
+      }
+    },
+    {
+      "id": "SPEC_CATATONIA_GROUP",
+      "type": "SPECIFIER_GROUP",
+      "title": "With Catatonia",
+      "description": { "clinician": "Clinical picture is dominated by 3 (or more) of the following symptoms." },
+      "nodes": [
+        { "id": "CAT_STUPOR", "type": "SYMPTOM", "labels": { "clinician": "Stupor (no psychomotor activity)" } },
+        { "id": "CAT_CATALEPSY", "type": "SYMPTOM", "labels": { "clinician": "Catalepsy (passive induction of posture)" } },
+        { "id": "CAT_WAXY", "type": "SYMPTOM", "labels": { "clinician": "Waxy flexibility" } },
+        { "id": "CAT_MUTISM", "type": "SYMPTOM", "labels": { "clinician": "Mutism (verbal unresponsiveness)" } },
+        { "id": "CAT_NEGATIVISM", "type": "SYMPTOM", "labels": { "clinician": "Negativism (opposition to stimuli)" } },
+        { "id": "CAT_POSTURING", "type": "SYMPTOM", "labels": { "clinician": "Posturing (spontaneous active maintenance)" } },
+        { "id": "CAT_MANNERISM", "type": "SYMPTOM", "labels": { "clinician": "Mannerism (odd caricature of normal actions)" } },
+        { "id": "CAT_STEREOTYPY", "type": "SYMPTOM", "labels": { "clinician": "Stereotypy (repetitive non-goal-directed movement)" } },
+        { "id": "CAT_AGITATION", "type": "SYMPTOM", "labels": { "clinician": "Agitation (not influenced by external stimuli)" } },
+        { "id": "CAT_GRIMACING", "type": "SYMPTOM", "labels": { "clinician": "Grimacing" } },
+        { "id": "CAT_ECHOLALIA", "type": "SYMPTOM", "labels": { "clinician": "Echolalia (mimicking speech)" } },
+        { "id": "CAT_ECHOPRAXIA", "type": "SYMPTOM", "labels": { "clinician": "Echopraxia (mimicking movements)" } }
+      ],
+      "rule": { "kind": "min_symptom_count", "count": 3 },
+      "coding_metadata": { "coding_instruction": "Use additional code 293.89 (F06.1)" }
+    },
+    {
+      "id": "SMIDD_CODING_LOGIC",
+      "type": "CODING_RULES",
+      "logic": "ICD-10 position 4 is '1' for mild use disorder, '2' for moderate/severe, and '9' if no comorbid use disorder exists.",
+      "naming_rule": "Diagnostic name must begin with the specific substance (e.g., 'Cocaine-induced depressive disorder')."
+    },
+    {
+      "id": "DDAMC_RECORDING_LOGIC",
+      "type": "CODING_RULES",
+      "logic": "The code and name for the etiological medical condition must be listed first, immediately before the mental disorder name.",
+      "example": "244.9 (E03.9) hypothyroidism; 293.83 (F06.31) depressive disorder due to hypothyroidism, with depressive features."
+    },
+    {
+      "id": "SPEC_MIXED_FEATURES",
+      "type": "SPECIFIER_GROUP",
+      "title": "With Mixed Features",
+      "description": { "clinician": "At least 3 manic/hypomanic symptoms present nearly every day." },
+      "nodes": [
+        { "id": "MIX_1_ELEVATED_MOOD", "type": "SYMPTOM", "labels": { "clinician": "Elevated, expansive mood" } },
+        { "id": "MIX_2_GRANDIOSITY", "type": "SYMPTOM", "labels": { "clinician": "Inflated self-esteem or grandiosity" } },
+        { "id": "MIX_3_TALKATIVE", "type": "SYMPTOM", "labels": { "clinician": "More talkative than usual or pressure to keep talking" } },
+        { "id": "MIX_4_FLIGHT_IDEAS", "type": "SYMPTOM", "labels": { "clinician": "Flight of ideas or racing thoughts" } },
+        { "id": "MIX_5_GOAL_ACTIVITY", "type": "SYMPTOM", "labels": { "clinician": "Increase in energy or goal-directed activity" } },
+        { "id": "MIX_6_RISKY_ACTIVITIES", "type": "SYMPTOM", "labels": { "clinician": "Excessive involvement in activities with painful consequences" } },
+        { "id": "MIX_7_SLEEP_NEED", "type": "SYMPTOM", "labels": { "clinician": "Decreased need for sleep" } }
+      ],
+      "rule": { "kind": "min_symptom_count", "count": 3 }
+    }
+  ]
+}
