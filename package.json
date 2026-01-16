@@ -13,5 +13,8 @@
   },
   "devDependencies": {
     "concurrently": "^9.1.0"
+  },
+  "dependencies": {
+    "pdfplumber": "^0.0.1-security"
   }
 }
