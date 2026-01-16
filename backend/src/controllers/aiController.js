@@ -64,6 +64,63 @@ const buildEntryEvidencePrompt = () =>
     "unclearAreas (array of short quotes), questionsToExplore (array of short quotes).",
   ].join(" ");
 
+const buildClinicalSignalPrompt = () =>
+  [
+    "System Prompt: Clinical Signal Extraction Engine",
+    "Role: You are a clinical NLP extraction engine. Your purpose is to analyze patient narratives and extract Evidence Units,",
+    "structured clinical signals consisting of text spans and semantic attributes. You must act as a neutral extractor,",
+    "not a diagnostician. Do not infer diagnoses; only identify the presence or absence of specific clinical phenomena",
+    "described in the text.",
+    "Input: A patient narrative (journal entry, interview transcript, or intake form). Output: A JSON array of Evidence Unit objects.",
+    "Extraction Rules",
+    "Task A: Span Extraction (The What)",
+    "Identify and extract text spans corresponding to the following clinical categories. You must use the specific Label codes",
+    "provided below to ensure the downstream logic graph can process them.",
+    "1. Depressive and Anxiety Symptoms (Core and Specifiers)",
+    "- SYMPTOM_MOOD: Depressed mood, sadness, emptiness, irritability, anhedonia (loss of interest/pleasure).",
+    "- SYMPTOM_COGNITIVE: Diminished concentration, indecisiveness, excessive guilt, feelings of worthlessness.",
+    "- SYMPTOM_SOMATIC: Significant weight loss/gain, appetite changes, fatigue/low energy, psychomotor agitation",
+    "(restlessness) or retardation (slowing down).",
+    "- SYMPTOM_SLEEP: Insomnia or hypersomnia.",
+    "- SYMPTOM_RISK: Recurrent thoughts of death, suicidal ideation, specific plans, or attempts.",
+    "- SYMPTOM_ANXIETY: Feeling keyed up/tense, worry that makes it hard to concentrate, fear something awful may happen.",
+    "2. Rule-Out and Differential Signals (Crucial for Exclusions)",
+    "- SYMPTOM_MANIA: Elevated/expansive mood, inflated self-esteem/grandiosity, decreased need for sleep, racing thoughts/flight",
+    "of ideas, pressured speech, increased goal-directed activity, risk-taking behavior.",
+    "- SYMPTOM_PSYCHOSIS: Hallucinations (auditory/visual), delusions, paranoia, disorganized thought/speech.",
+    "- SYMPTOM_TRAUMA: Flashbacks, intrusive memories of traumatic events, dissociation, derealization, depersonalization.",
+    "3. Functional Impact and Context",
+    "- IMPAIRMENT: Difficulty functioning in Work, School, Relationships, Self-care, or Social activities.",
+    "- CONTEXT_SUBSTANCE: Use of alcohol, drugs, or medications (prescribed or recreational).",
+    "- CONTEXT_MEDICAL: Mentions of physical health conditions (e.g., thyroid, pain, pregnancy).",
+    "- CONTEXT_STRESSOR: Specific life events (e.g., job loss, bereavement, relationship conflict).",
+    "Task B: Attribute Extraction (The How)",
+    "For every extracted span, determine the following attributes. If an attribute is not explicitly stated, mark it as null.",
+    "1. polarity: PRESENT if the user confirms experiencing this. ABSENT if the user explicitly denies this.",
+    "2. temporality: Extract specific mentions of onset or duration (e.g., for the last 2 weeks, since childhood).",
+    "3. frequency: Extract quantifiers (e.g., nearly every day, occasionally).",
+    "4. severity: Extract qualitative intensity (e.g., mild, unbearable, cannot get out of bed).",
+    "5. attribution: Is this symptom explicitly linked by the user to a cause?",
+    "6. uncertainty: LOW for direct statements. HIGH for hedging language (e.g., maybe, I think, it is hard to say).",
+    "JSON Output Schema",
+    "{",
+    '  "evidence_units": [',
+    "    {",
+    '      "span": "string (exact substring from input)",',
+    '      "label": "CATEGORY_CODE (from Task A list)",',
+    '      "attributes": {',
+    '        "polarity": "PRESENT" | "ABSENT",',
+    '        "temporality": "string" | null,',
+    '        "frequency": "string" | null,',
+    '        "severity": "string" | null,',
+    '        "attribution": "string" | null,',
+    '        "uncertainty": "LOW" | "HIGH"',
+    "      }",
+    "    }",
+    "  ]",
+    "}",
+  ].join(" ");
+
 const extractJson = (text) => {
   const start = text.indexOf("{");
   const end = text.lastIndexOf("}");
@@ -191,6 +248,35 @@ const generateEntryEvidence = async (entryText) => {
       questionsToExplore: response.data.questionsToExplore || [],
     },
   };
+};
+
+const generateClinicalEvidenceUnits = async (entryText) => {
+  const baseUrl = process.env.OPENAI_API_URL || "https://api.openai.com/v1";
+  const apiKey = process.env.OPENAI_API_KEY || "";
+  const model = process.env.OPENAI_MODEL || "gpt-4o-mini";
+  const isLocal = baseUrl.includes("localhost") || baseUrl.includes("127.0.0.1");
+
+  if (!apiKey && !isLocal) {
+    return { error: "OPENAI_API_KEY is not set." };
+  }
+
+  const response = await callLlmWithRetry({
+    baseUrl,
+    apiKey,
+    model,
+    messages: [
+      { role: "system", content: buildClinicalSignalPrompt() },
+      { role: "user", content: `Patient narrative:\n${entryText}\nReturn JSON only.` },
+    ],
+    maxTokens: 900,
+  });
+
+  if (response.error) {
+    return { error: response.error };
+  }
+
+  const evidenceUnits = Array.isArray(response.data.evidence_units) ? response.data.evidence_units : [];
+  return { evidenceUnits };
 };
 
 const generateWeeklySummary = async ({ userId, weekStartIso }) => {
@@ -591,4 +677,10 @@ const prepareSummary = asyncHandler(async (req, res) => {
   });
 });
 
-module.exports = { analyzeEntry, prepareSummary, generateEntryEvidence, generateWeeklySummary };
+module.exports = {
+  analyzeEntry,
+  prepareSummary,
+  generateEntryEvidence,
+  generateClinicalEvidenceUnits,
+  generateWeeklySummary,
+};

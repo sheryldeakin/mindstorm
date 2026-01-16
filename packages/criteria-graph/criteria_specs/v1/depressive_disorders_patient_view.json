@@ -1,0 +1,242 @@
+{
+  "meta": {
+    "purpose": "Translation layer to prevent diagnostic authority bleeding through [1]",
+    "core_principle": "Same signals, different semantics [2]"
+  },
+  "concept_mappings": {
+    "primitive_renaming": {
+      "symptom": "Experience",
+      "symptom_cluster": "Pattern",
+      "severity": "Intensity and Impact",
+      "frequency": "How often",
+      "duration": "How long this has been part of your life",
+      "functional_impairment": "Life Impact Areas",
+      "rule_out": "Influencing Factors",
+      "trauma_context": "Significant Experiences",
+      "diagnosis": "Pattern Summary"
+    }
+  },
+  "node_mappings": {
+    "symptoms": {
+      "SYMP_DEPRESSED_MOOD": {
+        "patient_label": "Low Mood or Emptiness",
+        "reflection_prompt": "You've mentioned feeling down, sad, or empty often."
+      },
+      "SYMP_ANHEDONIA": {
+        "patient_label": "Reduced Enjoyment",
+        "reflection_prompt": "You noticed less interest or pleasure in things you usually care about."
+      },
+      "SYMP_WEIGHT_APPETITE": {
+        "patient_label": "Appetite or Weight Changes",
+        "reflection_prompt": "There have been noticeable changes in your appetite or weight."
+      },
+      "SYMP_SLEEP_DISTURBANCE": {
+        "patient_label": "Sleep Changes",
+        "reflection_prompt": "Your sleep patterns have shifted (sleeping too much or too little)."
+      },
+      "SYMP_PSYCHOMOTOR": {
+        "patient_label": "Physical Restlessness or Slowing",
+        "reflection_prompt": "You've felt physically slowed down or too restless to sit still."
+      },
+      "SYMP_FATIGUE": {
+        "patient_label": "Low Energy",
+        "reflection_prompt": "You've been feeling tired or lacking energy to do things."
+      },
+      "SYMP_WORTHLESSNESS": {
+        "patient_label": "Self-Critical Thoughts",
+        "reflection_prompt": "You've been struggling with feelings of worthlessness or guilt."
+      },
+      "SYMP_CONCENTRATION": {
+        "patient_label": "Focus Challenges",
+        "reflection_prompt": "It has been harder to think, concentrate, or make decisions."
+      },
+      "SYMP_SUICIDALITY": {
+        "patient_label": "Thoughts of Death",
+        "reflection_prompt": "You have had thoughts about death or hurting yourself."
+      }
+    },
+    "specifier_symptoms": {
+      "SPEC_ANXIOUS_DISTRESS": {
+        "patient_label": "Tension and Worry",
+        "reflection_prompt": "This pattern includes feeling keyed up, tense, or worried something awful might happen."
+      },
+      "SPEC_MIXED_FEATURES": {
+        "patient_label": "High Energy Moments",
+        "reflection_prompt": "Even while feeling low, you've had moments of high energy, racing thoughts, or talking more than usual."
+      },
+      "SPEC_MELANCHOLIC": {
+        "patient_label": "Physical Heaviness",
+        "reflection_prompt": "The feelings seem worse in the morning or feel physically heavy."
+      }
+    },
+    "severity_levels": {
+      "SEV_MILD": {
+        "label": "Noticeable",
+        "description": "This is present but you are mostly managing day-to-day."
+      },
+      "SEV_MODERATE": {
+        "label": "Disruptive",
+        "description": "This is making it hard to keep up with daily life."
+      },
+      "SEV_SEVERE": {
+        "label": "Overwhelming",
+        "description": "This feels intense and is strongly affecting your ability to function."
+      }
+    },
+    "rule_outs": {
+      "RO_SUBSTANCE": {
+        "patient_label": "Substance Use",
+        "ui_text": "Some of what you describe might be influenced by alcohol or substance use."
+      },
+      "RO_MEDICAL": {
+        "patient_label": "Physical Health",
+        "ui_text": "Physical health conditions or medications can sometimes create these feelings."
+      },
+      "RO_MANIA": {
+        "patient_label": "Past High Energy Periods",
+        "ui_text": "Your history of high-energy periods suggests this might be part of a fluctuating pattern (Bipolar spectrum) rather than just low mood."
+      },
+      "RO_BEREAVEMENT": {
+        "patient_label": "Grief or Loss",
+        "ui_text": "These feelings seem closely tied to a significant loss or bereavement."
+      }
+    },
+    "impact_domains": {
+      "IMPACT_SOCIAL": "Connection with others",
+      "IMPACT_WORK": "Work or School",
+      "IMPACT_SELF_CARE": "Taking care of yourself"
+    }
+  },
+  "evidence_label_mappings": {
+    "SYMPTOM_MOOD": {
+      "patient_label": "Low mood or loss of interest",
+      "reflection_prompt": "You described feeling down, empty, irritable, or less interested in things."
+    },
+    "SYMPTOM_COGNITIVE": {
+      "patient_label": "Self-critical or foggy thoughts",
+      "reflection_prompt": "You mentioned guilt, worthlessness, indecision, or trouble concentrating."
+    },
+    "SYMPTOM_SOMATIC": {
+      "patient_label": "Body and energy changes",
+      "reflection_prompt": "You described changes in energy, appetite, movement, or physical restlessness."
+    },
+    "SYMPTOM_SLEEP": {
+      "patient_label": "Sleep changes",
+      "reflection_prompt": "You mentioned sleeping more or less than usual."
+    },
+    "SYMPTOM_RISK": {
+      "patient_label": "Thoughts of death or self-harm",
+      "reflection_prompt": "You shared thoughts about death, self-harm, or suicide."
+    },
+    "SYMPTOM_ANXIETY": {
+      "patient_label": "Tension or worry",
+      "reflection_prompt": "You described feeling keyed up, tense, or worried."
+    },
+    "SYMPTOM_MANIA": {
+      "patient_label": "High-energy shifts",
+      "reflection_prompt": "You mentioned periods of high energy, little need for sleep, or racing thoughts."
+    },
+    "SYMPTOM_PSYCHOSIS": {
+      "patient_label": "Unusual perceptions or beliefs",
+      "reflection_prompt": "You described experiences like hallucinations, delusions, or paranoia."
+    },
+    "SYMPTOM_TRAUMA": {
+      "patient_label": "Trauma-related experiences",
+      "reflection_prompt": "You mentioned intrusive memories, dissociation, or feeling unreal."
+    },
+    "IMPAIRMENT": {
+      "patient_label": "Daily life impact",
+      "reflection_prompt": "You described difficulty functioning in daily life."
+    },
+    "CONTEXT_SUBSTANCE": {
+      "patient_label": "Substances or medications",
+      "reflection_prompt": "You mentioned alcohol, drugs, or medication changes."
+    },
+    "CONTEXT_MEDICAL": {
+      "patient_label": "Physical health factors",
+      "reflection_prompt": "You mentioned physical health conditions or medical changes."
+    },
+    "CONTEXT_STRESSOR": {
+      "patient_label": "Life stressors",
+      "reflection_prompt": "You described stressful events or conflicts."
+    }
+  },
+  "derived_prompts": {
+    "unclear_areas": [
+      {
+        "id": "UNCLEAR_TEMPORALITY",
+        "condition": {
+          "attributes_missing": ["temporality"],
+          "attributes_required": { "polarity": "PRESENT" }
+        },
+        "prompt": "If you are comfortable, can you share when this started or how long it has been going on?"
+      },
+      {
+        "id": "UNCLEAR_FREQUENCY",
+        "condition": {
+          "attributes_missing": ["frequency"],
+          "attributes_required": { "polarity": "PRESENT" }
+        },
+        "prompt": "How often does this tend to show up for you?"
+      },
+      {
+        "id": "UNCLEAR_SEVERITY",
+        "condition": {
+          "attributes_missing": ["severity"],
+          "attributes_required": { "polarity": "PRESENT" }
+        },
+        "prompt": "How intense does this feel on most days?"
+      },
+      {
+        "id": "UNCLEAR_ATTRIBUTION",
+        "condition": {
+          "attributes_missing": ["attribution"],
+          "attributes_required": { "polarity": "PRESENT" }
+        },
+        "prompt": "Do you have a sense of what might be contributing to this?"
+      }
+    ],
+    "questions_to_explore": [
+      {
+        "id": "EXPLORE_IMPACT",
+        "condition": {
+          "label": "IMPAIRMENT",
+          "attributes_required": { "polarity": "PRESENT" }
+        },
+        "prompt": "Which parts of daily life feel most affected right now?"
+      },
+      {
+        "id": "EXPLORE_STRESSOR_LINK",
+        "condition": {
+          "label": "CONTEXT_STRESSOR",
+          "attributes_required": { "polarity": "PRESENT" }
+        },
+        "prompt": "How much do you feel this connects to what has been happening lately?"
+      },
+      {
+        "id": "EXPLORE_SLEEP_ENERGY",
+        "condition": {
+          "label_in": ["SYMPTOM_SLEEP", "SYMPTOM_SOMATIC"],
+          "attributes_required": { "polarity": "PRESENT" }
+        },
+        "prompt": "How are sleep and energy levels affecting your day-to-day routine?"
+      },
+      {
+        "id": "EXPLORE_RISK_SUPPORT",
+        "condition": {
+          "label": "SYMPTOM_RISK",
+          "attributes_required": { "polarity": "PRESENT" }
+        },
+        "prompt": "Would it be helpful to talk about supports or ways to stay safe when these thoughts show up?"
+      },
+      {
+        "id": "EXPLORE_MEDICAL_CONTEXT",
+        "condition": {
+          "label": "CONTEXT_MEDICAL",
+          "attributes_required": { "polarity": "PRESENT" }
+        },
+        "prompt": "Are there any health changes or treatments you want to share more about?"
+      }
+    ]
+  }
+}

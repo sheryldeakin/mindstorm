@@ -9,6 +9,27 @@ const emotionSchema = new mongoose.Schema(
   { _id: false },
 );
 
+const evidenceAttributesSchema = new mongoose.Schema(
+  {
+    polarity: { type: String, enum: ["PRESENT", "ABSENT"], default: null },
+    temporality: { type: String, default: null },
+    frequency: { type: String, default: null },
+    severity: { type: String, default: null },
+    attribution: { type: String, default: null },
+    uncertainty: { type: String, enum: ["LOW", "HIGH"], default: null },
+  },
+  { _id: false },
+);
+
+const evidenceUnitSchema = new mongoose.Schema(
+  {
+    span: { type: String, required: true },
+    label: { type: String, required: true },
+    attributes: { type: evidenceAttributesSchema, default: {} },
+  },
+  { _id: false },
+);
+
 const entrySchema = new mongoose.Schema(
   {
     userId: {
@@ -36,6 +57,7 @@ const entrySchema = new mongoose.Schema(
       unclearAreas: { type: [String], default: [] },
       questionsToExplore: { type: [String], default: [] },
     },
+    evidenceUnits: { type: [evidenceUnitSchema], default: [] },
   },
   { timestamps: true },
 );

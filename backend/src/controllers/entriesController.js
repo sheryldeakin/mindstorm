@@ -1,5 +1,5 @@
 const Entry = require("../models/Entry");
-const { generateEntryEvidence, generateWeeklySummary } = require("./aiController");
+const { generateEntryEvidence, generateClinicalEvidenceUnits, generateWeeklySummary } = require("./aiController");
 const { markDerivedStale, upsertEntrySignals } = require("../derived/services/derivedService");
 
 const getWeekStartIso = (dateIso) => {
@@ -56,6 +56,7 @@ const listEntries = asyncHandler(async (req, res) => {
     emotions: entry.emotions || [],
     themeIntensities: entry.themeIntensities || [],
     evidenceBySection: entry.evidenceBySection || {},
+    evidenceUnits: entry.evidenceUnits || [],
   }));
 
   res.json({ entries: formatted, total });
@@ -89,6 +90,12 @@ const createEntry = asyncHandler(async (req, res) => {
   const evidenceResult = await generateEntryEvidence(`Title: ${title}\nSummary: ${summary}`);
   if (!evidenceResult?.error && evidenceResult?.evidenceBySection) {
     entry.evidenceBySection = evidenceResult.evidenceBySection;
+    await entry.save();
+  }
+
+  const clinicalEvidenceResult = await generateClinicalEvidenceUnits(`Title: ${title}\nSummary: ${summary}`);
+  if (!clinicalEvidenceResult?.error && clinicalEvidenceResult?.evidenceUnits) {
+    entry.evidenceUnits = clinicalEvidenceResult.evidenceUnits;
     await entry.save();
   }
 
@@ -127,6 +134,7 @@ const createEntry = asyncHandler(async (req, res) => {
       emotions: entry.emotions || [],
       themeIntensities: entry.themeIntensities || [],
       evidenceBySection: entry.evidenceBySection || {},
+      evidenceUnits: entry.evidenceUnits || [],
     },
   });
 });
@@ -149,6 +157,7 @@ const getEntry = asyncHandler(async (req, res) => {
       themes: entry.themes || [],
       emotions: entry.emotions || [],
       evidenceBySection: entry.evidenceBySection || {},
+      evidenceUnits: entry.evidenceUnits || [],
       createdAt: entry.createdAt,
       updatedAt: entry.updatedAt,
     },
@@ -185,6 +194,14 @@ const updateEntry = asyncHandler(async (req, res) => {
     const evidenceResult = await generateEntryEvidence(`Title: ${entry.title}\nSummary: ${entry.summary}`);
     if (!evidenceResult?.error && evidenceResult?.evidenceBySection) {
       entry.evidenceBySection = evidenceResult.evidenceBySection;
+      await entry.save();
+    }
+
+    const clinicalEvidenceResult = await generateClinicalEvidenceUnits(
+      `Title: ${entry.title}\nSummary: ${entry.summary}`,
+    );
+    if (!clinicalEvidenceResult?.error && clinicalEvidenceResult?.evidenceUnits) {
+      entry.evidenceUnits = clinicalEvidenceResult.evidenceUnits;
       await entry.save();
     }
   }
@@ -226,6 +243,7 @@ const updateEntry = asyncHandler(async (req, res) => {
       emotions: entry.emotions || [],
       themeIntensities: entry.themeIntensities || [],
       evidenceBySection: entry.evidenceBySection || {},
+      evidenceUnits: entry.evidenceUnits || [],
       createdAt: entry.createdAt,
       updatedAt: entry.updatedAt,
     },
