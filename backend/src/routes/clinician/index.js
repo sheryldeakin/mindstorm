@@ -1,5 +1,6 @@
 const express = require("express");
 const { protect } = require("../../middleware/auth");
+const { listCases, getCaseEntries } = require("../../controllers/clinicianController");
 
 const router = express.Router();
 
@@ -13,6 +14,9 @@ const requireClinician = (req, res, next) => {
 
 router.use(protect);
 router.use(requireClinician);
+
+router.get("/cases", listCases);
+router.get("/cases/:userId/entries", getCaseEntries);
 
 router.get("/criteria-coverage", (_req, res) => {
   res.json({

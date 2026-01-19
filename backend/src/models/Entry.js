@@ -30,6 +30,17 @@ const evidenceUnitSchema = new mongoose.Schema(
   { _id: false },
 );
 
+const riskSignalSchema = new mongoose.Schema(
+  {
+    detected: { type: Boolean, default: false },
+    type: { type: String, default: "" },
+    level: { type: String, default: "" },
+    confidence: { type: Number, default: null },
+    source: { type: String, default: "" },
+  },
+  { _id: false },
+);
+
 const entrySchema = new mongoose.Schema(
   {
     userId: {
@@ -58,6 +69,7 @@ const entrySchema = new mongoose.Schema(
       questionsToExplore: { type: [String], default: [] },
     },
     evidenceUnits: { type: [evidenceUnitSchema], default: [] },
+    risk_signal: { type: riskSignalSchema, default: null },
     deletedAt: { type: Date, default: null },
   },
   { timestamps: true },

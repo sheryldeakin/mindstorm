@@ -34,6 +34,9 @@ import ClinicianDashboardPage from "./pages/ClinicianDashboardPage";
 import ClinicianCriteriaPage from "./pages/ClinicianCriteriaPage";
 import ClinicianDifferentialPage from "./pages/ClinicianDifferentialPage";
 import ClinicianShell from "./components/layout/ClinicianShell";
+import ClinicianCasePage from "./pages/ClinicianCasePage";
+import ClinicianSettingsPage from "./pages/ClinicianSettingsPage";
+import ClinicianLogicGraphPage from "./pages/ClinicianLogicGraphPage";
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -122,8 +125,22 @@ const App = () => {
           }
         >
           <Route index element={<ClinicianDashboardPage />} />
+          <Route path="cases/:userId" element={<ClinicianCasePage />} />
           <Route path="criteria" element={<ClinicianCriteriaPage />} />
           <Route path="differential" element={<ClinicianDifferentialPage />} />
+          <Route path="logic-graph" element={<ClinicianLogicGraphPage />} />
+          <Route path="settings" element={<ClinicianSettingsPage />} />
+          <Route path="settings/profile" element={<SettingsProfilePage />} />
+          <Route path="settings/account-security" element={<SettingsAccountSecurityPage />} />
+          <Route path="settings/privacy" element={<SettingsPrivacyPage />} />
+          <Route path="settings/notifications" element={<SettingsNotificationsPage />} />
+          <Route path="settings/preferences" element={<SettingsPreferencesPage />} />
+          <Route path="settings/integrations" element={<SettingsIntegrationsPage />} />
+          <Route path="settings/billing" element={<SettingsBillingPage />} />
+          <Route path="settings/data-activity" element={<SettingsDataActivityPage />} />
+          <Route path="settings/journaling-defaults" element={<SettingsJournalingDefaultsPage />} />
+          <Route path="settings/sharing-access" element={<SettingsSharingAccessPage />} />
+          <Route path="settings/ai-insights" element={<SettingsAiInsightsPage />} />
         </Route>
         <Route path="/home" element={<Navigate to="/patient/home" replace />} />
         <Route path="/dashboard" element={<Navigate to="/patient/home" replace />} />

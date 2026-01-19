@@ -15,6 +15,25 @@ const formatDateIso = (date) => date.toISOString().slice(0, 10);
 
 const sampleTags = ["walk", "breathing", "journaling", "stretch", "quiet time", "seeded-sample"];
 
+const createProgress = (total, label) => {
+  const start = Date.now();
+  const safeTotal = total > 0 ? total : 1;
+  const render = (current) => {
+    const percent = Math.min(current / safeTotal, 1);
+    const width = 24;
+    const filled = Math.round(width * percent);
+    const bar = `${"█".repeat(filled)}${"░".repeat(width - filled)}`;
+    const elapsed = (Date.now() - start) / 1000;
+    const eta = current > 0 ? ((elapsed / current) * (safeTotal - current)) : 0;
+    const line = `${label} [${bar}] ${(percent * 100).toFixed(1)}% (${current}/${safeTotal}) ETA ${eta.toFixed(0)}s`;
+    process.stdout.write(`\r${line}`);
+  };
+  const done = () => {
+    process.stdout.write("\n");
+  };
+  return { render, done };
+};
+
 const symptomManifestations = {
   MDD_A1_DEPRESSED_MOOD: [
     "I feel a heavy emptiness that I just can't shake.",
@@ -292,6 +311,16 @@ const symptomDenials = {
     "No trouble sleeping, just feeling low during the day.",
     "Finally caught up on sleep; got a solid 8 hours.",
   ],
+  MDD_A2_ANHEDONIA: [
+    "I actually really enjoyed my walk today.",
+    "It felt good to get back to painting.",
+    "I laughed at a movie for the first time in a while.",
+  ],
+  MDD_A6_FATIGUE: [
+    "I had a surprising amount of energy today.",
+    "I got through the whole workday without needing a nap.",
+    "I didn't feel that usual heaviness in my limbs.",
+  ],
   MDD_A9_PASSIVE: [
     "I'm feeling down, but I don't want to hurt myself.",
     "I definitely want to be here, I just want the pain to stop.",
@@ -335,6 +364,7 @@ const clinicalProfiles = {
       SPEC_MEL_MORNING_WORSE: 0.8,
       MDD_A5_PSYCHOMOTOR_CHANGE: 0.7,
       MDD_A9_PASSIVE: 0.3,
+      MDD_A9_ACTIVE: 0.07,
       SPEC_PSYCHOTIC_FEATURES: 0.05,
     },
     baseIntensity: { min: 0.8, max: 1.0 },
@@ -448,6 +478,7 @@ const expandSummaryWithLlm = async ({ baseSymptoms, context, profile, lengthInst
   const baseUrl = process.env.OPENAI_API_URL || "https://api.openai.com/v1";
   const apiKey = process.env.OPENAI_API_KEY || "";
   const model = process.env.OPENAI_MODEL || "gpt-4o-mini";
+  const maxTokens = Number.parseInt(process.env.SEED_LLM_MAX_TOKENS || "220", 10);
   const isLocal = baseUrl.includes("localhost") || baseUrl.includes("127.0.0.1");
 
   if (!apiKey && !isLocal) {
@@ -496,7 +527,7 @@ const expandSummaryWithLlm = async ({ baseSymptoms, context, profile, lengthInst
         ].join("\n"),
       },
     ],
-    maxTokens: 220,
+    maxTokens: Number.isFinite(maxTokens) && maxTokens > 0 ? maxTokens : 220,
   });
 
   return { summary: response || null };
@@ -519,6 +550,29 @@ const buildEntry = async ({ date, profileKey, lengthTier }) => {
   if (selectedSymptoms.includes("POSITIVE_FUNCTIONING") && selectedSymptoms.includes("MDD_A9_ACTIVE")) {
     selectedSymptoms = selectedSymptoms.filter((symptom) => symptom !== "POSITIVE_FUNCTIONING");
   }
+  const riskSignalType = selectedSymptoms.includes("MDD_A9_ACTIVE")
+    ? "active_suicidality"
+    : selectedSymptoms.includes("MDD_A9_PASSIVE")
+      ? "passive_suicidality"
+      : null;
+  const riskConfidence = riskSignalType
+    ? Number(
+        (
+          riskSignalType === "active_suicidality"
+            ? 0.95 + roll() * 0.04
+            : 0.75 + roll() * 0.15
+        ).toFixed(2),
+      )
+    : null;
+  const riskSignal = riskSignalType
+    ? {
+        detected: true,
+        type: riskSignalType,
+        level: riskSignalType === "active_suicidality" ? "high" : "moderate",
+        confidence: riskConfidence,
+        source: "derived_from_text_span",
+      }
+    : null;
 
   const denialProbability = 0.05;
   const sentences = selectedSymptoms.map((symptom) => {
@@ -585,6 +639,7 @@ const buildEntry = async ({ date, profileKey, lengthTier }) => {
     dateISO: formatDateIso(date),
     title: `Reflection: ${profile.title}`,
     summary: expanded?.summary || baseSummary,
+    risk_signal: riskSignal || undefined,
     tags: [pickRandom(sampleTags), "seeded-sample"],
     triggers: triggers.length ? [pickRandom(triggers)] : [],
     themes,
@@ -694,12 +749,23 @@ const run = async () => {
   const existingEntries = await Entry.find({ userId }).select("dateISO").lean();
   const existingDates = new Set(existingEntries.map((entry) => entry.dateISO).filter(Boolean));
   const resolveProfileForDay = buildTrajectoryResolver(trajectory, profileKey);
+  let progress = null;
 
   const addDays = (date, delta) => new Date(date.getFullYear(), date.getMonth(), date.getDate() + delta);
   const maxLookbackDays = 365;
 
   const createEntriesForWindow = async (windowStart, windowEnd) => {
     const days = Math.floor((windowEnd - windowStart) / (1000 * 60 * 60 * 24)) + 1;
+    let missingCount = 0;
+    for (let i = 0; i < days; i += 1) {
+      const date = addDays(windowStart, i);
+      const dateISO = formatDateIso(date);
+      if (!existingDates.has(dateISO)) {
+        missingCount += 1;
+      }
+    }
+    progress = createProgress(missingCount, "Seeding");
+    let processed = 0;
     for (let i = 0; i < days; i += 1) {
       const date = addDays(windowStart, i);
       const dateISO = formatDateIso(date);
@@ -707,6 +773,8 @@ const run = async () => {
         continue;
       }
       if (roll() < skipProbability) {
+        processed += 1;
+        progress.render(processed);
         continue;
       }
       const lengthRoll = roll();
@@ -716,13 +784,17 @@ const run = async () => {
         userId,
         ...(await buildEntry({ date, profileKey: phaseProfile, lengthTier })),
       });
+      processed += 1;
+      progress.render(processed);
     }
+    progress.done();
   };
 
   if (startDate && endDate) {
     await createEntriesForWindow(startDate, endDate);
   } else {
     const targetCount = count || 28;
+    progress = createProgress(targetCount, "Seeding");
     let filled = 0;
     let offset = 0;
     while (offset <= maxLookbackDays && filled < targetCount) {
@@ -741,9 +813,11 @@ const run = async () => {
           ...(await buildEntry({ date, profileKey: phaseProfile, lengthTier })),
         });
         filled += 1;
+        progress.render(filled);
       }
       offset += 1;
     }
+    progress.done();
   }
 
   if (!entries.length) {

@@ -262,15 +262,52 @@ const extractPartialArrayObjects = (text) => {
   }
 };
 
-const extractJson = (text) => {
-  if (!text) return null;
-  const slice = extractBalancedJson(text, "{", "}");
-  if (!slice) return null;
+const stripCodeFences = (text) =>
+  text
+    .replace(/^\s*```(?:json)?\s*/i, "")
+    .replace(/\s*```\s*$/i, "")
+    .trim();
+
+const parseJsonCandidate = (candidate) => {
+  if (!candidate) return null;
   try {
-    return JSON.parse(stripTrailingCommas(sanitizeJsonText(slice)));
+    return JSON.parse(stripTrailingCommas(sanitizeJsonText(candidate)));
   } catch {
     return null;
   }
+};
+
+const extractFirstLast = (text, openChar, closeChar) => {
+  const start = text.indexOf(openChar);
+  const end = text.lastIndexOf(closeChar);
+  if (start === -1 || end === -1 || end <= start) return null;
+  return text.slice(start, end + 1);
+};
+
+const extractJson = (text) => {
+  if (!text) return null;
+  const cleaned = stripCodeFences(text);
+
+  if (cleaned.startsWith("{") || cleaned.startsWith("[")) {
+    const direct = parseJsonCandidate(cleaned);
+    if (direct) return direct;
+  }
+
+  const objectSlice = extractBalancedJson(cleaned, "{", "}");
+  const objectParsed = parseJsonCandidate(objectSlice);
+  if (objectParsed) return objectParsed;
+
+  const arraySlice = extractBalancedJson(cleaned, "[", "]");
+  const arrayParsed = parseJsonCandidate(arraySlice);
+  if (arrayParsed) return arrayParsed;
+
+  const objectFallback = parseJsonCandidate(extractFirstLast(cleaned, "{", "}"));
+  if (objectFallback) return objectFallback;
+
+  const arrayFallback = parseJsonCandidate(extractFirstLast(cleaned, "[", "]"));
+  if (arrayFallback) return arrayFallback;
+
+  return null;
 };
 
 const getWeekStartIso = (dateIso) => {
@@ -337,7 +374,11 @@ const callLlm = async ({ baseUrl, apiKey, model, messages, maxTokens }) => {
 
     const parsed = extractJson(content);
     if (!parsed) {
-      return { error: "Failed to parse JSON response." };
+      const debug = process.env.LLM_DEBUG_PARSE === "true";
+      return {
+        error: "Failed to parse JSON response.",
+        details: debug ? { contentSnippet: content.slice(0, 800) } : undefined,
+      };
     }
 
     return { data: parsed };

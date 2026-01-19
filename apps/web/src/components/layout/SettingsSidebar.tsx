@@ -14,21 +14,26 @@ import {
   Workflow,
 } from "lucide-react";
 
-const settingsSections = [
-  { id: "profile", label: "Profile", to: "/patient/settings/profile", icon: User },
-  { id: "account-security", label: "Account & Security", to: "/patient/settings/account-security", icon: KeyRound },
-  { id: "privacy-boundaries", label: "Privacy & Boundaries", to: "/patient/settings/privacy", icon: Shield },
-  { id: "notifications", label: "Notifications", to: "/patient/settings/notifications", icon: Bell },
-  { id: "preferences", label: "Preferences", to: "/patient/settings/preferences", icon: SlidersHorizontal },
-  { id: "integrations", label: "Connected Apps", to: "/patient/settings/integrations", icon: Workflow },
-  { id: "billing", label: "Billing & Plan", to: "/patient/settings/billing", icon: Wallet },
-  { id: "data-activity", label: "Data & Activity", to: "/patient/settings/data-activity", icon: LayoutGrid },
-  { id: "journaling-defaults", label: "Journaling Defaults", to: "/patient/settings/journaling-defaults", icon: FileText },
-  { id: "sharing-access", label: "Sharing & Clinician Access", to: "/patient/settings/sharing-access", icon: BadgeCheck },
-  { id: "ai-insights", label: "AI & Insights", to: "/patient/settings/ai-insights", icon: Brain },
+type SettingsSidebarProps = {
+  basePath?: string;
+};
+
+const buildSettingsSections = (basePath: string) => [
+  { id: "profile", label: "Profile", to: `${basePath}/profile`, icon: User },
+  { id: "account-security", label: "Account & Security", to: `${basePath}/account-security`, icon: KeyRound },
+  { id: "privacy-boundaries", label: "Privacy & Boundaries", to: `${basePath}/privacy`, icon: Shield },
+  { id: "notifications", label: "Notifications", to: `${basePath}/notifications`, icon: Bell },
+  { id: "preferences", label: "Preferences", to: `${basePath}/preferences`, icon: SlidersHorizontal },
+  { id: "integrations", label: "Connected Apps", to: `${basePath}/integrations`, icon: Workflow },
+  { id: "billing", label: "Billing & Plan", to: `${basePath}/billing`, icon: Wallet },
+  { id: "data-activity", label: "Data & Activity", to: `${basePath}/data-activity`, icon: LayoutGrid },
+  { id: "journaling-defaults", label: "Journaling Defaults", to: `${basePath}/journaling-defaults`, icon: FileText },
+  { id: "sharing-access", label: "Sharing & Clinician Access", to: `${basePath}/sharing-access`, icon: BadgeCheck },
+  { id: "ai-insights", label: "AI & Insights", to: `${basePath}/ai-insights`, icon: Brain },
 ];
 
-const SettingsSidebar = () => {
+const SettingsSidebar = ({ basePath = "/patient/settings" }: SettingsSidebarProps) => {
+  const settingsSections = buildSettingsSections(basePath);
   return (
     <aside className="hidden w-60 flex-col gap-2 lg:flex">
       <div className="ms-card ms-elev-1 p-4">

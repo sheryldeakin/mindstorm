@@ -7,7 +7,7 @@ import logoMark from "/Just Logo.png";
 import { useAuth } from "../../contexts/AuthContext";
 
 interface NavbarProps {
-  variant?: "landing" | "app";
+  variant?: "landing" | "app" | "clinician";
 }
 
 const landingLinks = [
@@ -26,6 +26,13 @@ const appLinks = [
   { label: "Patterns", to: "/patient/patterns" },
   { label: "Cycles", to: "/patient/cycles" },
   { label: "Prepare", to: "/patient/prepare" },
+];
+
+const clinicianLinks = [
+  { label: "Home", to: "/clinician" },
+  { label: "Criteria", to: "/clinician/criteria" },
+  { label: "Differential", to: "/clinician/differential" },
+  { label: "Logic Graph", to: "/clinician/logic-graph" },
 ];
 
 const Navbar = ({ variant = "landing" }: NavbarProps) => {
@@ -98,6 +105,22 @@ const Navbar = ({ variant = "landing" }: NavbarProps) => {
     navigate("/login");
   };
 
+  const navLinks = variant === "clinician" ? clinicianLinks : appLinks;
+  const isClinician = variant === "clinician";
+  const isHomeActive = (linkTo: string) => {
+    if (linkTo === "/patient/home") {
+      return pathname === "/patient/home" || pathname === "/patient/dashboard";
+    }
+    if (linkTo === "/clinician") {
+      return (
+        pathname === "/clinician" ||
+        pathname.startsWith("/clinician/cases") ||
+        pathname === "/clinician/"
+      );
+    }
+    return false;
+  };
+
   return (
     <header className="ms-card ms-card-flat ms-elev-1 sticky top-0 z-50">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
@@ -121,8 +144,8 @@ const Navbar = ({ variant = "landing" }: NavbarProps) => {
             : (
               <>
                 <div className="flex items-center gap-6 md:flex lg:hidden">
-                  {appLinks
-                    .filter((link) => link.to === "/patient/home")
+                  {navLinks
+                    .filter((link) => link.to === (isClinician ? "/clinician" : "/patient/home"))
                     .map((link) => (
                       <NavLink
                         key={link.label}
@@ -130,9 +153,7 @@ const Navbar = ({ variant = "landing" }: NavbarProps) => {
                         className={({ isActive }) =>
                           clsx(
                             "transition hover:text-brand",
-                            (link.to === "/patient/home" &&
-                              (pathname === "/patient/home" || pathname === "/patient/dashboard")) ||
-                              isActive
+                            isHomeActive(link.to) || isActive
                               ? "text-brand font-semibold"
                               : "text-brand/60",
                           )
@@ -143,16 +164,14 @@ const Navbar = ({ variant = "landing" }: NavbarProps) => {
                     ))}
                 </div>
                 <div className="hidden items-center gap-6 lg:flex">
-                  {appLinks.map((link) => (
+                  {navLinks.map((link) => (
                     <NavLink
                       key={link.label}
                       to={link.to}
                       className={({ isActive }) =>
                         clsx(
                           "transition hover:text-brand",
-                          (link.to === "/patient/home" &&
-                            (pathname === "/patient/home" || pathname === "/patient/dashboard")) ||
-                            isActive
+                          isHomeActive(link.to) || isActive
                             ? "text-brand font-semibold"
                             : "text-brand/60",
                         )
@@ -226,7 +245,7 @@ const Navbar = ({ variant = "landing" }: NavbarProps) => {
                 type="button"
                 onClick={() => {
                   setMenuOpen(false);
-                  navigate("/patient/settings/profile");
+                  navigate(isClinician ? "/clinician/settings" : "/patient/settings/profile");
                 }}
                 className="w-full rounded-xl px-3 py-2 text-left text-sm font-medium text-slate-700 transition hover:bg-white/60"
               >
@@ -280,7 +299,7 @@ const Navbar = ({ variant = "landing" }: NavbarProps) => {
                           {link.label}
                         </a>
                       ))
-                    : appLinks.map((link) => (
+                    : navLinks.map((link) => (
                         <NavLink
                           key={link.label}
                           to={link.to}
@@ -288,9 +307,7 @@ const Navbar = ({ variant = "landing" }: NavbarProps) => {
                           className={({ isActive }) =>
                             clsx(
                               "rounded-2xl px-3 py-2 text-sm transition",
-                              (link.to === "/patient/home" &&
-                                (pathname === "/patient/home" || pathname === "/patient/dashboard")) ||
-                                isActive
+                              isHomeActive(link.to) || isActive
                                 ? "bg-brand/10 text-brand font-semibold"
                                 : "text-brand/60 hover:bg-brand/5 hover:text-brand",
                             )
