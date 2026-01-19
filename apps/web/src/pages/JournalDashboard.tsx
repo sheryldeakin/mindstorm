@@ -9,6 +9,7 @@ import { Card } from "../components/ui/Card";
 import useEntries from "../hooks/useEntries";
 import useInsights from "../hooks/useInsights";
 import { quickFilters } from "../lib/mockData";
+import PageHeader from "../components/layout/PageHeader";
 
 const JournalDashboard = () => {
   const navigate = useNavigate();
@@ -67,13 +68,10 @@ const JournalDashboard = () => {
 
   return (
     <div className="space-y-10">
-      <section className="rounded-3xl border border-brand/15 p-6">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <p className="text-sm uppercase tracking-[0.4em] text-brandLight">Timeline</p>
-            <h2 className="mt-2 text-2xl font-semibold text-slate-900">Recent reflections</h2>
-          </div>
-          <div className="flex flex-wrap items-center gap-3">
+      <PageHeader
+        pageId="journal"
+        actions={(
+          <>
             <div className="flex items-center gap-2 rounded-full border border-slate-200 px-3 py-1">
               <span className="text-xs uppercase tracking-[0.2em] text-slate-400">Show</span>
               {limitOptions.map((value) => (
@@ -94,9 +92,10 @@ const JournalDashboard = () => {
             <Button variant="secondary" onClick={() => navigate("/patient/entry")}>
               New entry
             </Button>
-          </div>
-        </div>
-        <div className="mt-6" ref={timelineRef}>
+          </>
+        )}
+      >
+        <div ref={timelineRef}>
           <JournalTimeline entries={entries} loading={entriesLoading} />
           <div className="mt-6">
             {entriesLoading ? (
@@ -108,7 +107,7 @@ const JournalDashboard = () => {
             )}
           </div>
         </div>
-      </section>
+      </PageHeader>
       <section className="rounded-3xl border border-brand/15 p-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <h3 className="text-xl font-semibold text-slate-900">Quick filters</h3>

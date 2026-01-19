@@ -1,6 +1,6 @@
 import { NavLink } from "react-router-dom";
 import clsx from "clsx";
-import { Activity, BookOpen, CalendarDays, FileText, Settings, Share2, SlidersHorizontal, Sparkles } from "lucide-react";
+import { Activity, BookOpen, CalendarDays, FileText, Share2, SlidersHorizontal, Sparkles } from "lucide-react";
 
 const navItems = [
   { label: "Dashboard", to: "/patient/home", icon: CalendarDays },
@@ -11,7 +11,6 @@ const navItems = [
   { label: "Patterns", to: "/patient/patterns", icon: Activity },
   { label: "Cycles Graph", to: "/patient/cycles", icon: Activity },
   { label: "Prepare", to: "/patient/prepare", icon: FileText },
-  { label: "Settings", to: "/patient/settings", icon: Settings },
 ];
 
 const SidebarNav = () => {

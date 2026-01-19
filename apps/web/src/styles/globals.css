@@ -11,6 +11,41 @@ body {
   letter-spacing: -0.01em;
 }
 
+html[data-text-size="small"] {
+  font-size: 15px;
+}
+
+html[data-text-size="medium"] {
+  font-size: 16px;
+}
+
+html[data-text-size="large"] {
+  font-size: 18px;
+}
+
+html[data-reduced-motion="true"] *,
+html[data-reduced-motion="true"] *::before,
+html[data-reduced-motion="true"] *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}
+
+html[data-reduced-motion="true"] .ms-card,
+html[data-reduced-motion="true"] .tw-ms-card {
+  transform: none !important;
+}
+
+html[data-reduced-motion="true"] .ms-card:hover,
+html[data-reduced-motion="true"] .tw-ms-card-hover:hover {
+  transform: none !important;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.85) inset,
+    0 14px 40px rgba(15, 23, 42, 0.08),
+    0 4px 14px rgba(15, 23, 42, 0.05) !important;
+}
+
 :root {
   /* Ambient tuning: increase alpha to boost blue */
   --ms-bg-1: rgba(120, 170, 255, 0.26);

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import * as go from "gojs";
 import Button from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
+import PageHeader from "../components/layout/PageHeader";
 
 type NodeData = { key: string; text: string; color: string; loc: string };
 type LinkData = { from: string; to: string; color: string };
@@ -437,53 +438,51 @@ const CyclesGraphPage = () => {
 
   return (
     <div className="space-y-10 text-slate-900">
-      <section className="rounded-3xl border border-brand/15 p-6">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="space-y-2">
-            <p className="text-xs uppercase tracking-[0.4em] text-brand/60">Quick intel</p>
-            <h2 className="text-2xl font-semibold text-brand">Issue Pair Explorer</h2>
-            <p className="text-sm text-slate-500">
-              Compare two issues at a glance. We’ll surface how often they appear together, show common paths, and prompt an intervention.
-            </p>
-          </div>
-          <Button variant="secondary" size="sm" onClick={() => setShowAdvanced((prev) => !prev)}>
-            {showAdvanced ? "Hide deeper analysis" : "Open deeper analysis"}
-          </Button>
-          <div className="flex gap-3 text-sm text-slate-500">
-            <div>
-              <p className="text-xs uppercase tracking-[0.4em] text-slate-400">From</p>
-              <select
-                className="mt-1 rounded-2xl border border-slate-200 px-3 py-2 text-sm text-slate-700"
-                value={pairFrom}
-                onChange={(e) => setPairFrom(e.target.value)}
-              >
-                {nodeDataArray.map((node) => (
-                  <option key={node.key} value={node.key}>
-                    {node.text}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <p className="text-xs uppercase tracking-[0.4em] text-slate-400">To</p>
-              <select
-                className="mt-1 rounded-2xl border border-slate-200 px-3 py-2 text-sm text-slate-700"
-                value={pairTo}
-                onChange={(e) => setPairTo(e.target.value)}
-              >
-                {nodeDataArray
-                  .filter((node) => node.key !== pairFrom)
-                  .map((node) => (
+      <PageHeader
+        eyebrow="Quick intel"
+        title="Issue Pair Explorer"
+        description="Compare two issues at a glance. We’ll surface how often they appear together, show common paths, and prompt an intervention."
+        actions={(
+          <div className="flex flex-wrap items-center gap-3 text-sm text-slate-500">
+            <Button variant="secondary" size="sm" onClick={() => setShowAdvanced((prev) => !prev)}>
+              {showAdvanced ? "Hide deeper analysis" : "Open deeper analysis"}
+            </Button>
+            <div className="flex gap-3">
+              <div>
+                <p className="text-xs uppercase tracking-[0.4em] text-slate-400">From</p>
+                <select
+                  className="mt-1 rounded-2xl border border-slate-200 px-3 py-2 text-sm text-slate-700"
+                  value={pairFrom}
+                  onChange={(e) => setPairFrom(e.target.value)}
+                >
+                  {nodeDataArray.map((node) => (
                     <option key={node.key} value={node.key}>
                       {node.text}
                     </option>
                   ))}
-              </select>
+                </select>
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-[0.4em] text-slate-400">To</p>
+                <select
+                  className="mt-1 rounded-2xl border border-slate-200 px-3 py-2 text-sm text-slate-700"
+                  value={pairTo}
+                  onChange={(e) => setPairTo(e.target.value)}
+                >
+                  {nodeDataArray
+                    .filter((node) => node.key !== pairFrom)
+                    .map((node) => (
+                      <option key={node.key} value={node.key}>
+                        {node.text}
+                      </option>
+                    ))}
+                </select>
+              </div>
             </div>
           </div>
-        </div>
-
-        <div className="mt-6 grid gap-6 lg:grid-cols-3">
+        )}
+      >
+        <div className="grid gap-6 lg:grid-cols-3">
           <Card className="p-5">
             <p className="text-xs uppercase tracking-[0.4em] text-slate-400">Frequency</p>
             <h3 className="mt-3 text-3xl font-semibold text-brand">{pairPaths.length}</h3>
@@ -514,7 +513,7 @@ const CyclesGraphPage = () => {
           <p className="text-xs uppercase tracking-[0.4em] text-brand/70">Suggested intervention</p>
           <p className="mt-2 text-sm text-slate-600">{activeSuggestion}</p>
         </div>
-      </section>
+      </PageHeader>
 
       {showAdvanced && (
         <>

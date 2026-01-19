@@ -93,7 +93,9 @@ const listInsights = asyncHandler(async (req, res) => {
 });
 
 const refreshInsights = asyncHandler(async (req, res) => {
-  const entries = await Entry.find({ userId: req.user._id }).sort({ createdAt: -1 }).limit(50);
+  const entries = await Entry.find({ userId: req.user._id, deletedAt: null })
+    .sort({ createdAt: -1 })
+    .limit(50);
   const insightsPayload = buildInsights(entries);
 
   await Insight.deleteMany({ userId: req.user._id });

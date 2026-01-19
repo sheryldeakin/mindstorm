@@ -15,6 +15,7 @@ type AuthUser = {
   id: string;
   email: string;
   name?: string;
+  username?: string;
 };
 
 interface AuthContextValue {

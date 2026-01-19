@@ -303,7 +303,7 @@ const recomputeSnapshotForUser = async ({ userId, rangeKey }) => {
   const startIso = getRangeStartIso(rangeKey);
   const endIso = new Date().toISOString().slice(0, 10);
   const entryQuery = startIso ? { userId, dateISO: { $gte: startIso } } : { userId };
-  const entries = await Entry.find(entryQuery)
+  const entries = await Entry.find({ ...entryQuery, deletedAt: null })
     .sort({ dateISO: 1 })
     .lean();
 

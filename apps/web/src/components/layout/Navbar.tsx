@@ -26,7 +26,6 @@ const appLinks = [
   { label: "Patterns", to: "/patient/patterns" },
   { label: "Cycles", to: "/patient/cycles" },
   { label: "Prepare", to: "/patient/prepare" },
-  { label: "Settings", to: "/patient/settings" },
 ];
 
 const Navbar = ({ variant = "landing" }: NavbarProps) => {
@@ -35,7 +34,9 @@ const Navbar = ({ variant = "landing" }: NavbarProps) => {
   const { pathname } = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [menuPosition, setMenuPosition] = useState({ top: 0, right: 0 });
   const menuRef = useRef<HTMLDivElement | null>(null);
+  const menuPortalRef = useRef<HTMLDivElement | null>(null);
   const portalTarget = typeof document !== "undefined" ? document.body : null;
 
   const initials = useMemo(() => {
@@ -49,7 +50,8 @@ const Navbar = ({ variant = "landing" }: NavbarProps) => {
   useEffect(() => {
     const handleClick = (event: MouseEvent) => {
       if (!menuRef.current || !(event.target instanceof Node)) return;
-      if (!menuRef.current.contains(event.target)) {
+      const portalContains = menuPortalRef.current?.contains(event.target);
+      if (!menuRef.current.contains(event.target) && !portalContains) {
         setMenuOpen(false);
       }
     };
@@ -68,6 +70,27 @@ const Navbar = ({ variant = "landing" }: NavbarProps) => {
       document.removeEventListener("keydown", handleEscape);
     };
   }, []);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+
+    const updatePosition = () => {
+      const rect = menuRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      setMenuPosition({
+        top: rect.bottom + 8,
+        right: window.innerWidth - rect.right,
+      });
+    };
+
+    updatePosition();
+    window.addEventListener("resize", updatePosition);
+    window.addEventListener("scroll", updatePosition, true);
+    return () => {
+      window.removeEventListener("resize", updatePosition);
+      window.removeEventListener("scroll", updatePosition, true);
+    };
+  }, [menuOpen]);
 
   const handleSignOut = () => {
     signOut();
@@ -180,29 +203,47 @@ const Navbar = ({ variant = "landing" }: NavbarProps) => {
                     {user?.name?.trim() || user?.email || "Account"}
                   </span>
                 </button>
-                {menuOpen && (
-                  <div className="ms-glass-surface absolute right-0 mt-2 w-56 rounded-2xl p-2 text-sm text-slate-700">
-                    <div className="px-3 py-2">
-                      <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Signed in as</p>
-                      <p className="mt-1 truncate text-sm font-semibold text-slate-800">
-                        {user?.email || "Account"}
-                      </p>
-                    </div>
-                    <div className="my-1 h-px bg-slate-100" />
-                    <button
-                      type="button"
-                      onClick={handleSignOut}
-                      className="w-full rounded-xl px-3 py-2 text-left text-sm font-medium text-slate-700 transition hover:bg-white/60"
-                    >
-                      Sign out
-                    </button>
-                  </div>
-                )}
               </div>
             </>
           )}
         </div>
       </div>
+      {portalTarget && menuOpen
+        ? createPortal(
+            <div
+              className="ms-glass-surface fixed z-[1200] w-56 rounded-2xl p-2 text-sm text-slate-700 shadow-xl"
+              style={{ top: menuPosition.top, right: menuPosition.right }}
+              ref={menuPortalRef}
+            >
+              <div className="px-3 py-2">
+                <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Signed in as</p>
+                <p className="mt-1 truncate text-sm font-semibold text-slate-800">
+                  {user?.email || "Account"}
+                </p>
+              </div>
+              <div className="my-1 h-px bg-slate-100" />
+              <button
+                type="button"
+                onClick={() => {
+                  setMenuOpen(false);
+                  navigate("/patient/settings/profile");
+                }}
+                className="w-full rounded-xl px-3 py-2 text-left text-sm font-medium text-slate-700 transition hover:bg-white/60"
+              >
+                Settings
+              </button>
+              <div className="my-1 h-px bg-slate-100" />
+              <button
+                type="button"
+                onClick={handleSignOut}
+                className="w-full rounded-xl px-3 py-2 text-left text-sm font-medium text-slate-700 transition hover:bg-white/60"
+              >
+                Sign out
+              </button>
+            </div>,
+            portalTarget,
+          )
+        : null}
       {portalTarget && mobileOpen
         ? createPortal(
             <div className="fixed inset-0 z-[999] lg:hidden">

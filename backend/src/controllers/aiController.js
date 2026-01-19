@@ -119,15 +119,155 @@ const buildClinicalSignalPrompt = () =>
     "    }",
     "  ]",
     "}",
+    "Constraints: Return at most 8 evidence units. Keep each span under 260 characters.",
+    "If nothing is present, return an empty evidence_units array.",
   ].join(" ");
 
-const extractJson = (text) => {
-  const start = text.indexOf("{");
-  const end = text.lastIndexOf("}");
-  if (start === -1 || end === -1 || end <= start) return null;
-  const slice = text.slice(start, end + 1);
+const extractBalancedJson = (text, openChar, closeChar) => {
+  const start = text.indexOf(openChar);
+  if (start === -1) return null;
+
+  let depth = 0;
+  let inString = false;
+  let escapeNext = false;
+
+  for (let i = start; i < text.length; i += 1) {
+    const char = text[i];
+
+    if (escapeNext) {
+      escapeNext = false;
+      continue;
+    }
+
+    if (char === "\\") {
+      escapeNext = true;
+      continue;
+    }
+
+    if (char === '"') {
+      inString = !inString;
+    }
+
+    if (inString) continue;
+
+    if (char === openChar) depth += 1;
+    if (char === closeChar) depth -= 1;
+
+    if (depth === 0) {
+      return text.slice(start, i + 1);
+    }
+  }
+
+  return null;
+};
+
+const stripTrailingCommas = (text) => text.replace(/,\s*([}\]])/g, "$1");
+
+const sanitizeJsonText = (text) => {
+  if (!text) return "";
+  let out = "";
+  let inString = false;
+  let escapeNext = false;
+
+  for (let i = 0; i < text.length; i += 1) {
+    const char = text[i];
+
+    if (escapeNext) {
+      out += char;
+      escapeNext = false;
+      continue;
+    }
+
+    if (char === "\\") {
+      out += char;
+      escapeNext = true;
+      continue;
+    }
+
+    if (char === '"') {
+      inString = !inString;
+      out += char;
+      continue;
+    }
+
+    if (inString) {
+      if (char === "\n") {
+        out += "\\n";
+        continue;
+      }
+      if (char === "\r") {
+        out += "\\r";
+        continue;
+      }
+      if (char === "\t") {
+        out += "\\t";
+        continue;
+      }
+    }
+
+    if (!inString && /[\u0000-\u001f]/.test(char)) {
+      continue;
+    }
+
+    out += char;
+  }
+
+  return out;
+};
+
+const extractPartialArrayObjects = (text) => {
+  const arrayStart = text.indexOf("[");
+  if (arrayStart === -1) return null;
+
+  let inString = false;
+  let escapeNext = false;
+  let braceDepth = 0;
+  let lastObjectEnd = null;
+
+  for (let i = arrayStart; i < text.length; i += 1) {
+    const char = text[i];
+
+    if (escapeNext) {
+      escapeNext = false;
+      continue;
+    }
+
+    if (char === "\\") {
+      escapeNext = true;
+      continue;
+    }
+
+    if (char === '"') {
+      inString = !inString;
+    }
+
+    if (inString) continue;
+
+    if (char === "{") braceDepth += 1;
+    if (char === "}") {
+      braceDepth -= 1;
+      if (braceDepth === 0) lastObjectEnd = i;
+    }
+  }
+
+  if (lastObjectEnd === null) return null;
+
+  const arrayBody = text.slice(arrayStart + 1, lastObjectEnd + 1);
+  const trimmed = stripTrailingCommas(arrayBody.trim());
+  const wrapped = `[${trimmed}]`;
   try {
-    return JSON.parse(slice);
+    return JSON.parse(stripTrailingCommas(sanitizeJsonText(wrapped)));
+  } catch {
+    return null;
+  }
+};
+
+const extractJson = (text) => {
+  if (!text) return null;
+  const slice = extractBalancedJson(text, "{", "}");
+  if (!slice) return null;
+  try {
+    return JSON.parse(stripTrailingCommas(sanitizeJsonText(slice)));
   } catch {
     return null;
   }
@@ -150,11 +290,21 @@ const getWeekEndIso = (weekStartIso) => {
   return end.toISOString().slice(0, 10);
 };
 
+const shouldUseJsonResponseFormat = (baseUrl) => {
+  const isLocal = baseUrl.includes("localhost") || baseUrl.includes("127.0.0.1");
+  if (process.env.LLM_FORCE_JSON_RESPONSE_FORMAT === "true") return true;
+  if (process.env.LLM_DISABLE_JSON_RESPONSE_FORMAT === "true") return false;
+  return !isLocal;
+};
+
 const callLlm = async ({ baseUrl, apiKey, model, messages, maxTokens }) => {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 90000);
 
   try {
+    const responseFormat = shouldUseJsonResponseFormat(baseUrl)
+      ? { response_format: { type: "json_object" } }
+      : {};
     const response = await fetch(`${baseUrl}/chat/completions`, {
       method: "POST",
       headers: {
@@ -166,14 +316,17 @@ const callLlm = async ({ baseUrl, apiKey, model, messages, maxTokens }) => {
         messages,
         temperature: 0.2,
         max_tokens: maxTokens,
-        response_format: { type: "json_object" },
+        ...responseFormat,
       }),
       signal: controller.signal,
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      return { error: `LLM request failed: ${errorText}` };
+      return {
+        error: "LLM request failed.",
+        details: { status: response.status, statusText: response.statusText, body: errorText },
+      };
     }
 
     const data = await response.json();
@@ -192,7 +345,7 @@ const callLlm = async ({ baseUrl, apiKey, model, messages, maxTokens }) => {
     if (err?.name === "AbortError") {
       return { error: "LLM request timed out." };
     }
-    return { error: "LLM request failed." };
+    return { error: "LLM request failed.", details: { message: err?.message || String(err) } };
   } finally {
     clearTimeout(timeout);
   }
@@ -212,6 +365,71 @@ const callLlmWithRetry = async (options) => {
     ],
   });
   return retry;
+};
+
+const callLlmRaw = async ({ baseUrl, apiKey, model, messages, maxTokens }) => {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 90000);
+
+  try {
+    const responseFormat = shouldUseJsonResponseFormat(baseUrl)
+      ? { response_format: { type: "json_object" } }
+      : {};
+    const response = await fetch(`${baseUrl}/chat/completions`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey || "sk-local"}`,
+      },
+      body: JSON.stringify({
+        model,
+        messages,
+        temperature: 0.2,
+        max_tokens: maxTokens,
+        ...responseFormat,
+      }),
+      signal: controller.signal,
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      return {
+        error: "LLM request failed.",
+        details: { status: response.status, statusText: response.statusText, body: errorText },
+      };
+    }
+
+    const data = await response.json();
+    const content = data.choices?.[0]?.message?.content;
+    if (!content) {
+      return { error: "No response content." };
+    }
+
+    return { content };
+  } catch (err) {
+    if (err?.name === "AbortError") {
+      return { error: "LLM request timed out." };
+    }
+    return { error: "LLM request failed.", details: { message: err?.message || String(err) } };
+  } finally {
+    clearTimeout(timeout);
+  }
+};
+
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const callLlmRawWithRetry = async ({ baseUrl, apiKey, model, messages, maxTokens, retries = 2 }) => {
+  let attempt = 0;
+  let lastResult = null;
+  while (attempt <= retries) {
+    lastResult = await callLlmRaw({ baseUrl, apiKey, model, messages, maxTokens });
+    if (!lastResult?.error) return lastResult;
+    const shouldRetry = lastResult?.error === "LLM request failed." || lastResult?.error === "LLM request timed out.";
+    if (!shouldRetry || attempt === retries) return lastResult;
+    await delay(500 * (attempt + 1));
+    attempt += 1;
+  }
+  return lastResult;
 };
 
 const generateEntryEvidence = async (entryText) => {
@@ -236,7 +454,7 @@ const generateEntryEvidence = async (entryText) => {
   });
 
   if (response.error) {
-    return { error: response.error };
+    return { error: response.error, details: response.details };
   }
 
   return {
@@ -260,22 +478,120 @@ const generateClinicalEvidenceUnits = async (entryText) => {
     return { error: "OPENAI_API_KEY is not set." };
   }
 
-  const response = await callLlmWithRetry({
+  const buildMessages = (retry) => [
+    { role: "system", content: buildClinicalSignalPrompt() },
+    {
+      role: "user",
+      content: [
+        `Patient narrative:\n${entryText}`,
+        "Return JSON only.",
+        retry
+          ? "Your last response was not valid JSON. Return an object with key evidence_units only."
+          : null,
+      ]
+        .filter(Boolean)
+        .join("\n"),
+    },
+  ];
+
+  const response = await callLlmRawWithRetry({
     baseUrl,
     apiKey,
     model,
-    messages: [
-      { role: "system", content: buildClinicalSignalPrompt() },
-      { role: "user", content: `Patient narrative:\n${entryText}\nReturn JSON only.` },
-    ],
-    maxTokens: 900,
+    messages: buildMessages(false),
+    maxTokens: 1200,
   });
 
   if (response.error) {
-    return { error: response.error };
+    return { error: response.error, details: response.details };
   }
 
-  const evidenceUnits = Array.isArray(response.data.evidence_units) ? response.data.evidence_units : [];
+  const normalizeJsonText = (content) => {
+    if (!content) return "";
+    let cleaned = content.trim();
+    cleaned = cleaned.replace(/```json/i, "```").replace(/```/g, "");
+    return cleaned.trim();
+  };
+
+  const parseContent = (content) => {
+    const cleaned = normalizeJsonText(content);
+    const sanitized = sanitizeJsonText(cleaned);
+    const cleanedNoTrailingCommas = stripTrailingCommas(sanitized);
+
+    try {
+      return JSON.parse(cleanedNoTrailingCommas);
+    } catch {
+      const objectSlice = extractBalancedJson(cleanedNoTrailingCommas, "{", "}");
+      if (objectSlice) {
+        try {
+          return JSON.parse(stripTrailingCommas(sanitizeJsonText(objectSlice)));
+        } catch {
+          return null;
+        }
+      }
+
+      const arraySlice = extractBalancedJson(cleanedNoTrailingCommas, "[", "]");
+      if (arraySlice) {
+        try {
+          return { evidence_units: JSON.parse(stripTrailingCommas(sanitizeJsonText(arraySlice))) };
+        } catch {
+          return null;
+        }
+      }
+
+      const partialArray = extractPartialArrayObjects(cleanedNoTrailingCommas);
+      if (partialArray) {
+        return { evidence_units: partialArray };
+      }
+      return null;
+    }
+  };
+
+  let parsed = parseContent(response.content);
+  if (!parsed) {
+    const retry = await callLlmRawWithRetry({
+      baseUrl,
+      apiKey,
+      model,
+      messages: buildMessages(true),
+      maxTokens: 1200,
+    });
+    if (retry.error) {
+      return { error: retry.error, details: retry.details };
+    }
+    parsed = parseContent(retry.content);
+  }
+
+  if (!parsed) {
+    const debug = process.env.LLM_DEBUG_PARSE === "true";
+    return {
+      error: "Failed to parse JSON response.",
+      details: debug
+        ? { contentSnippet: (response.content || "").slice(0, 800) }
+        : undefined,
+    };
+  }
+
+  const normalizeEvidenceUnits = (units) => {
+    if (!Array.isArray(units)) return [];
+    return units
+      .filter((unit) => unit && typeof unit === "object")
+      .map((unit) => ({
+        span: typeof unit.span === "string" ? unit.span.trim() : "",
+        label: typeof unit.label === "string" ? unit.label.trim() : "",
+        attributes: unit.attributes && typeof unit.attributes === "object" ? unit.attributes : {},
+      }))
+      .filter((unit) => unit.span && unit.label);
+  };
+
+  const evidenceUnits = normalizeEvidenceUnits(parsed.evidence_units);
+  if (Array.isArray(parsed.evidence_units) && parsed.evidence_units.length && !evidenceUnits.length) {
+    return {
+      error: "Invalid evidence_units format.",
+      details: { sampleTypes: parsed.evidence_units.slice(0, 3).map((unit) => typeof unit) },
+    };
+  }
+
   return { evidenceUnits };
 };
 
@@ -288,6 +604,7 @@ const generateWeeklySummary = async ({ userId, weekStartIso }) => {
   const entries = await Entry.find({
     userId,
     dateISO: { $gte: normalizedWeekStart, $lte: weekEndIso },
+    deletedAt: null,
   })
     .sort({ dateISO: 1 })
     .lean();
@@ -423,7 +740,11 @@ const prepareSummary = asyncHandler(async (req, res) => {
   const startIso = start.toISOString().slice(0, 10);
 
   const Entry = require("../models/Entry");
-  const entries = await Entry.find({ userId: req.user._id, dateISO: { $gte: startIso } })
+  const entries = await Entry.find({
+    userId: req.user._id,
+    dateISO: { $gte: startIso },
+    deletedAt: null,
+  })
     .sort({ dateISO: 1 })
     .lean();
 

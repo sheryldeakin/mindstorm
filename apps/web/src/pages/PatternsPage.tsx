@@ -14,6 +14,7 @@ import useEntries from "../hooks/useEntries";
 import useInsights from "../hooks/useInsights";
 import { apiFetch } from "../lib/apiClient";
 import { useAuth } from "../contexts/AuthContext";
+import PageHeader from "../components/layout/PageHeader";
 import type { PatternMetric } from "../types/journal";
 import type { PatternDetail, PatternSummary } from "../types/patterns";
 
@@ -281,19 +282,13 @@ const PatternsPage = () => {
           </Card>
         )}
       </section>
-      <section className="rounded-3xl border border-brand/15 p-6">
-        <p className="text-sm uppercase tracking-[0.4em] text-brandLight">Patterns & insights</p>
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-4">
-          <h2 className="text-3xl font-semibold">Your nervous system trends</h2>
-          <Tabs options={tabOptions} activeId={range} onValueChange={setRange} />
-        </div>
-        <p className="mt-2 text-sm text-slate-500">
-          Soft gradients call out when emotions spike, soften, or correlate with habits over the last {range}.
-        </p>
-        <div className="mt-8">
-          <PatternHighlights metrics={patternMetrics} />
-        </div>
-      </section>
+      <PageHeader
+        pageId="patterns"
+        description={`Soft gradients call out when emotions spike, soften, or correlate with habits over the last ${range}.`}
+        actions={<Tabs options={tabOptions} activeId={range} onValueChange={setRange} />}
+      >
+        <PatternHighlights metrics={patternMetrics} />
+      </PageHeader>
       <section className="grid gap-6 lg:grid-cols-2">
         <Card className="p-6">
           <h3 className="text-xl font-semibold">Emotion frequency</h3>

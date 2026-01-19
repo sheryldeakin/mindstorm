@@ -5,6 +5,7 @@ import Sparkline from "../components/charts/Sparkline";
 import type { ConnectionEdge, ConnectionNode } from "../types/connections";
 import { apiFetch } from "../lib/apiClient";
 import { useAuth } from "../contexts/AuthContext";
+import PageHeader from "../components/layout/PageHeader";
 
 const CoMovementChart = ({ fromSeries, toSeries }: { fromSeries: number[]; toSeries: number[] }) => (
   <div className="relative h-16 w-full">
@@ -66,17 +67,7 @@ const ConnectionsPage = () => {
 
   return (
     <div className="space-y-8 text-slate-900">
-      <section className="ms-card ms-elev-2 rounded-3xl p-6">
-        <p className="text-sm uppercase tracking-[0.4em] text-brandLight">Connections</p>
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <h2 className="text-3xl font-semibold">Relationships between signals</h2>
-            <p className="mt-2 text-sm text-slate-500">
-              Explore concurrence stats and temporal correlations across your entries.
-            </p>
-          </div>
-        </div>
-      </section>
+      <PageHeader pageId="connections" />
       <CausalityDisclaimer />
       <ConnectionsGraph
         nodes={nodes}

@@ -37,12 +37,12 @@ const parseDateInput = (value) => {
 const listEntries = asyncHandler(async (req, res) => {
   const limit = Number.parseInt(req.query.limit, 10) || 20;
   const offset = Number.parseInt(req.query.offset, 10) || 0;
-  const entries = await Entry.find({ userId: req.user._id })
+  const entries = await Entry.find({ userId: req.user._id, deletedAt: null })
     .sort({ dateISO: -1, createdAt: -1 })
     .skip(Math.max(0, offset))
     .limit(limit)
     .lean();
-  const total = await Entry.countDocuments({ userId: req.user._id });
+  const total = await Entry.countDocuments({ userId: req.user._id, deletedAt: null });
 
   const formatted = entries.map((entry) => ({
     id: entry._id.toString(),
@@ -140,7 +140,7 @@ const createEntry = asyncHandler(async (req, res) => {
 });
 
 const getEntry = asyncHandler(async (req, res) => {
-  const entry = await Entry.findOne({ _id: req.params.id, userId: req.user._id }).lean();
+  const entry = await Entry.findOne({ _id: req.params.id, userId: req.user._id, deletedAt: null }).lean();
   if (!entry) {
     return res.status(404).json({ message: "Entry not found." });
   }
@@ -167,7 +167,7 @@ const getEntry = asyncHandler(async (req, res) => {
 const updateEntry = asyncHandler(async (req, res) => {
   const { title, summary, tags, triggers, themes, emotions, themeIntensities, date, dateISO } = req.body;
 
-  const entry = await Entry.findOne({ _id: req.params.id, userId: req.user._id });
+  const entry = await Entry.findOne({ _id: req.params.id, userId: req.user._id, deletedAt: null });
   if (!entry) {
     return res.status(404).json({ message: "Entry not found." });
   }
@@ -251,7 +251,11 @@ const updateEntry = asyncHandler(async (req, res) => {
 });
 
 const deleteEntry = asyncHandler(async (req, res) => {
-  const entry = await Entry.findOneAndDelete({ _id: req.params.id, userId: req.user._id });
+  const entry = await Entry.findOneAndUpdate(
+    { _id: req.params.id, userId: req.user._id, deletedAt: null },
+    { $set: { deletedAt: new Date() } },
+    { new: true },
+  );
   if (!entry) {
     return res.status(404).json({ message: "Entry not found." });
   }

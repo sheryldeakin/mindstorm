@@ -19,6 +19,17 @@ const userSchema = new mongoose.Schema(
       default: "",
       trim: true,
     },
+    username: {
+      type: String,
+      unique: true,
+      sparse: true,
+      lowercase: true,
+      trim: true,
+    },
+    lastLoginAt: {
+      type: Date,
+      default: null,
+    },
   },
   { timestamps: true },
 );

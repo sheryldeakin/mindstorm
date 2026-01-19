@@ -1,4 +1,6 @@
+import { useNavigate } from "react-router-dom";
 import type { JournalEntry } from "../../types/journal";
+import Button from "../ui/Button";
 
 interface JournalTimelineProps {
   entries: JournalEntry[];
@@ -6,6 +8,7 @@ interface JournalTimelineProps {
 }
 
 const JournalTimeline = ({ entries, loading = false }: JournalTimelineProps) => {
+  const navigate = useNavigate();
   if (loading) {
     return (
       <div className="flex flex-wrap gap-4 pb-2">
@@ -41,6 +44,18 @@ const JournalTimeline = ({ entries, loading = false }: JournalTimelineProps) => 
           <p className="text-xs uppercase tracking-[0.4em] text-brand/50">{entry.date}</p>
           <p className="mt-3 font-semibold text-brand">{entry.title}</p>
           <p className="mt-2 text-slate-500">{entry.emotions[0]?.label ?? "—"}</p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => navigate(`/patient/entry/${entry.id}`)}
+            >
+              Detail
+            </Button>
+            <Button size="sm" onClick={() => navigate(`/patient/entry/${entry.id}/v2`)}>
+              Signals
+            </Button>
+          </div>
         </div>
       ))}
     </div>

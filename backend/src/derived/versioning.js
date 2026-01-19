@@ -23,7 +23,7 @@ const getRangeStartIso = (rangeKey) => {
 const computeSourceVersionForRange = async (userId, rangeKey) => {
   const startIso = getRangeStartIso(rangeKey);
   const query = startIso ? { userId, dateISO: { $gte: startIso } } : { userId };
-  const latestEntry = await Entry.findOne(query).sort({ updatedAt: -1 }).lean();
+  const latestEntry = await Entry.findOne({ ...query, deletedAt: null }).sort({ updatedAt: -1 }).lean();
   if (!latestEntry?.updatedAt) {
     return new Date().toISOString();
   }

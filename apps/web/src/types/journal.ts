@@ -11,6 +11,24 @@ export interface Trigger {
   frequency: number;
 }
 
+export type EvidencePolarity = "PRESENT" | "ABSENT";
+export type EvidenceUncertainty = "LOW" | "HIGH";
+
+export interface EvidenceAttributes {
+  polarity?: EvidencePolarity | null;
+  temporality?: string | null;
+  frequency?: string | null;
+  severity?: string | null;
+  attribution?: string | null;
+  uncertainty?: EvidenceUncertainty | null;
+}
+
+export interface EvidenceUnit {
+  span: string;
+  label: string;
+  attributes?: EvidenceAttributes | null;
+}
+
 export interface JournalEntry {
   id: string;
   date: string;
@@ -29,6 +47,7 @@ export interface JournalEntry {
     unclearAreas?: string[];
     questionsToExplore?: string[];
   };
+  evidenceUnits?: EvidenceUnit[];
   createdAt?: string;
   updatedAt?: string;
 }

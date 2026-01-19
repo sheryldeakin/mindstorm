@@ -58,6 +58,7 @@ const entrySchema = new mongoose.Schema(
       questionsToExplore: { type: [String], default: [] },
     },
     evidenceUnits: { type: [evidenceUnitSchema], default: [] },
+    deletedAt: { type: Date, default: null },
   },
   { timestamps: true },
 );

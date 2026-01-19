@@ -6,6 +6,7 @@ import { Card } from "../components/ui/Card";
 import Textarea from "../components/ui/Textarea";
 import { apiFetch } from "../lib/apiClient";
 import type { AuditLogEntry, PrepareSummary, WeeklySummary } from "../types/prepare";
+import PageHeader from "../components/layout/PageHeader";
 
 const timeRanges = [
   { id: "7", label: "Last 7 days" },
@@ -218,17 +219,7 @@ const PreparePage = () => {
 
   return (
     <div className="space-y-8 text-slate-900">
-      <section className="rounded-3xl border border-brand/15 p-6">
-        <p className="text-sm uppercase tracking-[0.4em] text-brandLight">Prepare</p>
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <h2 className="text-3xl font-semibold">Bring this to your clinician</h2>
-            <p className="mt-2 text-sm text-slate-500">
-              A patient-authored reflection summary focused on patterns, context, and questions.
-            </p>
-          </div>
-        </div>
-      </section>
+      <PageHeader pageId="prepare" />
       {summaryLoading && (
         <div className="rounded-2xl border border-slate-200 p-4 text-xs text-slate-500" role="status" aria-live="polite">
           <div className="flex items-center justify-between">

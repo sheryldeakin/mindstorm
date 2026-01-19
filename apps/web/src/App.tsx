@@ -6,11 +6,23 @@ import Navbar from "./components/layout/Navbar";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import EntryEditorPage from "./pages/EntryEditorPage";
 import EntryDetailPage from "./pages/EntryDetailPage";
+import EntryDetailV2Page from "./pages/EntryDetailV2Page";
 import EntryEditPage from "./pages/EntryEditPage";
 import CheckInPage from "./pages/CheckInPage";
 import ConnectionsPage from "./pages/ConnectionsPage";
 import PreparePage from "./pages/PreparePage";
 import SettingsPage from "./pages/SettingsPage";
+import SettingsAccountSecurityPage from "./pages/settings/SettingsAccountSecurityPage";
+import SettingsAiInsightsPage from "./pages/settings/SettingsAiInsightsPage";
+import SettingsBillingPage from "./pages/settings/SettingsBillingPage";
+import SettingsDataActivityPage from "./pages/settings/SettingsDataActivityPage";
+import SettingsIntegrationsPage from "./pages/settings/SettingsIntegrationsPage";
+import SettingsJournalingDefaultsPage from "./pages/settings/SettingsJournalingDefaultsPage";
+import SettingsNotificationsPage from "./pages/settings/SettingsNotificationsPage";
+import SettingsPreferencesPage from "./pages/settings/SettingsPreferencesPage";
+import SettingsPrivacyPage from "./pages/settings/SettingsPrivacyPage";
+import SettingsProfilePage from "./pages/settings/SettingsProfilePage";
+import SettingsSharingAccessPage from "./pages/settings/SettingsSharingAccessPage";
 import HomeDashboardPage from "./pages/HomeDashboardPage";
 import HomePage from "./pages/HomePage";
 import JournalDashboard from "./pages/JournalDashboard";
@@ -72,11 +84,23 @@ const App = () => {
             <Route path="journal" element={<JournalDashboard />} />
             <Route path="entry" element={<EntryEditorPage />} />
             <Route path="entry/:id" element={<EntryDetailPage />} />
+            <Route path="entry/:id/v2" element={<EntryDetailV2Page />} />
             <Route path="entry/:id/edit" element={<EntryEditPage />} />
             <Route path="check-in" element={<CheckInPage />} />
             <Route path="connections" element={<ConnectionsPage />} />
             <Route path="prepare" element={<PreparePage />} />
             <Route path="settings" element={<SettingsPage />} />
+            <Route path="settings/profile" element={<SettingsProfilePage />} />
+            <Route path="settings/account-security" element={<SettingsAccountSecurityPage />} />
+            <Route path="settings/privacy" element={<SettingsPrivacyPage />} />
+            <Route path="settings/notifications" element={<SettingsNotificationsPage />} />
+            <Route path="settings/preferences" element={<SettingsPreferencesPage />} />
+            <Route path="settings/integrations" element={<SettingsIntegrationsPage />} />
+            <Route path="settings/billing" element={<SettingsBillingPage />} />
+            <Route path="settings/data-activity" element={<SettingsDataActivityPage />} />
+            <Route path="settings/journaling-defaults" element={<SettingsJournalingDefaultsPage />} />
+            <Route path="settings/sharing-access" element={<SettingsSharingAccessPage />} />
+            <Route path="settings/ai-insights" element={<SettingsAiInsightsPage />} />
             <Route path="patterns" element={<PatternsPage />} />
             <Route path="cycles" element={<CyclesGraphPage />} />
           </Route>
@@ -106,6 +130,7 @@ const App = () => {
         <Route path="/journal" element={<Navigate to="/patient/journal" replace />} />
         <Route path="/entry" element={<Navigate to="/patient/entry" replace />} />
         <Route path="/entry/:id" element={<Navigate to="/patient/entry/:id" replace />} />
+        <Route path="/entry/:id/v2" element={<Navigate to="/patient/entry/:id/v2" replace />} />
         <Route path="/entry/:id/edit" element={<Navigate to="/patient/entry/:id/edit" replace />} />
         <Route path="/check-in" element={<Navigate to="/patient/check-in" replace />} />
         <Route path="/connections" element={<Navigate to="/patient/connections" replace />} />

@@ -4,6 +4,7 @@ import QuickNoteInput from "../components/features/QuickNoteInput";
 import Button from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
 import type { CheckInMetric } from "../types/checkIn";
+import PageHeader from "../components/layout/PageHeader";
 
 const defaultCheckInMetrics: CheckInMetric[] = [
   { id: "energy", label: "Energy", lowLabel: "Drained", highLabel: "Charged", value: 62 },
@@ -31,18 +32,10 @@ const CheckInPage = () => {
 
   return (
     <div className="space-y-8 text-slate-900">
-      <section className="rounded-3xl border border-brand/15 p-6">
-        <p className="text-sm uppercase tracking-[0.4em] text-brandLight">Check-in</p>
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <h2 className="text-3xl font-semibold">Daily signal snapshot</h2>
-            <p className="mt-2 text-sm text-slate-500">
-              Small structured signals stabilize trends when journaling alone is spiky.
-            </p>
-          </div>
-          <Button onClick={() => setCheckInOpen(true)}>Start check-in</Button>
-        </div>
-      </section>
+      <PageHeader
+        pageId="check-in"
+        actions={<Button onClick={() => setCheckInOpen(true)}>Start check-in</Button>}
+      />
       <section className="grid gap-6 lg:grid-cols-[1.3fr_1fr]">
         <Card className="p-6">
           <h3 className="text-xl font-semibold">Today's signals</h3>

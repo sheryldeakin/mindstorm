@@ -1,4 +1,5 @@
 const express = require("express");
+const path = require("path");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const connectDb = require("./config/db");
@@ -34,6 +35,7 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 app.use(express.json({ limit: "1mb" }));
+app.use("/uploads", express.static(path.join(__dirname, "..", "uploads")));
 
 app.get("/api/health", (_req, res) => {
   res.json({ status: "ok" });

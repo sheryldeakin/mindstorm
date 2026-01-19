@@ -421,7 +421,11 @@ const getConnectionsGraph = asyncHandler(async (req, res) => {
     (edge.evidenceEntryIds || []).forEach((id) => entryIds.add(id));
   });
 
-  const entries = await Entry.find({ _id: { $in: Array.from(entryIds) }, userId: req.user._id }).lean();
+  const entries = await Entry.find({
+    _id: { $in: Array.from(entryIds) },
+    userId: req.user._id,
+    deletedAt: null,
+  }).lean();
   const entryMap = new Map(entries.map((entry) => [entry._id.toString(), entry]));
 
   const seriesDocs = await ThemeSeries.find({ userId: req.user._id, rangeKey }).lean();
@@ -505,7 +509,7 @@ const getPatterns = asyncHandler(async (req, res) => {
   const patternId = req.query.patternId;
   const startIso = getRangeStartIso(rangeKey);
   const entryQuery = startIso ? { userId: req.user._id, dateISO: { $gte: startIso } } : { userId: req.user._id };
-  const entries = await Entry.find(entryQuery)
+  const entries = await Entry.find({ ...entryQuery, deletedAt: null })
     .sort({ dateISO: 1 })
     .lean();
   const signalQuery = startIso ? { userId: req.user._id, dateISO: { $gte: startIso } } : { userId: req.user._id };

@@ -160,49 +160,8 @@ const buildSnapshotSynthesis = (patterns: HomePatternCard[], influences: string[
   return `${baseline} ${influenceLine}`;
 };
 
-const fallbackPatterns: HomePatternCard[] = [
-  {
-    id: "pattern-1",
-    title: "Afternoon activation",
-    description: "Energy spikes after dense meetings, settles with movement.",
-    trend: "up",
-    confidence: "high",
-    sparkline: [38, 42, 51, 57, 62, 66, 58],
-  },
-  {
-    id: "pattern-2",
-    title: "Sleep-supported calm",
-    description: "Sleep quality is linked to steadier mornings.",
-    trend: "steady",
-    confidence: "medium",
-    sparkline: [55, 52, 54, 56, 55, 57, 56],
-  },
-  {
-    id: "pattern-3",
-    title: "Connection boosts focus",
-    description: "Brief check-ins help you refocus after stressors.",
-    trend: "down",
-    confidence: "low",
-    sparkline: [64, 61, 59, 55, 52, 49, 47],
-  },
-];
-
-const fallbackTimeRangeSummary: TimeRangeSummary = {
-  weekOverWeekDelta: "Stress down 8% · Sleep variability up 4%",
-  missingSignals: ["No entries tagged with appetite", "Skipped two check-ins"],
-};
-
-const fallbackHelpedHighlights = [
-  "Morning walk",
-  "3-minute breath reset",
-  "Screen breaks after 4 PM",
-  "Therapy prep notes",
-];
-
-const fallbackPrompts = [
-  "Which moment felt most steady this week?",
-  "What would make tomorrow 10% softer?",
-];
+const emptyHelpedHighlights: string[] = [];
+const emptyPrompts: string[] = [];
 
 const rangeOptions = [
   { id: "week", label: "Your week in patterns" },
@@ -275,10 +234,12 @@ const HomeDashboardPage = () => {
       .finally(() => setWeeklyLoading(false));
   }, [rangeKey, status]);
 
-  const patterns = snapshot?.patterns?.length ? snapshot.patterns : fallbackPatterns;
+  const entryCount = snapshot?.entryCount ?? snapshot?.sourceEntryCount ?? 0;
+  const hasEntries = entryCount > 0;
+  const patterns = snapshot?.patterns?.length ? snapshot.patterns : [];
   const timeRangeSummary = snapshot?.timeRangeSummary || null;
-  const helpedHighlights = snapshot?.whatHelped?.length ? snapshot.whatHelped : fallbackHelpedHighlights;
-  const gentlePrompts = snapshot?.prompts?.length ? snapshot.prompts : fallbackPrompts;
+  const helpedHighlights = snapshot?.whatHelped?.length ? snapshot.whatHelped : emptyHelpedHighlights;
+  const gentlePrompts = snapshot?.prompts?.length ? snapshot.prompts : emptyPrompts;
   const currentWeekSummary = useMemo(
     () => (weeklySummaries.length ? weeklySummaries[weeklySummaries.length - 1] : null),
     [weeklySummaries],
@@ -308,10 +269,14 @@ const HomeDashboardPage = () => {
   const snapshotImpactAreas = snapshot?.impactAreas || [];
   const snapshotInfluences = snapshot?.influences || [];
   const snapshotQuestions = snapshot?.openQuestions || [];
-  const entryCount = snapshot?.entryCount ?? snapshot?.sourceEntryCount ?? patterns.length;
+  const emptyContextCopy = hasEntries
+    ? "Not available yet."
+    : "Add a few entries to see this.";
   const snapshotSynthesis = buildSnapshotSynthesis(patterns, snapshotInfluences);
   const snapshotNarrative =
-    patterns.length || snapshotInfluences.length ? snapshotSynthesis : "Current snapshot not available yet.";
+    hasEntries && (patterns.length || snapshotInfluences.length)
+      ? snapshotSynthesis
+      : "Add a few journal entries to unlock your snapshot patterns.";
 
   return (
     <div className="space-y-12 text-slate-900">
@@ -377,7 +342,7 @@ const HomeDashboardPage = () => {
           <div className="space-y-3">
             <p className="small-label text-slate-400">Influences</p>
             <div className="space-y-2">
-              {(snapshotInfluences.length ? snapshotInfluences : ["Not available yet."])
+              {(snapshotInfluences.length ? snapshotInfluences : [emptyContextCopy])
                 .slice(0, 3)
                 .map((item) => (
                   <div key={item} className="flex items-center gap-2">
@@ -391,7 +356,7 @@ const HomeDashboardPage = () => {
         <div className="mt-6 space-y-3 text-sm text-slate-600">
           <p className="small-label text-slate-400">Questions you might explore</p>
           <div className="space-y-2">
-            {(snapshotQuestions.length ? snapshotQuestions : ["Not available yet."])
+            {(snapshotQuestions.length ? snapshotQuestions : [emptyContextCopy])
               .slice(0, 3)
               .map((item) => (
                 <div key={item} className="flex items-center gap-2">
@@ -434,31 +399,45 @@ const HomeDashboardPage = () => {
                   <p className="small-label text-slate-400">What helped</p>
                   <p className="mt-2 text-sm text-slate-500">Supports that softened the week.</p>
                   <div className="mt-3 flex flex-wrap gap-2">
-                    {helpedHighlights.map((item) => (
-                      <span
-                        key={item}
-                        className="ms-glass-pill rounded-full border border-emerald-200/60 px-3 py-1 text-xs text-emerald-700"
-                      >
-                        {item}
+                    {helpedHighlights.length ? (
+                      helpedHighlights.map((item) => (
+                        <span
+                          key={item}
+                          className="ms-glass-pill rounded-full border border-emerald-200/60 px-3 py-1 text-xs text-emerald-700"
+                        >
+                          {item}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="text-sm text-slate-500">
+                        {hasEntries ? "No supports captured yet." : "Add entries to see supports here."}
                       </span>
-                    ))}
+                    )}
                   </div>
                 </div>
               </div>
             </>
           ) : (
-            <p className="mt-2 text-sm text-slate-500">No change summary available yet.</p>
+            <p className="mt-2 text-sm text-slate-500">
+              {hasEntries ? "No change summary available yet." : "Add entries to see changes over time."}
+            </p>
           )}
         </Card>
         <Card className="ms-elev-1 p-6">
           <h3 className="text-lg font-semibold text-slate-700">Gentle prompts</h3>
           <p className="mt-1 text-sm text-slate-500">Small nudges to reflect on today.</p>
           <div className="mt-4 space-y-3">
-            {gentlePrompts.map((prompt) => (
-              <div key={prompt} className="ms-glass-surface rounded-2xl border px-4 py-3 text-sm text-slate-600">
-                {prompt}
+            {gentlePrompts.length ? (
+              gentlePrompts.map((prompt) => (
+                <div key={prompt} className="ms-glass-surface rounded-2xl border px-4 py-3 text-sm text-slate-600">
+                  {prompt}
+                </div>
+              ))
+            ) : (
+              <div className="rounded-2xl border border-dashed border-slate-200 bg-white/60 px-4 py-3 text-sm text-slate-500">
+                {hasEntries ? "No prompts yet." : "Add a few entries to generate prompts."}
               </div>
-            ))}
+            )}
           </div>
         </Card>
       </section>

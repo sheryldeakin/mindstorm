@@ -1,7 +1,11 @@
 const dotenv = require("dotenv");
 const mongoose = require("mongoose");
 const Entry = require("../src/models/Entry");
-const { generateEntryEvidence, generateWeeklySummary } = require("../src/controllers/aiController");
+const {
+  generateEntryEvidence,
+  generateClinicalEvidenceUnits,
+  generateWeeklySummary,
+} = require("../src/controllers/aiController");
 const { recomputeSnapshotForUser } = require("../src/derived/services/snapshotRecompute");
 const { upsertEntrySignals } = require("../src/derived/services/derivedService");
 const { recomputeConnectionsForUser } = require("../src/derived/services/connectionsRecompute");
@@ -57,7 +61,20 @@ const run = async () => {
         );
         console.log(`Evidence updated for entry ${entry._id}`);
       } else {
-        console.warn(`Evidence skipped for entry ${entry._id}: ${evidence?.error}`);
+        const details = evidence?.details ? ` ${JSON.stringify(evidence.details)}` : "";
+        console.warn(`Evidence skipped for entry ${entry._id}: ${evidence?.error}${details}`);
+      }
+
+      const clinicalEvidence = await generateClinicalEvidenceUnits(entryText);
+      if (!clinicalEvidence?.error && clinicalEvidence?.evidenceUnits) {
+        await Entry.updateOne(
+          { _id: entry._id },
+          { $set: { evidenceUnits: clinicalEvidence.evidenceUnits } },
+        );
+        console.log(`Evidence units updated for entry ${entry._id}`);
+      } else {
+        const details = clinicalEvidence?.details ? ` ${JSON.stringify(clinicalEvidence.details)}` : "";
+        console.warn(`Evidence units skipped for entry ${entry._id}: ${clinicalEvidence?.error}${details}`);
       }
 
       await upsertEntrySignals({
