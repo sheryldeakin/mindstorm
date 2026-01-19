@@ -32,6 +32,7 @@ const clinicianLinks = [
   { label: "Home", to: "/clinician" },
   { label: "Criteria", to: "/clinician/criteria" },
   { label: "Differential", to: "/clinician/differential" },
+  { label: "Differential Eval", to: "/clinician/differential-eval" },
   { label: "Logic Graph", to: "/clinician/logic-graph" },
 ];
 

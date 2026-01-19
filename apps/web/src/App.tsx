@@ -37,6 +37,7 @@ import ClinicianShell from "./components/layout/ClinicianShell";
 import ClinicianCasePage from "./pages/ClinicianCasePage";
 import ClinicianSettingsPage from "./pages/ClinicianSettingsPage";
 import ClinicianLogicGraphPage from "./pages/ClinicianLogicGraphPage";
+import ClinicianDifferentialEvaluationPage from "./pages/ClinicianDifferentialEvaluationPage";
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -129,6 +130,8 @@ const App = () => {
           <Route path="criteria" element={<ClinicianCriteriaPage />} />
           <Route path="differential" element={<ClinicianDifferentialPage />} />
           <Route path="logic-graph" element={<ClinicianLogicGraphPage />} />
+          <Route path="differential-eval" element={<ClinicianDifferentialEvaluationPage />} />
+          <Route path="differential-eval/:caseId" element={<ClinicianDifferentialEvaluationPage />} />
           <Route path="settings" element={<ClinicianSettingsPage />} />
           <Route path="settings/profile" element={<SettingsProfilePage />} />
           <Route path="settings/account-security" element={<SettingsAccountSecurityPage />} />

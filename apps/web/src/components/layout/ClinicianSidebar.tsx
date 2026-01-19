@@ -1,11 +1,12 @@
 import { NavLink } from "react-router-dom";
 import clsx from "clsx";
-import { ClipboardList, FileSpreadsheet, Network, Stethoscope } from "lucide-react";
+import { ClipboardList, FileSpreadsheet, Network, Scale, Stethoscope } from "lucide-react";
 
 const clinicianNav = [
   { label: "Active Cases", to: "/clinician", icon: ClipboardList },
   { label: "Criteria Coverage", to: "/clinician/criteria", icon: FileSpreadsheet },
   { label: "Differential", to: "/clinician/differential", icon: Stethoscope },
+  { label: "Differential Eval", to: "/clinician/differential-eval", icon: Scale },
   { label: "Logic Graph", to: "/clinician/logic-graph", icon: Network },
 ];
 

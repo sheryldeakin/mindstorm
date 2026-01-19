@@ -27,13 +27,28 @@ export const buildCoverageMetrics = (
   entries: CaseEntry[],
   overrides?: Record<string, "MET" | "EXCLUDED" | "UNKNOWN">,
   rejectedEvidenceKeys?: Set<string>,
+  options?: { windowDays?: number },
 ) => {
+  const getRecentEntries = (windowDays: number) => {
+    if (!entries.length) return [];
+    const sorted = [...entries].sort((a, b) => a.dateISO.localeCompare(b.dateISO));
+    const latest = sorted[sorted.length - 1];
+    if (!latest) return [];
+    const latestDate = new Date(`${latest.dateISO}T00:00:00Z`);
+    const cutoff = new Date(latestDate);
+    cutoff.setDate(cutoff.getDate() - windowDays + 1);
+    return sorted.filter((entry) => {
+      const entryDate = new Date(`${entry.dateISO}T00:00:00Z`);
+      return entryDate >= cutoff && entryDate <= latestDate;
+    });
+  };
   const buildKey = (dateISO: string, span: string) => `${dateISO}::${span}`;
   const filterUnits = (entry: CaseEntry) =>
     (entry.evidenceUnits || []).filter(
       (unit) => !rejectedEvidenceKeys?.has(buildKey(entry.dateISO, unit.span)),
     );
-  const last14Days = entries.slice(-14);
+  const windowDays = options?.windowDays ?? 14;
+  const last14Days = getRecentEntries(windowDays);
   const allUnits = entries.flatMap((entry) => filterUnits(entry));
   const recentUnits = last14Days.flatMap((entry) => filterUnits(entry));
 
