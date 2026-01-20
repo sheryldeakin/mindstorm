@@ -7,9 +7,17 @@ export type DiagnosisCard = {
   likelihood: "High" | "Moderate" | "Low";
   status: "Sufficient" | "Incomplete" | "Insufficient";
   shortSummary: string;
+  blocked?: boolean;
+  blockedReason?: string;
+  trend?: "up" | "down" | "steady";
+  rankingReason?: string;
   criteriaPreview?: {
     met: number;
     total: number;
+  };
+  cycleAlignment?: {
+    state: "met" | "mismatch" | "unknown";
+    note?: string;
   };
 };
 
@@ -69,6 +77,11 @@ export type DifferentialDiagnosis = {
       required: number;
       note?: string;
     };
+  };
+  criteriaSets?: {
+    current: { label: string; items: CriterionItem[]; summary: DifferentialDiagnosis["criteriaSummary"] };
+    diagnostic?: { label: string; items: CriterionItem[]; summary: DifferentialDiagnosis["criteriaSummary"] };
+    lifetime: { label: string; items: CriterionItem[]; summary: DifferentialDiagnosis["criteriaSummary"] };
   };
   symptomCourse: SymptomCourseRow[];
   functionalImpact: FunctionalImpactDomain[];

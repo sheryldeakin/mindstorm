@@ -39,6 +39,9 @@ export type DepressiveDiagnosisConfig = {
   total: number;
   strategy: "k_of_n" | "gate_based";
   criteria: CriteriaNode[];
+  ruleOuts: CriteriaNode[];
+  requiredDurationDays: number | null;
+  durationRuleKind?: string | null;
   durationWindow?: {
     label: string;
     windowDays: number;
@@ -130,29 +133,60 @@ export const mapNodeToEvidence = (nodeId: string): EvidenceLabel[] => {
   return [];
 };
 
-const pickDurationWindow = (diagnosis: RawDiagnosis): DepressiveDiagnosisConfig["durationWindow"] => {
+const pickDurationWindow = (diagnosis: RawDiagnosis): {
+  window?: DepressiveDiagnosisConfig["durationWindow"];
+  requiredDurationDays: number | null;
+  durationRuleKind?: string | null;
+} => {
   const durationNode = (diagnosis.nodes || []).find((node) => {
     const kind = node?.rule?.kind;
     return typeof kind === "string" && kind.includes("duration");
   });
-  if (!durationNode) return undefined;
+  if (!durationNode) {
+    return {
+      window: undefined,
+      requiredDurationDays: 14,
+      durationRuleKind: null,
+    };
+  }
   const rule = durationNode.rule || {};
+  const durationRuleKind = typeof rule.kind === "string" ? rule.kind : null;
   if (rule.min_days) {
     const label = rule.min_days === 14 ? "2-week window" : `${rule.min_days}-day window`;
     return {
-      label,
-      windowDays: rule.min_days,
-      note: durationNode.labels?.clinician,
+      window: {
+        label,
+        windowDays: rule.min_days,
+        note: durationNode.labels?.clinician,
+      },
+      requiredDurationDays: rule.min_days,
+      durationRuleKind,
     };
   }
   if (rule.default_months) {
+    const windowDays = Math.round(rule.default_months * 30.4);
     return {
-      label: `${rule.default_months / 12} year window`,
-      windowDays: Math.round(rule.default_months * 30.4),
-      note: durationNode.labels?.clinician,
+      window: {
+        label: `${rule.default_months / 12} year window`,
+        windowDays,
+        note: durationNode.labels?.clinician,
+      },
+      requiredDurationDays: windowDays,
+      durationRuleKind,
     };
   }
-  return undefined;
+  if (durationRuleKind === "cycle_alignment") {
+    return {
+      window: undefined,
+      requiredDurationDays: null,
+      durationRuleKind,
+    };
+  }
+  return {
+    window: undefined,
+    requiredDurationDays: 14,
+    durationRuleKind,
+  };
 };
 
 const findCriteriaGroup = (diagnosis: RawDiagnosis) => {
@@ -213,12 +247,27 @@ const buildCriteriaNodes = (diagnosis: RawDiagnosis) => {
     }));
 };
 
+const buildRuleOutNodes = (diagnosis: RawDiagnosis) =>
+  (diagnosis.nodes || [])
+    .filter((node) => node?.type === "RULE_OUT")
+    .map((node) => ({
+      id: node.id,
+      label:
+        node?.labels?.clinician ||
+        node?.labels?.self ||
+        node?.description?.clinician ||
+        node.id,
+      evidenceLabels: mapNodeToEvidence(node.id),
+    }));
+
 export const depressiveDiagnosisConfigs: DepressiveDiagnosisConfig[] = (criteriaSpec.diagnoses || [])
   .map((diagnosis) => {
     const key = toKey(diagnosis.id);
     if (!key) return null;
     const criteriaGroup = findCriteriaGroup(diagnosis);
     const criteria = buildCriteriaNodes(diagnosis);
+    const ruleOuts = buildRuleOutNodes(diagnosis);
+    const durationConfig = pickDurationWindow(diagnosis);
     return {
       key,
       title: diagnosis.title?.clinician || diagnosis.id,
@@ -227,7 +276,10 @@ export const depressiveDiagnosisConfigs: DepressiveDiagnosisConfig[] = (criteria
       total: criteriaGroup?.total ?? criteria.length,
       strategy: criteriaGroup ? "k_of_n" : "gate_based",
       criteria,
-      durationWindow: pickDurationWindow(diagnosis),
+      ruleOuts,
+      requiredDurationDays: durationConfig.requiredDurationDays,
+      durationRuleKind: durationConfig.durationRuleKind,
+      durationWindow: durationConfig.window,
     } as DepressiveDiagnosisConfig;
   })
   .filter((item): item is DepressiveDiagnosisConfig => Boolean(item));

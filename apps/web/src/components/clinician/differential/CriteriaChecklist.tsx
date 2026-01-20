@@ -1,64 +1,122 @@
 import { CheckCircle2, HelpCircle, MinusCircle } from "lucide-react";
 import clsx from "clsx";
-import type { CriterionItem } from "./types";
+import { useEffect, useMemo, useState } from "react";
+import type { CriterionItem, DifferentialDiagnosis } from "./types";
 
 type CriteriaChecklistProps = {
-  items: CriterionItem[];
-  summary: {
-    current: number;
-    required: number;
-    total: number;
-    base?: number;
-    added?: number;
-    subtracted?: number;
-    window?: {
-      label: string;
-      current: number;
-      total: number;
-      required: number;
-      note?: string;
-    };
-  };
+  items?: CriterionItem[];
+  summary?: DifferentialDiagnosis["criteriaSummary"];
+  criteriaSets?: DifferentialDiagnosis["criteriaSets"];
 };
 
-const CriteriaChecklist = ({ items, summary }: CriteriaChecklistProps) => {
+const CriteriaChecklist = ({ items, summary, criteriaSets }: CriteriaChecklistProps) => {
+  const availableSets = useMemo(() => {
+    if (!criteriaSets) return [];
+    const sets = [
+      { key: "current", label: criteriaSets.current.label },
+      criteriaSets.diagnostic ? { key: "diagnostic", label: criteriaSets.diagnostic.label } : null,
+      { key: "lifetime", label: criteriaSets.lifetime.label },
+    ].filter(Boolean) as Array<{ key: "current" | "diagnostic" | "lifetime"; label: string }>;
+    return sets;
+  }, [criteriaSets]);
+  const [activeKey, setActiveKey] = useState<"current" | "diagnostic" | "lifetime">(
+    availableSets[0]?.key || "current",
+  );
+
+  useEffect(() => {
+    if (!availableSets.length) return;
+    if (!availableSets.find((item) => item.key === activeKey)) {
+      setActiveKey(availableSets[0].key);
+    }
+  }, [activeKey, availableSets]);
+
+  const activeItems = criteriaSets
+    ? (criteriaSets[activeKey]?.items || [])
+    : (items || []);
+  const activeSummary = criteriaSets
+    ? criteriaSets[activeKey]?.summary
+    : summary;
+
+  if (!activeSummary) return null;
   return (
     <div className="space-y-3">
       <div className="space-y-1 text-xs text-slate-500">
-        <div className="flex flex-wrap items-center gap-2">
-          <span>
-            Lifetime coverage: {summary.current}/{summary.total} criteria — Required: {summary.required}/{summary.total}
-          </span>
-          {typeof summary.base === "number" ? (
-            <span className="text-slate-400">
-              (
-              <span className="text-slate-500">{summary.base}</span>
-              {summary.added ? (
-                <>
+        {criteriaSets ? (
+          <>
+            <div className="flex flex-wrap items-center gap-2">
+              <span>
+                Current window (last 14 days): {criteriaSets.current.summary.current}/{criteriaSets.current.summary.total} criteria — Required:{" "}
+                {criteriaSets.current.summary.required}/{criteriaSets.current.summary.total}
+              </span>
+              {typeof criteriaSets.current.summary.base === "number" ? (
+                <span className="text-slate-400">
+                  (
+                  <span className="text-slate-500">{criteriaSets.current.summary.base}</span>
+                  {criteriaSets.current.summary.added ? (
+                    <>
+                      {" "}
+                      <span className="text-emerald-600">+ {criteriaSets.current.summary.added}</span>
+                    </>
+                  ) : null}
+                  {criteriaSets.current.summary.subtracted ? (
+                    <>
+                      {" "}
+                      <span className="text-rose-600">- {criteriaSets.current.summary.subtracted}</span>
+                    </>
+                  ) : null}
                   {" "}
-                  <span className="text-emerald-600">+ {summary.added}</span>
-                </>
+                  = {criteriaSets.current.summary.current})
+                </span>
               ) : null}
-              {summary.subtracted ? (
-                <>
-                  {" "}
-                  <span className="text-rose-600">- {summary.subtracted}</span>
-                </>
-              ) : null}
-              {" "}
-              = {summary.current})
-            </span>
-          ) : null}
-        </div>
-        {summary.window ? (
-          <div>
-            {summary.window.label}: {summary.window.current}/{summary.window.total} criteria — Required:{" "}
-            {summary.window.required}/{summary.window.total}
-            {summary.window.note ? <span className="text-slate-400"> · {summary.window.note}</span> : null}
-          </div>
-        ) : null}
+            </div>
+            {criteriaSets.diagnostic?.summary.window ? (
+              <div>
+                Diagnostic window (peak): {criteriaSets.diagnostic.summary.window.current}/{criteriaSets.diagnostic.summary.window.total} criteria — Required:{" "}
+                {criteriaSets.diagnostic.summary.window.required}/{criteriaSets.diagnostic.summary.window.total}
+                {criteriaSets.diagnostic.summary.window.note ? (
+                  <span className="text-slate-400"> · {criteriaSets.diagnostic.summary.window.note}</span>
+                ) : null}
+              </div>
+            ) : null}
+            <div>
+              Lifetime coverage: {criteriaSets.lifetime.summary.current}/{criteriaSets.lifetime.summary.total} criteria — Required:{" "}
+              {criteriaSets.lifetime.summary.required}/{criteriaSets.lifetime.summary.total}
+            </div>
+            <div className="flex flex-wrap gap-2 pt-2">
+              {availableSets.map((option) => (
+                <button
+                  key={option.key}
+                  type="button"
+                  onClick={() => setActiveKey(option.key)}
+                  className={
+                    option.key === activeKey
+                      ? "rounded-full border border-slate-900 bg-slate-900 px-3 py-1 text-[11px] font-semibold text-white"
+                      : "rounded-full border border-slate-200 bg-white px-3 py-1 text-[11px] font-semibold text-slate-600 hover:border-slate-300"
+                  }
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="flex flex-wrap items-center gap-2">
+              <span>
+                Current window (last 14 days): {activeSummary.current}/{activeSummary.total} criteria — Required: {activeSummary.required}/{activeSummary.total}
+              </span>
+            </div>
+            {activeSummary.window ? (
+              <div>
+                Diagnostic window (peak): {activeSummary.window.current}/{activeSummary.window.total} criteria — Required:{" "}
+                {activeSummary.window.required}/{activeSummary.window.total}
+                {activeSummary.window.note ? <span className="text-slate-400"> · {activeSummary.window.note}</span> : null}
+              </div>
+            ) : null}
+          </>
+        )}
       </div>
-      {items.map((item) => (
+      {activeItems.map((item) => (
         <div
           key={item.id}
           className={clsx(

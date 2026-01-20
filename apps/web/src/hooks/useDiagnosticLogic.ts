@@ -12,6 +12,7 @@ type DiagnosticLogicState = {
   lifetimeSymptoms: Set<string>;
   lifetimeDenials: Set<string>;
   currentCount: number;
+  lifetimeWindowMax: number;
   lifetimeCount: number;
   potentialRemission: boolean;
   getStatusForLabels: (labels?: string[]) => DiagnosticStatus;
@@ -20,6 +21,7 @@ type DiagnosticLogicState = {
 type DiagnosticLogicOptions = {
   windowDays?: number;
   threshold?: number;
+  diagnosticWindowDays?: number;
   overrides?: Record<string, DiagnosticStatus>;
   overrideList?: ClinicianOverride[];
   rejectedEvidenceKeys?: Set<string>;
@@ -83,6 +85,24 @@ const getWindowEntries = (entries: JournalEntry[], days: number) => {
   });
 };
 
+const getMaxWindowCount = (entries: JournalEntry[], days: number) => {
+  if (!entries.length) return 0;
+  const sorted = [...entries].sort((a, b) => a.dateISO.localeCompare(b.dateISO));
+  let maxCount = 0;
+  sorted.forEach((entry) => {
+    const endDate = new Date(`${entry.dateISO}T00:00:00Z`);
+    const cutoff = new Date(endDate);
+    cutoff.setDate(cutoff.getDate() - days + 1);
+    const windowEntries = sorted.filter((candidate) => {
+      const date = new Date(`${candidate.dateISO}T00:00:00Z`);
+      return date >= cutoff && date <= endDate;
+    });
+    const windowSymptoms = collectSet(windowEntries, "symptoms");
+    maxCount = Math.max(maxCount, windowSymptoms.size);
+  });
+  return maxCount;
+};
+
 const buildStatusChecker =
   (symptoms: Set<string>, denials: Set<string>, overrides?: Record<string, DiagnosticStatus>) =>
   (labels?: string[]) => {
@@ -115,6 +135,7 @@ const useDiagnosticLogic = (
   options: DiagnosticLogicOptions = {},
 ): DiagnosticLogicState => {
   const windowDays = options.windowDays ?? 14;
+  const diagnosticWindowDays = options.diagnosticWindowDays ?? 14;
   const threshold = options.threshold ?? 5;
   const overrides = normalizeOverrides(options.overrides, options.overrideList);
   const rejectedEvidenceKeys = options.rejectedEvidenceKeys;
@@ -130,8 +151,9 @@ const useDiagnosticLogic = (
     const lifetimeDenials = collectSet(lifetimeEntries, "denials");
 
     const currentCount = currentSymptoms.size;
+    const lifetimeWindowMax = getMaxWindowCount(journalEntries, diagnosticWindowDays);
     const lifetimeCount = lifetimeSymptoms.size;
-    const potentialRemission = lifetimeCount >= threshold && currentCount < threshold;
+    const potentialRemission = lifetimeWindowMax >= threshold && currentCount < threshold;
 
     return {
       journalEntries,
@@ -142,11 +164,12 @@ const useDiagnosticLogic = (
       lifetimeSymptoms,
       lifetimeDenials,
       currentCount,
+      lifetimeWindowMax,
       lifetimeCount,
       potentialRemission,
       getStatusForLabels: buildStatusChecker(currentSymptoms, currentDenials, overrides),
     };
-  }, [entries, rejectedEvidenceKeys, windowDays, threshold, overrides]);
+  }, [entries, rejectedEvidenceKeys, windowDays, diagnosticWindowDays, threshold, overrides]);
 };
 
 export default useDiagnosticLogic;

@@ -35,7 +35,11 @@ const DiagnosisReasoningPanel = ({
           Evidence signals mapped to core criteria.
         </p>
         <div className="mt-4">
-          <CriteriaChecklist items={diagnosis.criteria} summary={diagnosis.criteriaSummary} />
+          <CriteriaChecklist
+            items={diagnosis.criteria}
+            summary={diagnosis.criteriaSummary}
+            criteriaSets={diagnosis.criteriaSets}
+          />
         </div>
       </Card>
 

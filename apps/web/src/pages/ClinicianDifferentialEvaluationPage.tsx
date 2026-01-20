@@ -6,28 +6,22 @@ import DifferentialOverview from "../components/clinician/differential/Different
 import DiagnosisReasoningPanel from "../components/clinician/differential/DiagnosisReasoningPanel";
 import ComorbidityView from "../components/clinician/differential/ComorbidityView";
 import type { DifferentialDiagnosis, CriterionItem, SymptomCourseRow } from "../components/clinician/differential/types";
-import type { CaseEntry, ClinicianCase, ClinicianOverrideRecord } from "../types/clinician";
+import type { CaseEntry, ClinicianCase } from "../types/clinician";
 import { apiFetch } from "../lib/apiClient";
 import { buildClarificationPrompts } from "../lib/clinicianPrompts";
 import useDiagnosticLogic from "../hooks/useDiagnosticLogic";
-import useSessionDelta from "../hooks/useSessionDelta";
 import {
   depressiveDiagnosisConfigs,
   mapNodeToEvidence,
   type DepressiveDiagnosisConfig,
 } from "../lib/depressiveCriteriaConfig";
+import { ClinicalCaseProvider, useClinicalCase } from "../contexts/ClinicalCaseContext";
 
 const ClinicianDifferentialEvaluationPage = () => {
   const { caseId } = useParams();
   const navigate = useNavigate();
   const [cases, setCases] = useState<ClinicianCase[]>([]);
-  const [entries, setEntries] = useState<CaseEntry[]>([]);
-  const [selectedKey, setSelectedKey] = useState<DifferentialDiagnosis["key"]>("mdd");
-  const [pinnedKeys, setPinnedKeys] = useState<DifferentialDiagnosis["key"][]>([]);
-  const [nodeOverrides, setNodeOverrides] = useState<Record<string, "MET" | "EXCLUDED" | "UNKNOWN">>({});
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const sessionDelta = useSessionDelta(caseId);
 
   useEffect(() => {
     let active = true;
@@ -49,43 +43,61 @@ const ClinicianDifferentialEvaluationPage = () => {
     };
   }, [caseId, navigate]);
 
-  useEffect(() => {
-    if (!caseId) return;
-    let active = true;
-    setLoading(true);
-    Promise.all([
-      apiFetch<{ entries: CaseEntry[] }>(`/clinician/cases/${caseId}/entries`),
-      apiFetch<{ overrides: ClinicianOverrideRecord[] }>(`/clinician/cases/${caseId}/overrides`),
-    ])
-      .then(([entriesResponse, overridesResponse]) => {
-        if (!active) return;
-        setEntries(entriesResponse.entries || []);
-        const overrideMap = (overridesResponse.overrides || []).reduce<Record<string, "MET" | "EXCLUDED" | "UNKNOWN">>(
-          (acc, item) => {
-            acc[item.nodeId] = item.status;
-            return acc;
-          },
-          {},
-        );
-        setNodeOverrides(overrideMap);
-      })
-      .catch((err) => {
-        if (!active) return;
-        setError(err instanceof Error ? err.message : "Unable to load case.");
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
-    return () => {
-      active = false;
-    };
-  }, [caseId]);
+  if (!caseId) {
+    return (
+      <div className="space-y-6 text-slate-900">
+        <PageHeader
+          eyebrow="Clinician"
+          title="Differential Evaluation"
+          description="Clinical decision support — criteria coverage, not diagnosis."
+        />
+        {error ? <Card className="p-6 text-sm text-rose-600">{error}</Card> : null}
+        <Card className="p-6 text-sm text-slate-500">Select a case to begin.</Card>
+      </div>
+    );
+  }
 
-  const baseLogic = useDiagnosticLogic(entries, { windowDays: 36500 });
+  return (
+    <ClinicalCaseProvider caseId={caseId}>
+      <ClinicianDifferentialEvaluationContent cases={cases} onCaseChange={setError} />
+    </ClinicalCaseProvider>
+  );
+};
+
+const ClinicianDifferentialEvaluationContent = ({
+  cases,
+  onCaseChange,
+}: {
+  cases: ClinicianCase[];
+  onCaseChange: (message: string | null) => void;
+}) => {
+  const navigate = useNavigate();
+  const {
+    caseId,
+    entries,
+    nodeOverrides,
+    loading,
+    error,
+    sessionDelta,
+    saveOverride,
+  } = useClinicalCase();
+  const [selectedKey, setSelectedKey] = useState<DifferentialDiagnosis["key"]>("mdd");
+  const [pinnedKeys, setPinnedKeys] = useState<DifferentialDiagnosis["key"][]>([]);
+  const baseLogic = useDiagnosticLogic(entries, { windowDays: 36500, overrides: nodeOverrides });
+
+  useEffect(() => {
+    onCaseChange(error);
+  }, [error, onCaseChange]);
+
   const diagnoses = useMemo<DifferentialDiagnosis[]>(() => {
     if (!entries.length) return [];
-    return buildDifferentialFromEntries(entries, baseLogic.getStatusForLabels, nodeOverrides);
-  }, [entries, baseLogic, nodeOverrides]);
+    return buildDifferentialFromEntries(
+      entries,
+      baseLogic.getStatusForLabels,
+      nodeOverrides,
+      sessionDelta.lastAccessISO,
+    );
+  }, [entries, baseLogic, nodeOverrides, sessionDelta.lastAccessISO]);
 
   useEffect(() => {
     setSelectedKey(diagnosesSorted(diagnoses)[0]?.key || "mdd");
@@ -103,7 +115,7 @@ const ClinicianDifferentialEvaluationPage = () => {
         actions={(
           <select
             className="h-9 rounded-2xl border border-slate-200 bg-white px-3 text-xs text-slate-600"
-            value={caseId || ""}
+            value={caseId}
             onChange={(event) => navigate(`/clinician/differential-eval/${event.target.value}`)}
           >
             <option value="">Select case</option>
@@ -158,30 +170,8 @@ const ClinicianDifferentialEvaluationPage = () => {
               entries={entries}
               nodeOverrides={nodeOverrides}
               onOverrideChange={async (nodeId, status) => {
-                setNodeOverrides((prev) => {
-                  const next = { ...prev };
-                  if (!status) {
-                    delete next[nodeId];
-                    return next;
-                  }
-                  next[nodeId] = status;
-                  return next;
-                });
-                if (!caseId) return;
-                if (!status) {
-                  await apiFetch(`/clinician/cases/${caseId}/overrides/${nodeId}`, { method: "DELETE" });
-                  return;
-                }
                 const originalStatus = baseLogic.getStatusForLabels(mapNodeToEvidence(nodeId));
-                await apiFetch(`/clinician/cases/${caseId}/overrides`, {
-                  method: "POST",
-                  body: JSON.stringify({
-                    nodeId,
-                    status,
-                    originalStatus,
-                    originalEvidence: "",
-                  }),
-                });
+                await saveOverride(nodeId, status, { originalStatus, originalEvidence: "" });
               }}
               lastAccessISO={sessionDelta.lastAccessISO}
             />
@@ -204,6 +194,7 @@ const buildDifferentialFromEntries = (
   entries: CaseEntry[],
   getStatusForLabels: (labels?: string[]) => string,
   nodeOverrides: Record<string, "MET" | "EXCLUDED" | "UNKNOWN"> = {},
+  lastAccessISO?: string | null,
 ): DifferentialDiagnosis[] => {
   const unitsWithDate = entries.flatMap((entry) =>
     (entry.evidenceUnits ?? []).map((unit) => ({ ...unit, dateISO: entry.dateISO })),
@@ -233,19 +224,34 @@ const buildDifferentialFromEntries = (
     label: string,
     labels: string[],
     defaultNote: string,
+    sourceEntries: CaseEntry[],
+    emptyNote: string,
   ): { item: CriterionItem; evidencePresent: boolean } => {
+    const unitsWithDate = sourceEntries.flatMap((entry) =>
+      (entry.evidenceUnits ?? []).map((unit) => ({ ...unit, dateISO: entry.dateISO })),
+    );
     const overrideStatus = nodeOverrides[id];
-    const present = findEvidence(labels, "PRESENT");
-    const absent = findEvidence(labels, "ABSENT");
+    const present = unitsWithDate.filter(
+      (unit) =>
+        labels.includes(unit.label) &&
+        unit.attributes?.polarity === "PRESENT" &&
+        !isPromptArtifact(unit.span),
+    );
+    const absent = unitsWithDate.filter(
+      (unit) =>
+        labels.includes(unit.label) &&
+        unit.attributes?.polarity === "ABSENT" &&
+        !isPromptArtifact(unit.span),
+    );
     const evidencePresent = present.length > 0;
     if (overrideStatus === "MET" && !evidencePresent) {
       return {
         evidencePresent,
         item: {
-        id,
-        label,
-        state: "present",
-        evidenceNote: `${defaultNote} Clinician override applied.`,
+          id,
+          label,
+          state: "present",
+          evidenceNote: `${defaultNote} Clinician override applied.`,
         },
       };
     }
@@ -253,10 +259,10 @@ const buildDifferentialFromEntries = (
       return {
         evidencePresent,
         item: {
-        id,
-        label,
-        state: "absent",
-        evidenceNote: `${defaultNote} Clinician override applied.`,
+          id,
+          label,
+          state: "absent",
+          evidenceNote: `${defaultNote} Clinician override applied.`,
         },
       };
     }
@@ -265,12 +271,12 @@ const buildDifferentialFromEntries = (
       return {
         evidencePresent,
         item: {
-        id,
-        label,
-        state: "present",
-        evidenceNote: `${defaultNote} ${latest.span}`,
-        severity: "moderate",
-        recency: latest.dateISO,
+          id,
+          label,
+          state: "present",
+          evidenceNote: `${defaultNote} ${latest.span}`,
+          severity: "moderate",
+          recency: latest.dateISO,
         },
       };
     }
@@ -279,23 +285,80 @@ const buildDifferentialFromEntries = (
       return {
         evidencePresent,
         item: {
-        id,
-        label,
-        state: "absent",
-        evidenceNote: `${defaultNote} ${latest.span}`,
-        recency: latest.dateISO,
+          id,
+          label,
+          state: "absent",
+          evidenceNote: `${defaultNote} ${latest.span}`,
+          recency: latest.dateISO,
         },
       };
     }
     return {
       evidencePresent,
       item: {
-      id,
-      label,
-      state: "ambiguous",
-      evidenceNote: defaultNote,
+        id,
+        label,
+        state: "ambiguous",
+        evidenceNote: emptyNote,
       },
     };
+  };
+
+  const buildRuleOut = (node: { id: string; label: string; evidenceLabels: string[] }) => {
+    const overrideStatus = nodeOverrides[node.id];
+    const present = findEvidence(node.evidenceLabels, "PRESENT");
+    const absent = findEvidence(node.evidenceLabels, "ABSENT");
+
+    if (overrideStatus === "MET") {
+      return {
+        label: node.label,
+        state: "confirmed" as const,
+        note: "Clinician override applied.",
+      };
+    }
+    if (overrideStatus === "EXCLUDED") {
+      return {
+        label: node.label,
+        state: "notObserved" as const,
+        note: "Clinician override applied.",
+      };
+    }
+    if (present.length) {
+      return {
+        label: node.label,
+        state: "confirmed" as const,
+        note: present[present.length - 1].span,
+      };
+    }
+    if (absent.length) {
+      return {
+        label: node.label,
+        state: "notObserved" as const,
+        note: absent[absent.length - 1].span,
+      };
+    }
+    return { label: node.label, state: "unknown" as const };
+  };
+
+  const buildGateStatus = (nodeId: string) => {
+    const overrideStatus = nodeOverrides[nodeId];
+    if (overrideStatus === "MET") {
+      return { state: "met" as const, note: "Clinician override applied." };
+    }
+    if (overrideStatus === "EXCLUDED") {
+      return { state: "mismatch" as const, note: "Clinician override applied." };
+    }
+    const evidenceLabels = mapNodeToEvidence(nodeId);
+    const labels = evidenceLabels.length ? evidenceLabels : [nodeId];
+    const present = findEvidence(labels, "PRESENT");
+    const absent = findEvidence(labels, "ABSENT");
+    if (present.length) {
+      return { state: "met" as const, note: present[present.length - 1].span };
+    }
+    if (absent.length) {
+      return { state: "mismatch" as const, note: absent[absent.length - 1].span };
+    }
+    return { state: "unknown" as const, note: "No cycle timing evidence found." };
   };
 
   const buildCourse = (label: string, labels: string[]): SymptomCourseRow => {
@@ -320,21 +383,18 @@ const buildDifferentialFromEntries = (
               : "criteria",
   }));
 
-  const buildSpecifiers = (labels: string[], displayLabel: string) => {
-    if (!labels.length) return [];
-    const grouped = entries.flatMap((entry) =>
-      (entry.evidenceUnits ?? [])
-        .filter((unit) => labels.includes(unit.label) && unit.attributes?.polarity === "PRESENT")
-        .map(() => entry.dateISO),
-    );
-    if (!grouped.length) return [];
-    const start = grouped[0];
-    const end = grouped[grouped.length - 1];
-    return [{ label: displayLabel, startISO: start, endISO: end, active: true }];
-  };
-
   return depressiveDiagnosisConfigs.map((config) =>
-    buildDiagnosisFromConfig(config, entries, buildCriterion, buildCourse, toPrompts, nodeOverrides),
+    buildDiagnosisFromConfig(
+      config,
+      entries,
+      buildCriterion,
+      buildCourse,
+      buildRuleOut,
+      buildGateStatus,
+      toPrompts,
+      nodeOverrides,
+      lastAccessISO,
+    ),
   );
 };
 
@@ -353,6 +413,54 @@ const bucketByWeek = (entries: CaseEntry[], labels: string[]) => {
   }));
 };
 
+const getPeakWindowCount = (
+  entries: CaseEntry[],
+  criteria: { evidenceLabels: string[] }[],
+  windowDays: number,
+) => {
+  if (!entries.length) return 0;
+  const sorted = [...entries].sort((a, b) => a.dateISO.localeCompare(b.dateISO));
+  let maxCount = 0;
+  sorted.forEach((entry) => {
+    const endDate = new Date(`${entry.dateISO}T00:00:00Z`);
+    const cutoff = new Date(endDate);
+    cutoff.setDate(cutoff.getDate() - windowDays + 1);
+    const windowEntries = sorted.filter((candidate) => {
+      const date = new Date(`${candidate.dateISO}T00:00:00Z`);
+      return date >= cutoff && date <= endDate;
+    });
+    const count = countPresentCriteria(windowEntries, criteria);
+    maxCount = Math.max(maxCount, count);
+  });
+  return maxCount;
+};
+
+const getBestWindowEntries = (
+  entries: CaseEntry[],
+  criteria: { evidenceLabels: string[] }[],
+  windowDays: number,
+) => {
+  if (!entries.length) return [];
+  const sorted = [...entries].sort((a, b) => a.dateISO.localeCompare(b.dateISO));
+  let bestEntries: CaseEntry[] = [];
+  let bestCount = -1;
+  sorted.forEach((entry) => {
+    const endDate = new Date(`${entry.dateISO}T00:00:00Z`);
+    const cutoff = new Date(endDate);
+    cutoff.setDate(cutoff.getDate() - windowDays + 1);
+    const windowEntries = sorted.filter((candidate) => {
+      const date = new Date(`${candidate.dateISO}T00:00:00Z`);
+      return date >= cutoff && date <= endDate;
+    });
+    const count = countPresentCriteria(windowEntries, criteria);
+    if (count > bestCount) {
+      bestCount = count;
+      bestEntries = windowEntries;
+    }
+  });
+  return bestEntries;
+};
+
 const buildDiagnosisFromConfig = (
   config: DepressiveDiagnosisConfig,
   entries: CaseEntry[],
@@ -361,29 +469,79 @@ const buildDiagnosisFromConfig = (
     label: string,
     labels: string[],
     defaultNote: string,
+    sourceEntries: CaseEntry[],
+    emptyNote: string,
   ) => { item: CriterionItem; evidencePresent: boolean },
   buildCourse: (label: string, labels: string[]) => SymptomCourseRow,
+  buildRuleOut: (node: { id: string; label: string; evidenceLabels: string[] }) => {
+    label: string;
+    state: "confirmed" | "notObserved" | "unknown";
+    note?: string;
+  },
+  buildGateStatus: (nodeId: string) => { state: "met" | "mismatch" | "unknown"; note?: string },
   prompts: { text: string; category?: string }[],
   nodeOverrides: Record<string, "MET" | "EXCLUDED" | "UNKNOWN"> = {},
+  lastAccessISO?: string | null,
 ): DifferentialDiagnosis => {
-  const criteriaWithEvidence = config.criteria.map((criterion) =>
+  const currentWindowDays = 14;
+  const currentWindowEntries = getEntriesWithinWindow(entries, currentWindowDays);
+  const lifetimeEntries = entries;
+  const diagnosticWindowDays = config.requiredDurationDays ?? currentWindowDays;
+  const diagnosticWindowEntries =
+    config.requiredDurationDays === null
+      ? []
+      : getBestWindowEntries(entries, config.criteria, diagnosticWindowDays);
+
+  const currentCriteriaWithEvidence = config.criteria.map((criterion) =>
     buildCriterion(
       criterion.id,
       criterion.label,
       criterion.evidenceLabels,
       `${criterion.label} signal noted:`,
+      currentWindowEntries,
+      "Not observed in the current window.",
     ),
   );
-  const criteriaItems = criteriaWithEvidence.map((criterion) => criterion.item);
+  const diagnosticCriteriaWithEvidence = config.criteria.map((criterion) =>
+    buildCriterion(
+      criterion.id,
+      criterion.label,
+      criterion.evidenceLabels,
+      `${criterion.label} signal noted:`,
+      diagnosticWindowEntries,
+      "Not observed in the diagnostic window.",
+    ),
+  );
+  const lifetimeCriteriaWithEvidence = config.criteria.map((criterion) =>
+    buildCriterion(
+      criterion.id,
+      criterion.label,
+      criterion.evidenceLabels,
+      `${criterion.label} signal noted:`,
+      lifetimeEntries,
+      "Not observed across recorded entries.",
+    ),
+  );
+
+  const criteriaItems = currentCriteriaWithEvidence.map((criterion) => criterion.item);
   const hasCriteria = config.total > 0 && config.required > 0;
-  const baseCount = criteriaWithEvidence.filter((criterion) => criterion.evidencePresent).length;
+  const currentMet = config.criteria.reduce<Record<string, boolean>>((acc, criterion) => {
+    const hasSignal = currentWindowEntries.some((entry) =>
+      (entry.evidenceUnits ?? []).some(
+        (unit) =>
+          criterion.evidenceLabels.includes(unit.label) &&
+          unit.attributes?.polarity === "PRESENT",
+      ),
+    );
+    acc[criterion.id] = hasSignal;
+    return acc;
+  }, {});
+  const baseCount = countPresentCriteria(currentWindowEntries, config.criteria);
   const addedCount = config.criteria.filter(
-    (criterion, index) =>
-      nodeOverrides[criterion.id] === "MET" && !criteriaWithEvidence[index].evidencePresent,
+    (criterion) => nodeOverrides[criterion.id] === "MET" && !currentMet[criterion.id],
   ).length;
   const subtractedCount = config.criteria.filter(
-    (criterion, index) =>
-      nodeOverrides[criterion.id] === "EXCLUDED" && criteriaWithEvidence[index].evidencePresent,
+    (criterion) => nodeOverrides[criterion.id] === "EXCLUDED" && currentMet[criterion.id],
   ).length;
   const currentCount = Math.max(0, baseCount + addedCount - subtractedCount);
   const likelihood = hasCriteria
@@ -402,35 +560,117 @@ const buildDiagnosisFromConfig = (
     : "Insufficient";
 
   const buildWindowSummary = () => {
-    if (!config.durationWindow) return undefined;
-    const windowEntries = getEntriesWithinWindow(entries, config.durationWindow.windowDays);
-    const windowCountBase = countPresentCriteria(windowEntries, config.criteria);
-    const windowMet = config.criteria.reduce<Record<string, boolean>>((acc, criterion) => {
-      const hasSignal = windowEntries.some((entry) =>
+    if (config.requiredDurationDays === null) return undefined;
+    const windowDays = config.requiredDurationDays ?? currentWindowDays;
+    const peakCount = getPeakWindowCount(entries, config.criteria, windowDays);
+    return {
+      label: config.durationWindow?.label || `Diagnostic window (${windowDays} days)`,
+      current: peakCount,
+      total: config.total,
+      required: config.required,
+      note: config.durationWindow?.note || "Peak coverage within required duration.",
+    };
+  };
+
+  const windowSummary = buildWindowSummary();
+  const exclusionChecks = (config.ruleOuts || []).map(buildRuleOut);
+  const blocked = exclusionChecks.some((check) => check.state === "confirmed");
+  const blockedReason = blocked
+    ? exclusionChecks.find((check) => check.state === "confirmed")?.label
+    : undefined;
+
+  const rankingReason = blocked
+    ? "Rule-out signal detected."
+    : windowSummary?.current && windowSummary.current >= config.required
+      ? "Duration window met."
+      : currentCount >= config.required
+        ? "High criteria coverage."
+        : currentCount > 0
+          ? "Partial evidence signals."
+          : "No evidence signals detected.";
+
+  const previousEntries = lastAccessISO
+    ? entries.filter((entry) => entry.dateISO < lastAccessISO)
+    : [];
+  const previousBase = countPresentCriteria(previousEntries, config.criteria);
+  const previousAdded = config.criteria.filter(
+    (criterion) =>
+      nodeOverrides[criterion.id] === "MET" &&
+      !previousEntries.some((entry) =>
         (entry.evidenceUnits ?? []).some(
           (unit) =>
             criterion.evidenceLabels.includes(unit.label) &&
             unit.attributes?.polarity === "PRESENT",
         ),
-      );
-      acc[criterion.id] = hasSignal;
-      return acc;
-    }, {});
-    const windowAdded = config.criteria.filter(
-      (criterion) => nodeOverrides[criterion.id] === "MET" && !windowMet[criterion.id],
-    ).length;
-    const windowSubtracted = config.criteria.filter(
-      (criterion) => nodeOverrides[criterion.id] === "EXCLUDED" && windowMet[criterion.id],
-    ).length;
-    const windowCount = Math.max(0, windowCountBase + windowAdded - windowSubtracted);
-    return {
-      label: config.durationWindow.label,
-      current: windowCount,
-      total: config.total,
-      required: config.required,
-      note: config.durationWindow.note,
-    };
+      ),
+  ).length;
+  const previousSubtracted = config.criteria.filter(
+    (criterion) =>
+      nodeOverrides[criterion.id] === "EXCLUDED" &&
+      previousEntries.some((entry) =>
+        (entry.evidenceUnits ?? []).some(
+          (unit) =>
+            criterion.evidenceLabels.includes(unit.label) &&
+            unit.attributes?.polarity === "PRESENT",
+        ),
+      ),
+  ).length;
+  const previousCount = Math.max(0, previousBase + previousAdded - previousSubtracted);
+  const trend = lastAccessISO
+    ? currentCount > previousCount
+      ? "up"
+      : currentCount < previousCount
+        ? "down"
+        : "steady"
+    : undefined;
+
+  const currentSummary = {
+    current: currentCount,
+    required: config.required,
+    total: config.total,
+    base: baseCount,
+    added: addedCount,
+    subtracted: subtractedCount,
+    window: windowSummary,
   };
+  const diagnosticSummary = {
+    current: windowSummary?.current ?? 0,
+    required: config.required,
+    total: config.total,
+    base: windowSummary?.current ?? 0,
+    added: 0,
+    subtracted: 0,
+    window: windowSummary,
+  };
+  const lifetimeBase = countPresentCriteria(lifetimeEntries, config.criteria);
+  const lifetimeMet = config.criteria.reduce<Record<string, boolean>>((acc, criterion) => {
+    const hasSignal = lifetimeEntries.some((entry) =>
+      (entry.evidenceUnits ?? []).some(
+        (unit) =>
+          criterion.evidenceLabels.includes(unit.label) &&
+          unit.attributes?.polarity === "PRESENT",
+      ),
+    );
+    acc[criterion.id] = hasSignal;
+    return acc;
+  }, {});
+  const lifetimeAdded = config.criteria.filter(
+    (criterion) => nodeOverrides[criterion.id] === "MET" && !lifetimeMet[criterion.id],
+  ).length;
+  const lifetimeSubtracted = config.criteria.filter(
+    (criterion) => nodeOverrides[criterion.id] === "EXCLUDED" && lifetimeMet[criterion.id],
+  ).length;
+  const lifetimeSummary = {
+    current: Math.max(0, lifetimeBase + lifetimeAdded - lifetimeSubtracted),
+    required: config.required,
+    total: config.total,
+    base: lifetimeBase,
+    added: lifetimeAdded,
+    subtracted: lifetimeSubtracted,
+    window: windowSummary,
+  };
+  const cycleAlignment =
+    config.key === "pmdd" ? buildGateStatus("PMDD_D1_TEMPORAL_LUTEAL") : undefined;
 
   return {
     key: config.key,
@@ -440,20 +680,24 @@ const buildDiagnosisFromConfig = (
       abbreviation: config.abbreviation,
       likelihood,
       status,
+      blocked,
+      blockedReason,
+      trend,
+      rankingReason,
+      cycleAlignment,
       shortSummary: hasCriteria
         ? ""
         : "Criteria mapping not yet configured for this diagnosis.",
       criteriaPreview: hasCriteria ? { met: currentCount, total: config.total } : undefined,
     },
     criteria: criteriaItems,
-    criteriaSummary: {
-      current: currentCount,
-      required: config.required,
-      total: config.total,
-      base: baseCount,
-      added: addedCount,
-      subtracted: subtractedCount,
-      window: buildWindowSummary(),
+    criteriaSummary: currentSummary,
+    criteriaSets: {
+      current: { label: "Current (14 days)", items: currentCriteriaWithEvidence.map((item) => item.item), summary: currentSummary },
+      diagnostic: config.requiredDurationDays === null
+        ? undefined
+        : { label: config.durationWindow?.label || `Diagnostic (${diagnosticWindowDays} days)`, items: diagnosticCriteriaWithEvidence.map((item) => item.item), summary: diagnosticSummary },
+      lifetime: { label: "Lifetime", items: lifetimeCriteriaWithEvidence.map((item) => item.item), summary: lifetimeSummary },
     },
     symptomCourse: [
       buildCourse("Mood signals", ["SYMPTOM_MOOD"]),
@@ -466,10 +710,7 @@ const buildDiagnosisFromConfig = (
       { domain: "Self-care", level: "mild", note: "Self-care effort varies." },
       { domain: "Safety", level: "none", note: "No safety incidents noted." },
     ],
-    exclusionChecks: [
-      { label: "Mania history", state: "unknown" },
-      { label: "Substance/medication attribution", state: "unknown" },
-    ],
+    exclusionChecks,
     prompts,
     specifiers: [],
   };

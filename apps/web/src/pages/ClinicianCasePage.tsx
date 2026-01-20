@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import PageHeader from "../components/layout/PageHeader";
 import { Card } from "../components/ui/Card";
@@ -8,8 +8,8 @@ import DiagnosticLogicGraph from "../components/clinician/DiagnosticLogicGraph";
 import EvidenceDrawer from "../components/clinician/EvidenceDrawer";
 import { apiFetch } from "../lib/apiClient";
 import { buildCoverageMetrics } from "../lib/clinicianMetrics";
-import type { CaseEntry, EvidenceUnit, ClinicianNote, ClinicianOverrideRecord } from "../types/clinician";
-import useDiagnosticLogic, { type DiagnosticStatus } from "../hooks/useDiagnosticLogic";
+import type { CaseEntry, EvidenceUnit } from "../types/clinician";
+import { type DiagnosticStatus } from "../hooks/useDiagnosticLogic";
 import { DIAGNOSTIC_GRAPH_NODES } from "../lib/diagnosticGraphConfig";
 import { buildClarificationPrompts, buildInquiryItems } from "../lib/clinicianPrompts";
 import FunctionalImpactCard from "../components/clinician/FunctionalImpactCard";
@@ -18,60 +18,73 @@ import InquiryAssistant from "../components/clinician/InquiryAssistant";
 import ClinicalNoteGenerator from "../components/clinician/ClinicalNoteGenerator";
 import ClinicianNotesPanel from "../components/clinician/ClinicianNotesPanel";
 import TimeWindowFilter from "../components/clinician/TimeWindowFilter";
-import useSessionDelta from "../hooks/useSessionDelta";
+import CaseStatusHeader from "../components/clinician/CaseStatusHeader";
+import ClinicianWorkspace from "../components/clinician/ClinicianWorkspace";
+import { ClinicalCaseProvider, useClinicalCase } from "../contexts/ClinicalCaseContext";
 
-const ClinicianCasePage = () => {
-  const { userId } = useParams();
-  const [entries, setEntries] = useState<CaseEntry[]>([]);
-  const [userName, setUserName] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+const buildDensitySeries = (entries: CaseEntry[]) => {
+  if (!entries.length) return Array.from({ length: 30 }, () => 0);
+  const sorted = [...entries].sort((a, b) => a.dateISO.localeCompare(b.dateISO));
+  const latest = sorted[sorted.length - 1];
+  if (!latest) return Array.from({ length: 30 }, () => 0);
+  const latestDate = new Date(`${latest.dateISO}T00:00:00Z`);
+  const series = Array.from({ length: 30 }, (_, index) => {
+    const date = new Date(latestDate);
+    date.setDate(latestDate.getDate() - (29 - index));
+    return date.toISOString().slice(0, 10);
+  });
+  return series.map((dateISO) =>
+    entries.filter((entry) => entry.dateISO === dateISO).length,
+  );
+};
+
+const countNewCritical = (entries: CaseEntry[], lastAccessISO: string | null) => {
+  if (!lastAccessISO) return 0;
+  const lastAccessDate = new Date(lastAccessISO);
+  return entries.filter((entry) => {
+    const entryDate = new Date(`${entry.dateISO}T00:00:00Z`);
+    return entryDate > lastAccessDate && entry.risk_signal?.level === "high";
+  }).length;
+};
+
+const buildContextEvents = (entries: CaseEntry[]) => {
+  const events: Array<{ dateISO: string; label: string; type: "medical" | "substance" }> = [];
+  entries.forEach((entry) => {
+    const units = entry.evidenceUnits ?? [];
+    units.forEach((unit) => {
+      if (unit.attributes?.polarity !== "PRESENT") return;
+      if (unit.label === "CONTEXT_MEDICAL") {
+        events.push({ dateISO: entry.dateISO, label: unit.span, type: "medical" });
+      }
+      if (unit.label === "CONTEXT_SUBSTANCE") {
+        events.push({ dateISO: entry.dateISO, label: unit.span, type: "substance" });
+      }
+    });
+  });
+  return events;
+};
+
+const ClinicianCasePageContent = () => {
+  const {
+    caseId,
+    userName,
+    entries,
+    loading,
+    error,
+    nodeOverrides,
+    overrideRecords,
+    notes,
+    graphLogic,
+    sessionDelta,
+    saveOverride,
+    saveNote,
+    updateNote,
+    deleteNote,
+  } = useClinicalCase();
   const [selectedNode, setSelectedNode] = useState<{ id: string; label: string; labels?: string[] } | null>(null);
-  const [nodeOverrides, setNodeOverrides] = useState<Record<string, DiagnosticStatus>>({});
   const [rejectedEvidenceKeys, setRejectedEvidenceKeys] = useState<Set<string>>(new Set());
   const [highlightLabels, setHighlightLabels] = useState<string[] | null>(null);
-  const [notes, setNotes] = useState<ClinicianNote[]>([]);
-  const [overrideRecords, setOverrideRecords] = useState<ClinicianOverrideRecord[]>([]);
   const [windowDays, setWindowDays] = useState<number>(90);
-
-  useEffect(() => {
-    if (!userId) return;
-    let active = true;
-    setLoading(true);
-    setNodeOverrides({});
-    setRejectedEvidenceKeys(new Set());
-    Promise.all([
-      apiFetch<{ user: { name: string }; entries: CaseEntry[] }>(`/clinician/cases/${userId}/entries`),
-      apiFetch<{ overrides: ClinicianOverrideRecord[] }>(`/clinician/cases/${userId}/overrides`),
-      apiFetch<{ notes: ClinicianNote[] }>(`/clinician/cases/${userId}/notes`),
-    ])
-      .then(([entryResponse, overrideResponse, notesResponse]) => {
-        if (!active) return;
-        setEntries(entryResponse.entries || []);
-        setUserName(entryResponse.user?.name || "Patient");
-        setNotes(notesResponse.notes || []);
-        setOverrideRecords(overrideResponse.overrides || []);
-        const overrideMap = (overrideResponse.overrides || []).reduce<Record<string, DiagnosticStatus>>(
-          (acc, item) => {
-            acc[item.nodeId] = item.status;
-            return acc;
-          },
-          {},
-        );
-        setNodeOverrides(overrideMap);
-      })
-      .catch((err) => {
-        if (!active) return;
-        setError(err instanceof Error ? err.message : "Unable to load case.");
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [userId]);
 
   const evidenceUnits = useMemo(
     () =>
@@ -85,34 +98,16 @@ const ClinicianCasePage = () => {
     [entries],
   );
 
-  const labelOverrides = useMemo(() => {
-    const map: Record<string, DiagnosticStatus> = {};
-    Object.entries(nodeOverrides).forEach(([nodeId, status]) => {
-      const node = DIAGNOSTIC_GRAPH_NODES.find((item) => item.id === nodeId);
-      node?.evidenceLabels?.forEach((label) => {
-        map[label] = status;
-      });
-    });
-    return map;
-  }, [nodeOverrides]);
-
-  const baseLogic = useDiagnosticLogic(entries);
-  const { getStatusForLabels } = useDiagnosticLogic(entries, {
-    overrides: labelOverrides,
-    rejectedEvidenceKeys,
-  });
-
   const clarificationPrompts = useMemo(
-    () => buildClarificationPrompts(entries, getStatusForLabels),
-    [entries, getStatusForLabels],
+    () => buildClarificationPrompts(entries, graphLogic.getStatusForLabels),
+    [entries, graphLogic],
   );
   const inquiryItems = useMemo(
-    () => buildInquiryItems(entries, getStatusForLabels),
-    [entries, getStatusForLabels],
+    () => buildInquiryItems(entries, graphLogic.getStatusForLabels),
+    [entries, graphLogic],
   );
 
   const useWeeklyHeatmap = entries.length > 60;
-  const sessionDelta = useSessionDelta(userId);
   const heatmapEntries = useMemo(() => {
     if (windowDays <= 0) return entries;
     if (!entries.length) return [];
@@ -138,60 +133,6 @@ const ClinicianCasePage = () => {
     return evidenceUnits.filter((unit) => selectedNode.labels?.includes(unit.label));
   }, [evidenceUnits, selectedNode]);
 
-  const handleOverrideChange = (status: DiagnosticStatus | null) => {
-    if (!selectedNode) return;
-    setNodeOverrides((prev) => {
-      const next = { ...prev };
-      if (!status) {
-        delete next[selectedNode.id];
-        return next;
-      }
-      next[selectedNode.id] = status;
-      return next;
-    });
-  };
-
-  const handleNodeOverride = async (nodeId: string, status: DiagnosticStatus | null) => {
-    const graphNode = DIAGNOSTIC_GRAPH_NODES.find((node) => node.id === nodeId);
-    const originalStatus = graphNode?.evidenceLabels?.length
-      ? baseLogic.getStatusForLabels(graphNode.evidenceLabels)
-      : "UNKNOWN";
-    setNodeOverrides((prev) => {
-      const next = { ...prev };
-      if (!status) {
-        delete next[nodeId];
-        return next;
-      }
-      next[nodeId] = status;
-      return next;
-    });
-    if (!userId) return;
-    if (!status) {
-      await apiFetch(`/clinician/cases/${userId}/overrides/${nodeId}`, { method: "DELETE" });
-      setOverrideRecords((prev) => prev.filter((item) => item.nodeId !== nodeId));
-      return;
-    }
-    const response = await apiFetch<{ override: ClinicianOverrideRecord }>(
-      `/clinician/cases/${userId}/overrides`,
-      {
-        method: "POST",
-        body: JSON.stringify({
-          nodeId,
-          status,
-          originalStatus,
-          originalEvidence: selectedNode?.label || "",
-        }),
-      },
-    );
-    if (response.override) {
-      setOverrideRecords((prev) => {
-        const next = prev.filter((item) => item.nodeId !== response.override.nodeId);
-        next.unshift(response.override);
-        return next;
-      });
-    }
-  };
-
   const handleToggleReject = (item: EvidenceUnit & { dateISO: string }) => {
     const key = `${item.dateISO}::${item.span}`;
     setRejectedEvidenceKeys((prev) => {
@@ -205,12 +146,34 @@ const ClinicianCasePage = () => {
     });
   };
 
+  const handleOverrideChange = (status: DiagnosticStatus | null) => {
+    if (!selectedNode) return;
+    const graphNode = DIAGNOSTIC_GRAPH_NODES.find((node) => node.id === selectedNode.id);
+    const originalStatus = graphNode?.evidenceLabels?.length
+      ? graphLogic.getStatusForLabels(graphNode.evidenceLabels)
+      : "UNKNOWN";
+    saveOverride(selectedNode.id, status, {
+      originalStatus,
+      originalEvidence: selectedNode.label,
+    });
+  };
+
+  const handleNodeOverride = (nodeId: string, status: DiagnosticStatus | null) => {
+    const graphNode = DIAGNOSTIC_GRAPH_NODES.find((node) => node.id === nodeId);
+    const originalStatus = graphNode?.evidenceLabels?.length
+      ? graphLogic.getStatusForLabels(graphNode.evidenceLabels)
+      : "UNKNOWN";
+    saveOverride(nodeId, status, {
+      originalStatus,
+      originalEvidence: graphNode?.label || "",
+    });
+  };
+
   const handleEvidenceFeedback = async (
     item: EvidenceUnit & { dateISO: string },
     feedbackType: "correct" | "wrong_label" | "wrong_polarity",
   ) => {
-    if (!userId) return;
-    await apiFetch(`/clinician/cases/${userId}/feedback`, {
+    await apiFetch(`/clinician/cases/${caseId}/feedback`, {
       method: "POST",
       body: JSON.stringify({
         entryDateISO: item.dateISO,
@@ -234,6 +197,15 @@ const ClinicianCasePage = () => {
         <Card className="p-6 text-sm text-rose-600">{error}</Card>
       ) : (
         <>
+          <CaseStatusHeader
+            name={userName}
+            lastEntryDate={entries[entries.length - 1]?.dateISO || ""}
+            riskSignal={entries[entries.length - 1]?.risk_signal || null}
+            densitySeries={buildDensitySeries(entries)}
+            newCriticalCount={countNewCritical(entries, sessionDelta.lastAccessISO)}
+            unknownGateCount={inquiryItems.length}
+          />
+
           <Card className="p-6">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
@@ -254,6 +226,7 @@ const ClinicianCasePage = () => {
                 groupByWeek={useWeeklyHeatmap}
                 highlightLabels={highlightLabels ?? []}
                 lastAccessISO={sessionDelta.lastAccessISO}
+                contextEvents={buildContextEvents(entries)}
               />
             </div>
           </Card>
@@ -279,7 +252,6 @@ const ClinicianCasePage = () => {
             <div className="mt-4">
               <DiagnosticLogicGraph
                 entries={entries}
-                overrides={labelOverrides}
                 nodeOverrides={nodeOverrides}
                 rejectedEvidenceKeys={rejectedEvidenceKeys}
                 lastAccessISO={sessionDelta.lastAccessISO}
@@ -317,36 +289,18 @@ const ClinicianCasePage = () => {
             </Card>
           ) : null}
 
-          <Card className="p-6">
-            <h3 className="text-lg font-semibold">Inquiry assistant</h3>
-            <p className="mt-1 text-sm text-slate-500">
-              Resolve unknown gates quickly and update the logic graph.
-            </p>
-            <div className="mt-4">
+          <ClinicianWorkspace
+            triage={(
               <InquiryAssistant items={inquiryItems} onOverride={handleNodeOverride} />
-            </div>
-          </Card>
-
-          <Card className="p-6">
-            <h3 className="text-lg font-semibold">Clinical note draft</h3>
-            <p className="mt-1 text-sm text-slate-500">
-              Generate a structured summary based on current evidence and overrides.
-            </p>
-            <div className="mt-4">
+            )}
+            draft={(
               <ClinicalNoteGenerator
                 entries={entries}
-                getStatusForLabels={getStatusForLabels}
+                getStatusForLabels={graphLogic.getStatusForLabels}
                 nodeOverrides={nodeOverrides}
               />
-            </div>
-          </Card>
-
-          <Card className="p-6">
-            <h3 className="text-lg font-semibold">Clinician notes</h3>
-            <p className="mt-1 text-sm text-slate-500">
-              Private notes tied to this patient.
-            </p>
-            <div className="mt-4">
+            )}
+            notes={(
               <ClinicianNotesPanel
                 notes={notes}
                 auditItems={overrideRecords.map((record) => ({
@@ -354,36 +308,12 @@ const ClinicianCasePage = () => {
                   detail: record.originalEvidence || "",
                   dateISO: record.updatedAt ? record.updatedAt.slice(0, 10) : "",
                 }))}
-                onCreate={async (payload) => {
-                  if (!userId) return;
-                  const response = await apiFetch<{ note: ClinicianNote }>(
-                    `/clinician/cases/${userId}/notes`,
-                    { method: "POST", body: JSON.stringify(payload) },
-                  );
-                  if (response.note) {
-                    setNotes((prev) => [response.note, ...prev]);
-                  }
-                }}
-                onUpdate={async (noteId, payload) => {
-                  if (!userId) return;
-                  const response = await apiFetch<{ note: ClinicianNote }>(
-                    `/clinician/cases/${userId}/notes/${noteId}`,
-                    { method: "PATCH", body: JSON.stringify(payload) },
-                  );
-                  if (response.note) {
-                    setNotes((prev) =>
-                      prev.map((note) => (note.id === noteId ? response.note : note)),
-                    );
-                  }
-                }}
-                onDelete={async (noteId) => {
-                  if (!userId) return;
-                  await apiFetch(`/clinician/cases/${userId}/notes/${noteId}`, { method: "DELETE" });
-                  setNotes((prev) => prev.filter((note) => note.id !== noteId));
-                }}
+                onCreate={saveNote}
+                onUpdate={updateNote}
+                onDelete={deleteNote}
               />
-            </div>
-          </Card>
+            )}
+          />
         </>
       )}
 
@@ -399,6 +329,18 @@ const ClinicianCasePage = () => {
         onClose={() => setSelectedNode(null)}
       />
     </div>
+  );
+};
+
+const ClinicianCasePage = () => {
+  const { userId } = useParams();
+  if (!userId) {
+    return <Card className="p-6 text-sm text-slate-500">Select a case to begin.</Card>;
+  }
+  return (
+    <ClinicalCaseProvider caseId={userId}>
+      <ClinicianCasePageContent />
+    </ClinicalCaseProvider>
   );
 };
 

@@ -30,6 +30,7 @@ type SymptomHeatmapProps = {
   groupByWeek?: boolean;
   highlightLabels?: string[];
   lastAccessISO?: string | null;
+  contextEvents?: Array<{ dateISO: string; label: string; type: "medical" | "substance" }>;
 };
 
 const SymptomHeatmap = ({
@@ -37,6 +38,7 @@ const SymptomHeatmap = ({
   groupByWeek = false,
   highlightLabels = [],
   lastAccessISO,
+  contextEvents = [],
 }: SymptomHeatmapProps) => {
   if (!entries.length) {
     return <p className="text-sm text-slate-500">No entry data available.</p>;
@@ -85,6 +87,13 @@ const SymptomHeatmap = ({
   const contextByBucket = new Map(
     buckets.map((bucket) => [bucket.key, getContextTags(bucket.entries)]),
   );
+  const eventByBucket = new Map<string, Array<{ label: string; type: "medical" | "substance" }>>();
+  contextEvents.forEach((event) => {
+    const key = groupByWeek ? event.dateISO.slice(0, 7) : event.dateISO;
+    const list = eventByBucket.get(key) || [];
+    list.push({ label: event.label, type: event.type });
+    eventByBucket.set(key, list);
+  });
   const lastAccessDate = lastAccessISO ? new Date(lastAccessISO) : null;
   const isNewBucket = (key: string) => {
     if (!lastAccessDate) return false;
@@ -103,6 +112,7 @@ const SymptomHeatmap = ({
             const hasMedical = contextTags.some((tag) => /medical/i.test(tag));
             const hasSubstance = contextTags.some((tag) => /substance/i.test(tag));
             const isNew = isNewBucket(bucket.key);
+            const events = eventByBucket.get(bucket.key) || [];
             return (
               <span
                 key={bucket.key}
@@ -121,6 +131,13 @@ const SymptomHeatmap = ({
                   <span className="h-1.5 w-1.5" />
                 )}
                 {isNew ? <span className="h-1 w-6 rounded-full bg-sky-400" /> : null}
+                {events.length ? (
+                  <span
+                    className="absolute inset-y-0 left-0 w-[2px] bg-indigo-400"
+                    title={events.map((event) => event.label).join(", ")}
+                    aria-label={events.map((event) => event.label).join(", ")}
+                  />
+                ) : null}
                 {hasContext ? (
                   <span className="text-[9px] uppercase text-indigo-500">
                     {hasMedical ? "Med" : hasSubstance ? "Sub" : "Ctx"}
@@ -154,17 +171,22 @@ const SymptomHeatmap = ({
                 const intensity = getIntensity(units);
                 const contextTags = contextByBucket.get(bucket.key) || [];
                 const isNew = isNewBucket(bucket.key);
+                const events = eventByBucket.get(bucket.key) || [];
                 return (
                   <span
                     key={`${cluster.id}-${bucket.key}`}
                     className={clsx(
-                      "h-5 w-full rounded-sm border border-slate-200",
+                      "relative h-5 w-full rounded-sm border border-slate-200",
                       getCellClass(hasEntry, intensity),
                       isNew && "ring-2 ring-sky-300 ring-offset-1",
                     )}
                     title={contextTags.length ? contextTags.join(", ") : undefined}
                     aria-label={contextTags.length ? contextTags.join(", ") : undefined}
-                  />
+                  >
+                    {events.length ? (
+                      <span className="absolute inset-y-0 left-0 w-[2px] bg-indigo-400" />
+                    ) : null}
+                  </span>
                 );
               })}
             </div>

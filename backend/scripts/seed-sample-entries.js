@@ -34,6 +34,52 @@ const createProgress = (total, label) => {
   return { render, done };
 };
 
+const labelForSymptom = (symptom) => {
+  const key = String(symptom || "").toUpperCase();
+  if (key.includes("A9")) return "SYMPTOM_RISK";
+  if (key.includes("SLEEP") || key.includes("INSOMNIA") || key.includes("HYPERSOMNIA")) {
+    return "SYMPTOM_SLEEP";
+  }
+  if (key.includes("ANXI") || key.includes("ANXIOUS") || key.includes("WORRY")) {
+    return "SYMPTOM_ANXIETY";
+  }
+  if (key.includes("PSYCHOTIC") || key.includes("DELUSION") || key.includes("HALLUC")) {
+    return "SYMPTOM_PSYCHOSIS";
+  }
+  if (key.includes("MANIA") || key.includes("HYPOMANIA")) {
+    return "SYMPTOM_MANIA";
+  }
+  if (
+    key.includes("APPETITE") ||
+    key.includes("WEIGHT") ||
+    key.includes("FATIGUE") ||
+    key.includes("ENERGY") ||
+    key.includes("PSYCHOMOTOR")
+  ) {
+    return "SYMPTOM_SOMATIC";
+  }
+  if (key.includes("WORTHLESS") || key.includes("GUILT") || key.includes("CONCENTRATION")) {
+    return "SYMPTOM_COGNITIVE";
+  }
+  if (key.includes("DEPRESSED") || key.includes("ANHEDON") || key.includes("MOOD")) {
+    return "SYMPTOM_MOOD";
+  }
+  return null;
+};
+
+const buildEvidenceUnit = (label, span, polarity = "PRESENT") => ({
+  span,
+  label,
+  attributes: {
+    polarity,
+    temporality: null,
+    frequency: null,
+    severity: null,
+    attribution: null,
+    uncertainty: "LOW",
+  },
+});
+
 const symptomManifestations = {
   MDD_A1_DEPRESSED_MOOD: [
     "I feel a heavy emptiness that I just can't shake.",
@@ -575,13 +621,27 @@ const buildEntry = async ({ date, profileKey, lengthTier }) => {
     : null;
 
   const denialProbability = 0.05;
+  const evidenceUnits = [];
   const sentences = selectedSymptoms.map((symptom) => {
     const options = symptomManifestations[symptom] || [];
     const denialOptions = symptomDenials[symptom] || [];
     if (denialOptions.length && roll() <= denialProbability) {
-      return pickRandom(denialOptions);
+      const text = pickRandom(denialOptions);
+      const label = labelForSymptom(symptom);
+      if (label && text) {
+        evidenceUnits.push(buildEvidenceUnit(label, text, "ABSENT"));
+      }
+      return text;
     }
-    return options.length ? pickRandom(options) : null;
+    if (options.length) {
+      const text = pickRandom(options);
+      const label = labelForSymptom(symptom);
+      if (label && text) {
+        evidenceUnits.push(buildEvidenceUnit(label, text, "PRESENT"));
+      }
+      return text;
+    }
+    return null;
   });
 
   const impairmentPool = Object.values(impairmentManifestations).flat();
@@ -589,14 +649,32 @@ const buildEntry = async ({ date, profileKey, lengthTier }) => {
     profile.impairmentProbability ?? (profile.baseIntensity?.min || 0.4) > 0.6 ? 0.6 : 0.25;
   const impairmentSentence =
     roll() <= impairmentProbability ? pickRandom(impairmentPool) : null;
+  if (impairmentSentence) {
+    evidenceUnits.push(buildEvidenceUnit("IMPAIRMENT", impairmentSentence, "PRESENT"));
+  }
 
   const confounderPool = Object.values(confounders).flat();
   const confounderProbability = profile.confounderProbability ?? 0.05;
   const confounderSentence =
     roll() <= confounderProbability ? pickRandom(confounderPool) : null;
+  if (confounderSentence) {
+    const confounderLabel = confounders.SUBSTANCE_USE?.includes(confounderSentence)
+      ? "CONTEXT_SUBSTANCE"
+      : confounders.MEDICAL_ISSUES?.includes(confounderSentence)
+        ? "CONTEXT_MEDICAL"
+        : confounders.MANIC_SIGNAL?.includes(confounderSentence)
+          ? "SYMPTOM_MANIA"
+          : null;
+    if (confounderLabel) {
+      evidenceUnits.push(buildEvidenceUnit(confounderLabel, confounderSentence, "PRESENT"));
+    }
+  }
   const medicationProbability = profile.medicationProbability ?? 0.04;
   const medicationSentence =
     roll() <= medicationProbability ? pickRandom(medicationSignals) : null;
+  if (medicationSentence) {
+    evidenceUnits.push(buildEvidenceUnit("CONTEXT_SUBSTANCE", medicationSentence, "PRESENT"));
+  }
 
   const tier = lengthTier || "standard";
   const symptomTarget = tier === "sparse" ? 1 : tier === "long" ? 6 : 4;
@@ -640,6 +718,7 @@ const buildEntry = async ({ date, profileKey, lengthTier }) => {
     title: `Reflection: ${profile.title}`,
     summary: expanded?.summary || baseSummary,
     risk_signal: riskSignal || undefined,
+    evidenceUnits,
     tags: [pickRandom(sampleTags), "seeded-sample"],
     triggers: triggers.length ? [pickRandom(triggers)] : [],
     themes,

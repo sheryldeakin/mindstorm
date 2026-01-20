@@ -63,7 +63,18 @@ const listEntries = asyncHandler(async (req, res) => {
 });
 
 const createEntry = asyncHandler(async (req, res) => {
-  const { title, summary, tags = [], triggers = [], themes = [], emotions = [], themeIntensities = [], date, dateISO } = req.body;
+  const {
+    title,
+    summary,
+    tags = [],
+    triggers = [],
+    themes = [],
+    emotions = [],
+    themeIntensities = [],
+    date,
+    dateISO,
+    evidenceUnits,
+  } = req.body;
 
   if (!title || !summary) {
     return res.status(400).json({ message: "Title and summary are required." });
@@ -85,6 +96,7 @@ const createEntry = asyncHandler(async (req, res) => {
     themes,
     emotions,
     themeIntensities,
+    evidenceUnits: Array.isArray(evidenceUnits) ? evidenceUnits : undefined,
   });
 
   const evidenceResult = await generateEntryEvidence(`Title: ${title}\nSummary: ${summary}`);
@@ -93,10 +105,12 @@ const createEntry = asyncHandler(async (req, res) => {
     await entry.save();
   }
 
-  const clinicalEvidenceResult = await generateClinicalEvidenceUnits(`Title: ${title}\nSummary: ${summary}`);
-  if (!clinicalEvidenceResult?.error && clinicalEvidenceResult?.evidenceUnits) {
-    entry.evidenceUnits = clinicalEvidenceResult.evidenceUnits;
-    await entry.save();
+  if (!Array.isArray(evidenceUnits) || evidenceUnits.length === 0) {
+    const clinicalEvidenceResult = await generateClinicalEvidenceUnits(`Title: ${title}\nSummary: ${summary}`);
+    if (!clinicalEvidenceResult?.error && clinicalEvidenceResult?.evidenceUnits) {
+      entry.evidenceUnits = clinicalEvidenceResult.evidenceUnits;
+      await entry.save();
+    }
   }
 
   const weekStartIso = getWeekStartIso(entryDateISO);

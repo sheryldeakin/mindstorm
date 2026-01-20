@@ -36,6 +36,29 @@ const getEntriesWithinDays = (entries: CaseEntry[], windowDays: number) => {
   });
 };
 
+const getMaxWindowCount = (
+  entries: CaseEntry[],
+  criteria: { evidenceLabels: string[] }[],
+  windowDays: number,
+) => {
+  if (!entries.length) return 0;
+  const sorted = [...entries].sort((a, b) => a.dateISO.localeCompare(b.dateISO));
+  let maxCount = 0;
+  sorted.forEach((entry) => {
+    const endDate = new Date(`${entry.dateISO}T00:00:00Z`);
+    const cutoff = new Date(endDate);
+    cutoff.setDate(cutoff.getDate() - windowDays + 1);
+    const windowEntries = sorted.filter((candidate) => {
+      const date = new Date(`${candidate.dateISO}T00:00:00Z`);
+      return date >= cutoff && date <= endDate;
+    });
+    const units = windowEntries.flatMap((item) => item.evidenceUnits ?? []);
+    const presence = buildPresenceMap(units, criteria);
+    maxCount = Math.max(maxCount, countPresence(presence));
+  });
+  return maxCount;
+};
+
 const hasPsychosisSignal = (entries: CaseEntry[], windowDays?: number) => {
   const scopedEntries = windowDays ? getEntriesWithinDays(entries, windowDays) : entries;
   return scopedEntries.some((entry) =>
@@ -55,10 +78,10 @@ const deriveSeverity = (currentCount: number, required: number, total: number): 
 const deriveRemission = (
   entries: CaseEntry[],
   currentCount: number,
-  lifetimeCount: number,
+  lifetimeWindowMax: number,
   required: number,
 ): MddRemission => {
-  if (lifetimeCount < required) return "none";
+  if (lifetimeWindowMax < required) return "none";
   if (currentCount >= required) return "none";
   const last60 = getEntriesWithinDays(entries, 60);
   const hasRecentSignals = last60.some((entry) =>
@@ -106,12 +129,13 @@ export const getMddIcdPreview = (entries: CaseEntry[]) => {
   const allUnits = entries.flatMap((entry) => entry.evidenceUnits ?? []);
   const presence = buildPresenceMap(allUnits, config.criteria);
   const lifetimeCount = countPresence(presence);
+  const lifetimeWindowMax = getMaxWindowCount(entries, config.criteria, 14);
   const currentEntries = getEntriesWithinDays(entries, 14);
   const currentUnits = currentEntries.flatMap((entry) => entry.evidenceUnits ?? []);
   const currentPresence = buildPresenceMap(currentUnits, config.criteria);
   const currentCount = countPresence(currentPresence);
   const psychotic = hasPsychosisSignal(entries, 14);
-  const remission = deriveRemission(entries, currentCount, lifetimeCount, config.required);
+  const remission = deriveRemission(entries, currentCount, lifetimeWindowMax, config.required);
   const severity = deriveSeverity(Math.max(currentCount, config.required), config.required, config.total);
   const recurrent = detectRecurrent(entries, config.criteria, config.required);
 
