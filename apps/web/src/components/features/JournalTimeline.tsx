@@ -1,7 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import type { JournalEntry } from "../../types/journal";
 import Button from "../ui/Button";
-import { buildSignalPreview } from "../../lib/patientSignals";
+import Badge from "../ui/Badge";
+import { buildContextImpactTags, buildSignalPreview } from "../../lib/patientSignals";
 
 interface JournalTimelineProps {
   entries: JournalEntry[];
@@ -45,6 +46,17 @@ const JournalTimeline = ({ entries, loading = false }: JournalTimelineProps) => 
           <p className="text-xs uppercase tracking-[0.4em] text-brand/50">{entry.date}</p>
           <p className="mt-3 font-semibold text-brand">{entry.title}</p>
           <p className="mt-2 text-slate-500">{buildSignalPreview(entry)}</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {buildContextImpactTags(entry).length ? (
+              buildContextImpactTags(entry).map((tag) => (
+                <Badge key={tag} className="bg-slate-100 text-slate-600">
+                  {tag}
+                </Badge>
+              ))
+            ) : (
+              <span className="text-xs text-slate-400">—</span>
+            )}
+          </div>
           <div className="mt-4 flex flex-wrap gap-2">
             <Button
               variant="secondary"

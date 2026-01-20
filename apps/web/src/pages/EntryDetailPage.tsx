@@ -7,6 +7,7 @@ import Badge from "../components/ui/Badge";
 import useEntry from "../hooks/useEntry";
 import { usePatientTranslation } from "../hooks/usePatientTranslation";
 import patientView from "@criteria/depressive_disorders_patient_view.json";
+import { buildContextImpactTags } from "../lib/patientSignals";
 
 type ConditionRule = {
   label?: string;
@@ -87,6 +88,10 @@ const buildAttributesSummary = (
   return parts.length ? parts.join(" • ") : null;
 };
 
+const isSymptomSignal = (label: string) => label.startsWith("SYMPTOM_");
+const isContextSignal = (label: string) =>
+  label.startsWith("CONTEXT_") || label.startsWith("IMPACT_");
+
 const EntryDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -111,14 +116,34 @@ const EntryDetailPage = () => {
     () => evidenceUnits.filter((unit) => !shouldExcludeLabel(unit.label)),
     [evidenceUnits],
   );
+  const symptomUnits = useMemo(
+    () =>
+      filteredUnits.filter(
+        (unit) =>
+          isSymptomSignal(unit.label) &&
+          unit.label !== "SYMPTOM_RISK" &&
+          unit.label !== "SYMPTOM_TRAUMA",
+      ),
+    [filteredUnits],
+  );
+  const contextUnits = useMemo(
+    () => filteredUnits.filter((unit) => isContextSignal(unit.label)),
+    [filteredUnits],
+  );
+  const riskUnits = useMemo(
+    () => filteredUnits.filter((unit) => unit.label === "SYMPTOM_RISK"),
+    [filteredUnits],
+  );
   const groupedSignals = useMemo(
-    () => groupEvidenceByPatientLabel(filteredUnits),
-    [filteredUnits, groupEvidenceByPatientLabel],
+    () => groupEvidenceByPatientLabel(symptomUnits),
+    [symptomUnits, groupEvidenceByPatientLabel],
   );
   const questionsToExplore = useMemo(
     () => buildDerivedPrompts(filteredUnits, mapping.derived_prompts?.questions_to_explore),
     [filteredUnits, mapping.derived_prompts?.questions_to_explore],
   );
+  const contextTags = useMemo(() => buildContextImpactTags(data), [data]);
+  const topSignalLabels = groupedSignals.map((group) => group.patientLabel);
 
   if (loading) {
     return (
@@ -158,7 +183,7 @@ const EntryDetailPage = () => {
       <Card className="border p-6">
         <h3 className="text-sm font-semibold text-slate-700">Signals spotted</h3>
         {groupedSignals.length ? (
-          <div className="mt-4 space-y-4">
+          <div className="mt-4 grid gap-4 lg:grid-cols-2">
             {groupedSignals.map((group) => (
               <div key={group.label} className="rounded-2xl border border-slate-100 bg-white p-4">
                 <div className="flex flex-wrap items-center justify-between gap-2">
@@ -187,20 +212,51 @@ const EntryDetailPage = () => {
         )}
       </Card>
 
-      <Card className="border p-6">
-        <h3 className="text-sm font-semibold text-slate-700">Questions to explore</h3>
-        {questionsToExplore.length ? (
-          <ul className="mt-3 space-y-2 text-sm text-slate-600">
-            {questionsToExplore.map((prompt) => (
-              <li key={prompt} className="rounded-xl bg-slate-50 px-3 py-2">
-                {prompt}
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="mt-3 text-sm text-slate-500">No questions suggested yet.</p>
-        )}
-      </Card>
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Card className="border p-6">
+          <h3 className="text-sm font-semibold text-slate-700">Life context</h3>
+          {contextTags.length ? (
+            <>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {contextTags.map((tag) => (
+                  <Badge key={tag} className="bg-slate-100 text-slate-600">
+                    {tag}
+                  </Badge>
+                ))}
+              </div>
+              {topSignalLabels.length ? (
+                <p className="mt-3 text-sm text-slate-500">
+                  This entry connects {topSignalLabels.slice(0, 2).join(" and ")} with{" "}
+                  {contextTags.slice(0, 2).join(" and ")}.
+                </p>
+              ) : null}
+            </>
+          ) : (
+            <p className="mt-3 text-sm text-slate-500">No context signals captured yet.</p>
+          )}
+          {riskUnits.length ? (
+            <div className="mt-4 rounded-2xl border border-slate-100 bg-slate-50 px-3 py-2 text-sm text-slate-600">
+              Safety support: If difficult thoughts are showing up, you’re not alone. Consider reaching out to someone
+              you trust or a professional support line.
+            </div>
+          ) : null}
+        </Card>
+
+        <Card className="border p-6">
+          <h3 className="text-sm font-semibold text-slate-700">Questions to explore</h3>
+          {questionsToExplore.length ? (
+            <ul className="mt-3 space-y-2 text-sm text-slate-600">
+              {questionsToExplore.map((prompt) => (
+                <li key={prompt} className="rounded-xl bg-slate-50 px-3 py-2">
+                  {prompt}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-3 text-sm text-slate-500">No questions suggested yet.</p>
+          )}
+        </Card>
+      </div>
     </div>
   );
 };

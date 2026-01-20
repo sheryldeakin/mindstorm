@@ -80,8 +80,8 @@ export const buildSignalPreview = (entry: JournalEntry, maxLabels = 2) => {
   return "No signals detected";
 };
 
-export const buildContextImpactTags = (entry: JournalEntry, maxLabels = 3) => {
-  const units = entry.evidenceUnits || [];
+export const buildContextImpactTags = (entry: JournalEntry | null | undefined, maxLabels = 3) => {
+  const units = entry?.evidenceUnits || [];
   const labels: string[] = [];
 
   units.forEach((unit) => {
