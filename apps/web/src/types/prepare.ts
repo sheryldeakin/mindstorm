@@ -31,6 +31,40 @@ export interface PrepareSummary {
   topics: string[];
 }
 
+export interface ClinicianAppendix {
+  coverage: Array<{
+    label: string;
+    current: number;
+    lifetime: number;
+    max: number;
+    threshold?: number;
+  }>;
+  signalDensity: number;
+  missingGates?: {
+    duration?: boolean;
+    impairment?: boolean;
+    missing?: string[];
+  };
+  highConfidenceEvidence: Array<{
+    dateISO: string;
+    label: string;
+    span: string;
+    attributes?: {
+      polarity?: string | null;
+      temporality?: string | null;
+      frequency?: string | null;
+      severity?: string | null;
+      attribution?: string | null;
+      uncertainty?: string | null;
+    };
+  }>;
+  highUncertaintyEvidence?: Array<{
+    date: string;
+    label: string;
+    quote: string;
+  }>;
+}
+
 export interface WeeklySummary {
   weekStartISO: string;
   weekEndISO: string;

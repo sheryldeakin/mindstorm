@@ -1,4 +1,12 @@
 const asyncHandler = require("../utils/asyncHandler");
+const { generateClinicianAppendix } = require("../utils/clinicalMetrics");
+const {
+  createJob,
+  updateJob,
+  getJob,
+  completeJob,
+  failJob,
+} = require("../utils/prepareSummaryJobs");
 
 const buildPrompt = () =>
   [
@@ -38,13 +46,22 @@ const buildPrepareChunkPrompt = (timeRangeLabel) =>
     `Time range label: ${timeRangeLabel}.`,
   ].join(" ");
 
-const buildPrepareMergePrompt = (timeRangeLabel) =>
+const buildPrepareMergePrompt = (timeRangeLabel, signalContext) =>
   [
     "You are merging multiple chunk summaries into one patient-authored reflection summary for a clinician.",
     "Use plain language, no medical or diagnostic terms, no DSM labels, no severity scales, no causality claims.",
     "Tone: first-person, experience-first, respectful, concise. Use 'I' statements and patient voice.",
     "The whySharing field must be first-person (start with 'I') and should sound like the patient speaking.",
     "Focus on patterns, questions, and lived impact.",
+    "Use the provided 'Detected Signals' as ground truth. Do not introduce themes not present in the signals.",
+    "If a signal appears 3 or more times, you MUST mention it in recurringExperiences.",
+    "Translate signals into patient-friendly terms (examples):",
+    "SYMPTOM_MOOD -> Low mood, SYMPTOM_ANHEDONIA -> Loss of interest, SYMPTOM_COGNITIVE -> Foggy thinking or self-critical thoughts,",
+    "SYMPTOM_SOMATIC -> Low energy or appetite changes, SYMPTOM_SLEEP -> Sleep changes, SYMPTOM_ANXIETY -> Anxiety or worry,",
+    "IMPACT_WORK -> Work/School impact, IMPACT_SOCIAL -> Relationship strain or isolation, IMPACT_SELF_CARE -> Self-care struggles,",
+    "CONTEXT_STRESSOR -> Life stressors, CONTEXT_MEDICAL -> Physical health changes, CONTEXT_SUBSTANCE -> Alcohol/substance/medication changes,",
+    "SYMPTOM_MANIA -> Wired or unusually high energy, SYMPTOM_PSYCHOSIS -> Unusual perceptions or beliefs,",
+    "SYMPTOM_TRAUMA -> Trauma reminders or flashbacks.",
     "For impactAreas, prefer these patient-friendly domains when relevant: Work/School, Relationships, Energy and Self-care, Motivation, Feeling safe or steady, Enjoyment and meaning.",
     "For relatedInfluences, focus on contextual factors (sleep, stress, medication changes, substances, physical health, major events) rather than life domains.",
     "Return strict JSON with keys:",
@@ -53,6 +70,7 @@ const buildPrepareMergePrompt = (timeRangeLabel) =>
     "impactNote (string), relatedInfluences (array of strings), unclearAreas (array of strings),",
     "questionsToExplore (array of strings).",
     `Time range label: ${timeRangeLabel}.`,
+    signalContext ? `Detected Signals (PRESENT counts): ${signalContext}` : "Detected Signals: none.",
   ].join(" ");
 
 const buildEntryEvidencePrompt = () =>
@@ -356,6 +374,31 @@ const getWeekEndIso = (weekStartIso) => {
   const end = new Date(start);
   end.setDate(start.getDate() + 6);
   return end.toISOString().slice(0, 10);
+};
+
+const aggregateEvidenceUnits = (signals) => {
+  const counts = new Map();
+  if (!Array.isArray(signals)) return counts;
+  signals.forEach((signal) => {
+    const units = Array.isArray(signal.evidenceUnits) ? signal.evidenceUnits : [];
+    units.forEach((unit) => {
+      const label = typeof unit?.label === "string" ? unit.label.trim() : "";
+      if (!label) return;
+      const polarity = unit?.attributes?.polarity || unit?.polarity;
+      if (polarity !== "PRESENT") return;
+      counts.set(label, (counts.get(label) || 0) + 1);
+    });
+  });
+  return counts;
+};
+
+const buildSignalContext = (counts) => {
+  const entries = Array.from(counts.entries());
+  if (!entries.length) return "";
+  return entries
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .map(([label, count]) => `${label}: ${count}`)
+    .join(", ");
 };
 
 const shouldUseJsonResponseFormat = (baseUrl) => {
@@ -801,50 +844,59 @@ const analyzeEntry = asyncHandler(async (req, res) => {
   });
 });
 
-const prepareSummary = asyncHandler(async (req, res) => {
-  console.log("[prepare-summary] request", {
-    userId: req.user?._id?.toString?.() || "unknown",
-    rangeDays: req.body?.rangeDays,
-  });
-  const rangeDays = Number.parseInt(req.body?.rangeDays, 10) || 56;
-  const end = new Date();
-  const start = new Date(end.getFullYear(), end.getMonth(), end.getDate() - (rangeDays - 1));
-  const startIso = start.toISOString().slice(0, 10);
+const buildPrepareSummary = async ({ userId, rangeDays, onProgress }) => {
+  const updateProgress = (stage, percent, detail) => {
+    if (onProgress) onProgress({ stage, percent, detail });
+  };
 
+  console.log("[prepare-summary] request", {
+    userId: userId?.toString?.() || "unknown",
+    rangeDays,
+  });
+  const parsedRangeDays = Number.parseInt(rangeDays, 10) || 56;
+  const end = new Date();
+  const start = new Date(end.getFullYear(), end.getMonth(), end.getDate() - (parsedRangeDays - 1));
+  const startIso = start.toISOString().slice(0, 10);
+  const endIso = end.toISOString().slice(0, 10);
+
+  updateProgress("fetching_entries", 5);
   const Entry = require("../models/Entry");
   const entries = await Entry.find({
-    userId: req.user._id,
+    userId,
     dateISO: { $gte: startIso },
     deletedAt: null,
   })
     .sort({ dateISO: 1 })
     .lean();
 
+  updateProgress("fetching_entries", 10);
   if (!entries.length) {
-    console.log("[prepare-summary] no entries found for range", { startIso, rangeDays });
-    return res.json({
-      summary: {
-        timeRangeLabel: `Last ${rangeDays} days`,
-        confidenceNote: "Not enough entries yet to detect patterns.",
-        whySharing: "",
+    console.log("[prepare-summary] no entries found for range", { startIso, rangeDays: parsedRangeDays });
+    const emptySummary = {
+      timeRangeLabel: `Last ${parsedRangeDays} days`,
+      confidenceNote: "Not enough entries yet to detect patterns.",
+      whySharing: "",
+      recurringExperiences: [],
+      overTimeSummary: "",
+      intensityLines: [],
+      impactAreas: [],
+      impactNote: "",
+      relatedInfluences: [],
+      unclearAreas: [],
+      questionsToExplore: [],
+      evidenceBySection: {
         recurringExperiences: [],
-        overTimeSummary: "",
-        intensityLines: [],
         impactAreas: [],
-        impactNote: "",
         relatedInfluences: [],
         unclearAreas: [],
         questionsToExplore: [],
-        evidenceBySection: {
-          recurringExperiences: [],
-          impactAreas: [],
-          relatedInfluences: [],
-          unclearAreas: [],
-          questionsToExplore: [],
-        },
-        topics: [],
       },
-    });
+      topics: [],
+    };
+    return {
+      summary: emptySummary,
+      appendix: generateClinicianAppendix([]),
+    };
   }
 
   const baseUrl = process.env.OPENAI_API_URL || "https://api.openai.com/v1";
@@ -854,28 +906,39 @@ const prepareSummary = asyncHandler(async (req, res) => {
 
   if (!apiKey && !isLocal) {
     console.warn("[prepare-summary] missing OPENAI_API_KEY and not local", { baseUrl });
-    return res.status(500).json({ message: "OPENAI_API_KEY is not set." });
+    throw new Error("OPENAI_API_KEY is not set.");
   }
 
-  const timeRangeLabel = rangeDays >= 56 ? "Last 8 weeks" : `Last ${rangeDays} days`;
+  const timeRangeLabel = parsedRangeDays >= 56 ? "Last 8 weeks" : `Last ${parsedRangeDays} days`;
   const WeeklySummary = require("../models/WeeklySummary");
+  const EntrySignals = require("../derived/models/EntrySignals");
   const weekKeys = Array.from(new Set(entries.map((entry) => getWeekStartIso(entry.dateISO)))).sort();
+
+  updateProgress("loading_weekly_summaries", 15);
   const weeklySummaries = await WeeklySummary.find({
-    userId: req.user._id,
+    userId,
     weekStartISO: { $in: weekKeys },
   }).lean();
 
   const summaryMap = new Map(weeklySummaries.map((item) => [item.weekStartISO, item.summary]));
   const missingKeys = weekKeys.filter((key) => !summaryMap.has(key));
+  const totalWeeks = weekKeys.length;
+  let completedWeeks = totalWeeks - missingKeys.length;
+  if (totalWeeks) {
+    updateProgress("loading_weekly_summaries", 15, { current: completedWeeks, total: totalWeeks });
+  }
 
   if (missingKeys.length) {
     console.log("[prepare-summary] backfilling weekly summaries", { missing: missingKeys.length });
+    updateProgress("backfilling_weekly_summaries", 15, { current: completedWeeks, total: totalWeeks });
+    const totalMissing = missingKeys.length;
     for (let i = 0; i < missingKeys.length; i += 2) {
       const batch = missingKeys.slice(i, i + 2);
       const results = await Promise.all(
-        batch.map((weekStartIso) => generateWeeklySummary({ userId: req.user._id, weekStartIso })),
+        batch.map((weekStartIso) => generateWeeklySummary({ userId, weekStartIso })),
       );
       results.forEach((result, index) => {
+        completedWeeks += 1;
         if (result?.error) {
           console.warn("[prepare-summary] weekly summary error", { error: result.error });
           return;
@@ -883,9 +946,40 @@ const prepareSummary = asyncHandler(async (req, res) => {
         if (result) {
           summaryMap.set(batch[index], result);
         }
+        const percent = 15 + Math.round((completedWeeks / Math.max(totalWeeks, 1)) * 40);
+        updateProgress("backfilling_weekly_summaries", percent, {
+          current: Math.min(completedWeeks, totalWeeks),
+          total: totalWeeks,
+        });
       });
     }
   }
+
+  updateProgress("loading_signals", 55);
+  const signals = await EntrySignals.find({
+    userId,
+    dateISO: { $gte: startIso, $lte: endIso },
+  }).lean();
+  const signalCounts = aggregateEvidenceUnits(signals);
+  const signalContext = buildSignalContext(signalCounts);
+  const signalEntries = signals.map((signal) => ({
+    dateISO: signal.dateISO,
+    evidenceUnits: Array.isArray(signal.evidenceUnits) ? signal.evidenceUnits : [],
+  }));
+  const highUncertaintyEvidence = signals.flatMap((signal) => {
+    const units = Array.isArray(signal.evidenceUnits) ? signal.evidenceUnits : [];
+    return units
+      .filter((unit) => unit?.attributes?.uncertainty === "HIGH")
+      .map((unit) => ({
+        quote: unit.span,
+        date: signal.dateISO,
+        label: unit.label,
+      }));
+  });
+  const appendix = {
+    ...generateClinicianAppendix(signalEntries),
+    highUncertaintyEvidence,
+  };
 
   const chunkSummaries = weekKeys
     .map((key) => {
@@ -900,8 +994,22 @@ const prepareSummary = asyncHandler(async (req, res) => {
     entries: entries.length,
   });
 
+  const countMergeOps = (count) => {
+    let total = 0;
+    let current = count;
+    while (current > 1) {
+      const merges = Math.ceil(current / 2);
+      total += merges;
+      current = merges;
+    }
+    return total;
+  };
+
   const mergeSummaries = async (summaries) => {
     let current = summaries;
+    const totalMerges = countMergeOps(current.length);
+    let mergedCount = 0;
+    updateProgress("merging_summaries", 60, { current: totalWeeks, total: totalWeeks });
     while (current.length > 1) {
       const merged = [];
       for (let i = 0; i < current.length; i += 2) {
@@ -911,7 +1019,7 @@ const prepareSummary = asyncHandler(async (req, res) => {
           apiKey,
           model,
           messages: [
-            { role: "system", content: buildPrepareMergePrompt(timeRangeLabel) },
+            { role: "system", content: buildPrepareMergePrompt(timeRangeLabel, signalContext) },
             { role: "user", content: `Chunk summaries:\n${JSON.stringify(batch)}\nReturn JSON only.` },
           ],
           maxTokens: 550,
@@ -922,6 +1030,11 @@ const prepareSummary = asyncHandler(async (req, res) => {
         }
 
         merged.push(response.data);
+        mergedCount += 1;
+        if (totalMerges) {
+          const percent = 60 + Math.round((mergedCount / totalMerges) * 25);
+          updateProgress("merging_summaries", percent);
+        }
       }
       current = merged;
     }
@@ -931,19 +1044,14 @@ const prepareSummary = asyncHandler(async (req, res) => {
   const mergeResponse = await mergeSummaries(chunkSummaries);
   if (mergeResponse.error) {
     console.warn("[prepare-summary] merge error", { error: mergeResponse.error });
-    return res.status(502).json({ message: mergeResponse.error });
+    throw new Error(mergeResponse.error);
   }
 
+  updateProgress("finalizing", 90);
   const parsed = mergeResponse.data;
 
   const topics = new Set();
-  const evidenceBuckets = {
-    recurringExperiences: new Set(),
-    impactAreas: new Set(),
-    relatedInfluences: new Set(),
-    unclearAreas: new Set(),
-    questionsToExplore: new Set(),
-  };
+  const evidenceUnits = [];
   entries.forEach((entry) => {
     entry.tags?.forEach((tag) => topics.add(tag));
     entry.themes?.forEach((theme) => topics.add(theme));
@@ -951,76 +1059,65 @@ const prepareSummary = asyncHandler(async (req, res) => {
     entry.emotions?.forEach((emotion) => {
       if (emotion?.label) topics.add(emotion.label);
     });
-    const evidence = entry.evidenceBySection || {};
-    (evidence.recurringExperiences || []).forEach((item) => evidenceBuckets.recurringExperiences.add(item));
-    (evidence.impactAreas || []).forEach((item) => evidenceBuckets.impactAreas.add(item));
-    (evidence.relatedInfluences || []).forEach((item) => evidenceBuckets.relatedInfluences.add(item));
-    (evidence.unclearAreas || []).forEach((item) => evidenceBuckets.unclearAreas.add(item));
-    (evidence.questionsToExplore || []).forEach((item) => evidenceBuckets.questionsToExplore.add(item));
+    (entry.evidenceUnits || []).forEach((unit) => {
+      if (!unit?.span || !unit?.label) return;
+      evidenceUnits.push({ ...unit, dateISO: entry.dateISO });
+    });
   });
 
-  const stopwords = new Set([
-    "the",
-    "and",
-    "or",
-    "to",
-    "of",
-    "a",
-    "in",
-    "is",
-    "it",
-    "this",
-    "that",
-    "my",
-    "me",
-    "i",
-    "with",
-    "for",
-    "on",
-    "at",
-    "as",
-    "be",
-    "are",
-    "was",
-    "were",
-    "about",
-    "from",
-    "by",
-  ]);
-
-  const tokenize = (text = "") =>
-    text
-      .toLowerCase()
-      .replace(/[^a-z0-9\s']/g, "")
-      .split(/\s+/)
-      .filter((token) => token && !stopwords.has(token));
-
-  const matchQuotes = (bullet, pool) => {
-    const bulletTokens = new Set(tokenize(bullet));
-    const scored = pool
-      .map((quote) => {
-        const quoteTokens = tokenize(quote);
-        const score = quoteTokens.reduce((sum, token) => (bulletTokens.has(token) ? sum + 1 : sum), 0);
-        return { quote, score };
-      })
-      .filter((item) => item.score > 0)
-      .sort((a, b) => b.score - a.score);
-
-    if (!scored.length) return [];
-    return scored.slice(0, 2).map((item) => item.quote);
+  const getSectionEvidence = (sectionKey) => {
+    if (sectionKey === "recurringExperiences") {
+      return evidenceUnits.filter((unit) => unit.label.startsWith("SYMPTOM_"));
+    }
+    if (sectionKey === "impactAreas") {
+      return evidenceUnits.filter((unit) => unit.label.startsWith("IMPACT_"));
+    }
+    if (sectionKey === "relatedInfluences") {
+      return evidenceUnits.filter((unit) => unit.label.startsWith("CONTEXT_"));
+    }
+    return [];
   };
 
-  const buildEvidenceBySection = (bullets, poolSet) => {
-    const pool = Array.from(poolSet);
-    return bullets.map((bullet) => ({
-      bullet,
-      quotes: matchQuotes(bullet, pool),
-    }));
+  const severityScore = (severity) => {
+    if (!severity) return 0;
+    const normalized = String(severity).toUpperCase();
+    if (normalized === "SEVERE") return 2;
+    if (normalized === "MODERATE") return 1;
+    return 0;
+  };
+
+  const rankEvidence = (sectionKey) => {
+    const pool = getSectionEvidence(sectionKey);
+    if (!pool.length) return [];
+    return pool
+      .map((unit) => {
+        const polarityScore = unit.attributes?.polarity === "PRESENT" ? 3 : 0;
+        const score = polarityScore + severityScore(unit.attributes?.severity);
+        return { span: unit.span, score, dateISO: unit.dateISO || "" };
+      })
+      .sort((a, b) => b.score - a.score || a.dateISO.localeCompare(b.dateISO));
+  };
+
+  const buildEvidenceBySection = (sectionKey, bullets) => {
+    const ranked = rankEvidence(sectionKey);
+    const used = new Set();
+    let cursor = 0;
+    return bullets.map((bullet) => {
+      const quotes = [];
+      while (cursor < ranked.length && quotes.length < 2) {
+        const candidate = ranked[cursor];
+        cursor += 1;
+        if (!candidate.span || used.has(candidate.span)) continue;
+        used.add(candidate.span);
+        quotes.push(candidate.span);
+      }
+      return { bullet, quotes };
+    });
   };
 
   const buildIntensityFallback = () => {
-    if (rangeDays <= 7) return ["Week 1 .."];
-    if (rangeDays <= 30) return ["Week 1 ..", "Week 2 ...", "Week 4 ...."];
+    if (parsedRangeDays <= 7) return ["Week 1 .."];
+    if (parsedRangeDays <= 30) return ["Week 1 ..", "Week 2 ...", "Week 4 ...."];
     return ["Week 1 ..", "Week 4 ...", "Week 8 ...."];
   };
 
@@ -1032,47 +1129,76 @@ const prepareSummary = asyncHandler(async (req, res) => {
     }
     return `Across ${timeRangeLabel.toLowerCase()}, these experiences shift from day to day. Some moments feel lighter, and others feel heavier, especially when stress or sleep changes.`;
   };
-
-  res.json({
-    summary: {
-      timeRangeLabel: parsed.timeRangeLabel || timeRangeLabel,
-      confidenceNote: parsed.confidenceNote || "Based on patterns in written reflections",
-      whySharing:
-        parsed.whySharing && parsed.whySharing.trim().toLowerCase().startsWith("i ")
-          ? parsed.whySharing
-          : "I want to share these reflections to make it easier to explain what I've been experiencing and where I could use support.",
-      recurringExperiences: parsed.recurringExperiences || [],
-      overTimeSummary: normalizeOverTimeSummary(parsed.overTimeSummary),
-      intensityLines: parsed.intensityLines?.length ? parsed.intensityLines : buildIntensityFallback(),
-      impactAreas: parsed.impactAreas || [],
-      impactNote: parsed.impactNote || "",
-      relatedInfluences: parsed.relatedInfluences || [],
-      unclearAreas: parsed.unclearAreas || [],
-      questionsToExplore: parsed.questionsToExplore || [],
-      evidenceBySection: {
-        recurringExperiences: buildEvidenceBySection(
-          parsed.recurringExperiences || [],
-          evidenceBuckets.recurringExperiences,
-        ),
-        impactAreas: buildEvidenceBySection(parsed.impactAreas || [], evidenceBuckets.impactAreas),
-        relatedInfluences: buildEvidenceBySection(
-          parsed.relatedInfluences || [],
-          evidenceBuckets.relatedInfluences,
-        ),
-        unclearAreas: buildEvidenceBySection(parsed.unclearAreas || [], evidenceBuckets.unclearAreas),
-        questionsToExplore: buildEvidenceBySection(
-          parsed.questionsToExplore || [],
-          evidenceBuckets.questionsToExplore,
-        ),
-      },
-      topics: Array.from(topics),
+  const summary = {
+    timeRangeLabel: parsed.timeRangeLabel || timeRangeLabel,
+    confidenceNote: parsed.confidenceNote || "Based on patterns in written reflections",
+    whySharing:
+      parsed.whySharing && parsed.whySharing.trim().toLowerCase().startsWith("i ")
+        ? parsed.whySharing
+        : "I want to share these reflections to make it easier to explain what I've been experiencing and where I could use support.",
+    recurringExperiences: parsed.recurringExperiences || [],
+    overTimeSummary: normalizeOverTimeSummary(parsed.overTimeSummary),
+    intensityLines: parsed.intensityLines?.length ? parsed.intensityLines : buildIntensityFallback(),
+    impactAreas: parsed.impactAreas || [],
+    impactNote: parsed.impactNote || "",
+    relatedInfluences: parsed.relatedInfluences || [],
+    unclearAreas: parsed.unclearAreas || [],
+    questionsToExplore: parsed.questionsToExplore || [],
+    evidenceBySection: {
+      recurringExperiences: buildEvidenceBySection("recurringExperiences", parsed.recurringExperiences || []),
+      impactAreas: buildEvidenceBySection("impactAreas", parsed.impactAreas || []),
+      relatedInfluences: buildEvidenceBySection("relatedInfluences", parsed.relatedInfluences || []),
+      unclearAreas: buildEvidenceBySection("unclearAreas", parsed.unclearAreas || []),
+      questionsToExplore: buildEvidenceBySection("questionsToExplore", parsed.questionsToExplore || []),
     },
+    topics: Array.from(topics),
+  };
+
+  updateProgress("completed", 100);
+  return { summary, appendix };
+};
+
+const createPrepareSummaryJob = asyncHandler(async (req, res) => {
+  const rangeDays = Number.parseInt(req.body?.rangeDays, 10) || 56;
+  const job = createJob({ userId: req.user._id, rangeDays });
+  res.status(202).json({ jobId: job.id });
+
+  setImmediate(async () => {
+    updateJob(job.id, { status: "running", stage: "starting", percent: 1 });
+    try {
+      const result = await buildPrepareSummary({
+        userId: req.user._id,
+        rangeDays,
+        onProgress: ({ stage, percent, detail }) =>
+          updateJob(job.id, { status: "running", stage, percent, detail }),
+      });
+      completeJob(job.id, result);
+    } catch (err) {
+      const message = err?.message || "Failed to prepare summary.";
+      failJob(job.id, message);
+    }
+  });
+});
+
+const getPrepareSummaryJob = asyncHandler(async (req, res) => {
+  const job = getJob(req.params.jobId);
+  if (!job || job.userId !== req.user._id.toString()) {
+    return res.status(404).json({ message: "Summary job not found." });
+  }
+  res.json({
+    status: job.status,
+    stage: job.stage,
+    percent: job.percent,
+    detail: job.detail,
+    result: job.status === "completed" ? job.result : undefined,
+    error: job.status === "failed" ? job.error : undefined,
   });
 });
 
 module.exports = {
   analyzeEntry,
-  prepareSummary,
+  createPrepareSummaryJob,
+  getPrepareSummaryJob,
   generateEntryEvidence,
   generateClinicalEvidenceUnits,
   generateWeeklySummary,

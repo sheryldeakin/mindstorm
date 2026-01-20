@@ -11,6 +11,7 @@ const { recomputeSnapshotForUser } = require("../src/derived/services/snapshotRe
 const { upsertEntrySignals } = require("../src/derived/services/derivedService");
 const { recomputeConnectionsForUser } = require("../src/derived/services/connectionsRecompute");
 const { recomputeThemeSeriesForUser } = require("../src/derived/services/themeSeriesRecompute");
+const { recomputeCyclesForUser } = require("../src/derived/services/cyclesRecompute");
 
 dotenv.config();
 
@@ -133,6 +134,7 @@ const run = async () => {
           themes: entry.themes || [],
           themeIntensities: entry.themeIntensities || [],
           evidenceBySection: entry.evidenceBySection || {},
+          evidenceUnits: entry.evidenceUnits || [],
         },
         sourceUpdatedAt: entry.updatedAt,
       });
@@ -184,6 +186,9 @@ const run = async () => {
     }
     for (const rangeKey of rangeKeys) {
       await recomputeConnectionsForUser({ userId, rangeKey });
+    }
+    for (const rangeKey of rangeKeys) {
+      await recomputeCyclesForUser({ userId, rangeKey });
     }
     console.log(`Snapshots recomputed for user ${userId}`);
   }

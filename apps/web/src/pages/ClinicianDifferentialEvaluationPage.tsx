@@ -231,9 +231,10 @@ export default ClinicianDifferentialEvaluationPage;
 const buildDifferentialFromEntries = (
   entries: CaseEntry[],
   getStatusForLabels: (labels?: string[]) => string,
-  nodeOverrides: Record<string, "MET" | "EXCLUDED" | "UNKNOWN"> = {},
+  overrides: Record<string, "MET" | "EXCLUDED" | "UNKNOWN"> = {},
   lastAccessISO?: string | null,
 ): DifferentialDiagnosis[] => {
+  const overrideMap = overrides ?? {};
   const unitsWithDate = entries.flatMap((entry) =>
     (entry.evidenceUnits ?? []).map((unit) => ({ ...unit, dateISO: entry.dateISO })),
   );
@@ -268,7 +269,7 @@ const buildDifferentialFromEntries = (
     const unitsWithDate = sourceEntries.flatMap((entry) =>
       (entry.evidenceUnits ?? []).map((unit) => ({ ...unit, dateISO: entry.dateISO })),
     );
-    const overrideStatus = nodeOverrides[id];
+    const overrideStatus = overrideMap[id];
     const present = unitsWithDate.filter(
       (unit) =>
         labels.includes(unit.label) &&
@@ -343,7 +344,7 @@ const buildDifferentialFromEntries = (
   };
 
   const buildRuleOut = (node: { id: string; label: string; evidenceLabels: string[] }) => {
-    const overrideStatus = nodeOverrides[node.id];
+    const overrideStatus = overrideMap[node.id];
     const present = findEvidence(node.evidenceLabels, "PRESENT");
     const absent = findEvidence(node.evidenceLabels, "ABSENT");
 
@@ -379,7 +380,7 @@ const buildDifferentialFromEntries = (
   };
 
   const buildGateStatus = (nodeId: string) => {
-    const overrideStatus = nodeOverrides[nodeId];
+    const overrideStatus = overrideMap[nodeId];
     if (overrideStatus === "MET") {
       return { state: "met" as const, note: "Clinician override applied." };
     }
@@ -430,7 +431,7 @@ const buildDifferentialFromEntries = (
       buildRuleOut,
       buildGateStatus,
       toPrompts,
-      nodeOverrides,
+      overrideMap,
       lastAccessISO,
     ),
   );
@@ -518,7 +519,7 @@ const buildDiagnosisFromConfig = (
   },
   buildGateStatus: (nodeId: string) => { state: "met" | "mismatch" | "unknown"; note?: string },
   prompts: { text: string; category?: string }[],
-  nodeOverrides: Record<string, "MET" | "EXCLUDED" | "UNKNOWN"> = {},
+  overrideMap: Record<string, "MET" | "EXCLUDED" | "UNKNOWN"> = {},
   lastAccessISO?: string | null,
 ): DifferentialDiagnosis => {
   const currentWindowDays = 14;
@@ -576,10 +577,10 @@ const buildDiagnosisFromConfig = (
   }, {});
   const baseCount = countPresentCriteria(currentWindowEntries, config.criteria);
   const addedCount = config.criteria.filter(
-    (criterion) => nodeOverrides[criterion.id] === "MET" && !currentMet[criterion.id],
+    (criterion) => overrideMap[criterion.id] === "MET" && !currentMet[criterion.id],
   ).length;
   const subtractedCount = config.criteria.filter(
-    (criterion) => nodeOverrides[criterion.id] === "EXCLUDED" && currentMet[criterion.id],
+    (criterion) => overrideMap[criterion.id] === "EXCLUDED" && currentMet[criterion.id],
   ).length;
   const currentCount = Math.max(0, baseCount + addedCount - subtractedCount);
   const likelihood = hasCriteria
@@ -633,7 +634,7 @@ const buildDiagnosisFromConfig = (
   const previousBase = countPresentCriteria(previousEntries, config.criteria);
   const previousAdded = config.criteria.filter(
     (criterion) =>
-      nodeOverrides[criterion.id] === "MET" &&
+      overrideMap[criterion.id] === "MET" &&
       !previousEntries.some((entry) =>
         (entry.evidenceUnits ?? []).some(
           (unit) =>
@@ -644,7 +645,7 @@ const buildDiagnosisFromConfig = (
   ).length;
   const previousSubtracted = config.criteria.filter(
     (criterion) =>
-      nodeOverrides[criterion.id] === "EXCLUDED" &&
+      overrideMap[criterion.id] === "EXCLUDED" &&
       previousEntries.some((entry) =>
         (entry.evidenceUnits ?? []).some(
           (unit) =>
@@ -693,10 +694,10 @@ const buildDiagnosisFromConfig = (
     return acc;
   }, {});
   const lifetimeAdded = config.criteria.filter(
-    (criterion) => nodeOverrides[criterion.id] === "MET" && !lifetimeMet[criterion.id],
+    (criterion) => overrideMap[criterion.id] === "MET" && !lifetimeMet[criterion.id],
   ).length;
   const lifetimeSubtracted = config.criteria.filter(
-    (criterion) => nodeOverrides[criterion.id] === "EXCLUDED" && lifetimeMet[criterion.id],
+    (criterion) => overrideMap[criterion.id] === "EXCLUDED" && lifetimeMet[criterion.id],
   ).length;
   const lifetimeSummary = {
     current: Math.max(0, lifetimeBase + lifetimeAdded - lifetimeSubtracted),

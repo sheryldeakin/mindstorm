@@ -5,8 +5,9 @@ import Button from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
 import Textarea from "../components/ui/Textarea";
 import { apiFetch } from "../lib/apiClient";
-import type { AuditLogEntry, PrepareSummary, WeeklySummary } from "../types/prepare";
+import type { AuditLogEntry, ClinicianAppendix, PrepareSummary, WeeklySummary } from "../types/prepare";
 import PageHeader from "../components/layout/PageHeader";
+import { usePatientTranslation } from "../hooks/usePatientTranslation";
 
 const timeRanges = [
   { id: "7", label: "Last 7 days" },
@@ -28,8 +29,15 @@ const auditLog: AuditLogEntry[] = [
 const PreparePage = () => {
   const [timeRange, setTimeRange] = useState("30");
   const [summary, setSummary] = useState<PrepareSummary | null>(null);
+  const [appendix, setAppendix] = useState<ClinicianAppendix | null>(null);
   const [summaryLoading, setSummaryLoading] = useState(false);
   const [summaryError, setSummaryError] = useState<string | null>(null);
+  const [summaryJobId, setSummaryJobId] = useState<string | null>(null);
+  const [summaryProgress, setSummaryProgress] = useState<{
+    percent: number;
+    stage: string;
+    detail?: { current?: number; total?: number };
+  }>({ percent: 0, stage: "queued" });
   const [weeklySummaries, setWeeklySummaries] = useState<WeeklySummary[]>([]);
   const [weeklyLoading, setWeeklyLoading] = useState(false);
   const [weeklyError, setWeeklyError] = useState<string | null>(null);
@@ -45,6 +53,7 @@ const PreparePage = () => {
   const [whySharingTouched, setWhySharingTouched] = useState(false);
   const [impactNoteTouched, setImpactNoteTouched] = useState(false);
   const [additionalNotesTouched, setAdditionalNotesTouched] = useState(false);
+  const { getPatientLabel } = usePatientTranslation();
 
   const buildRedactionKey = (section: string, text: string) => `${section}::${text}`;
   const isVisible = (section: string, text: string) =>
@@ -67,25 +76,108 @@ const PreparePage = () => {
   };
 
   useEffect(() => {
+    let active = true;
     setSummaryLoading(true);
     setSummaryError(null);
-    apiFetch<{ summary: PrepareSummary }>("/ai/prepare-summary", {
+    setSummary(null);
+    setAppendix(null);
+    setSummaryJobId(null);
+    setSummaryProgress({ percent: 0, stage: "queued" });
+    apiFetch<{ jobId: string }>("/ai/prepare-summary", {
       method: "POST",
       body: JSON.stringify({ rangeDays: rangeToDays(timeRange) }),
     })
-      .then(({ summary: responseSummary }) => {
-        setSummary(responseSummary);
-        setWhySharingTouched(false);
-        setImpactNoteTouched(false);
+      .then(({ jobId }) => {
+        if (!active) return;
+        setSummaryJobId(jobId);
       })
       .catch((err) => {
+        if (!active) return;
         setSummaryError(err instanceof Error ? err.message : "Failed to build summary.");
-        setSummary(null);
-      })
-      .finally(() => {
         setSummaryLoading(false);
+        setSummary(null);
+        setAppendix(null);
       });
+    return () => {
+      active = false;
+    };
   }, [timeRange]);
+
+  useEffect(() => {
+    if (!summaryJobId) return undefined;
+    let active = true;
+
+    const formatStage = (stage: string, detail?: { current?: number; total?: number }) => {
+      if (detail?.total && (stage === "backfilling_weekly_summaries" || stage === "merging_summaries")) {
+        const current = Math.min(detail.current || 0, detail.total);
+        return `Processing Week ${Math.max(1, current)} of ${detail.total}...`;
+      }
+      switch (stage) {
+        case "fetching_entries":
+          return "Collecting journal entries";
+        case "loading_weekly_summaries":
+          return "Loading weekly summaries";
+        case "backfilling_weekly_summaries":
+          return "Generating missing weekly summaries";
+        case "loading_signals":
+          return "Reading detected signals";
+        case "merging_summaries":
+          return "Merging summaries";
+        case "finalizing":
+          return "Finalizing summary";
+        case "completed":
+          return "Complete";
+        default:
+          return "Preparing summary";
+      }
+    };
+
+    const poll = async () => {
+      try {
+        const response = await apiFetch<{
+          status: string;
+          stage?: string;
+          percent?: number;
+          result?: { summary: PrepareSummary; appendix?: ClinicianAppendix };
+          error?: string;
+          detail?: { current?: number; total?: number };
+        }>(`/ai/prepare-summary/${summaryJobId}`);
+
+        if (!active) return;
+        const percent = typeof response.percent === "number" ? response.percent : 0;
+        const stage = response.stage || "queued";
+        const detail = response.detail;
+        setSummaryProgress({ percent, stage: formatStage(stage, detail), detail });
+
+        if (response.status === "completed") {
+          setSummary(response.result?.summary || null);
+          setAppendix(response.result?.appendix || null);
+          setWhySharingTouched(false);
+          setImpactNoteTouched(false);
+          setSummaryLoading(false);
+          setSummaryJobId(null);
+        }
+
+        if (response.status === "failed") {
+          setSummaryError(response.error || "Failed to build summary.");
+          setSummaryLoading(false);
+          setSummaryJobId(null);
+        }
+      } catch (err) {
+        if (!active) return;
+        setSummaryError(err instanceof Error ? err.message : "Failed to build summary.");
+        setSummaryLoading(false);
+        setSummaryJobId(null);
+      }
+    };
+
+    poll();
+    const interval = setInterval(poll, 1200);
+    return () => {
+      active = false;
+      clearInterval(interval);
+    };
+  }, [summaryJobId]);
 
   useEffect(() => {
     setWeeklyLoading(true);
@@ -114,6 +206,26 @@ const PreparePage = () => {
 
   const listItems = (items: string[] | undefined) =>
     (items || []).map((text, index) => ({ id: `${index}-${text}`, text }));
+
+  const renderInfluenceLabel = (value: string) => {
+    const trimmed = value.trim();
+    const looksClinical = /^[A-Z0-9_]+$/.test(trimmed) || trimmed.startsWith("CONTEXT_");
+    return looksClinical ? getPatientLabel(trimmed) : value;
+  };
+
+  const unclearItems = (() => {
+    const items = new Set<string>(summary?.unclearAreas || []);
+    if (appendix?.missingGates?.duration) {
+      items.add("When exactly this started (whether it is new or longstanding).");
+    }
+    if (appendix?.missingGates?.impairment) {
+      items.add("The specific impact on my daily routine (work, school, or self-care).");
+    }
+    if (appendix?.highUncertaintyEvidence?.length) {
+      items.add("Experiences I've described as uncertain or hard to pinpoint.");
+    }
+    return Array.from(items);
+  })();
 
   const renderInlineEvidence = (sectionKey: string, bullet: string) => {
     if (!includeEvidence) return null;
@@ -223,10 +335,17 @@ const PreparePage = () => {
       {summaryLoading && (
         <div className="rounded-2xl border border-slate-200 p-4 text-xs text-slate-500" role="status" aria-live="polite">
           <div className="flex items-center justify-between">
-            <span>Generating your summary from recent entries…</span>
-            <span className="text-[10px] uppercase tracking-[0.3em] text-slate-400">Live</span>
+            <span>{summaryProgress.stage}</span>
+            <span className="text-[10px] uppercase tracking-[0.3em] text-slate-400">
+              {Math.min(99, Math.max(1, Math.round(summaryProgress.percent || 1)))}%
+            </span>
           </div>
-          <div className="mt-3 h-1.5 w-full rounded-full bg-slate-100 loading-bar" aria-hidden />
+          <div className="mt-3 h-1.5 w-full rounded-full bg-slate-100" aria-hidden>
+            <div
+              className="h-full rounded-full bg-sky-400 transition-[width] duration-300"
+              style={{ width: `${Math.min(100, Math.max(2, summaryProgress.percent || 2))}%` }}
+            />
+          </div>
         </div>
       )}
       {summaryError && (
@@ -281,7 +400,7 @@ const PreparePage = () => {
             />
           </div>
           <div className="border-b border-slate-200/70 p-6">
-            <h3 className="text-xl font-semibold">Key experiences I've been having</h3>
+            <h3 className="text-xl font-semibold">Recurring Experiences</h3>
             <p className="mt-1 text-sm text-slate-500">Themes that appear often in my writing.</p>
             <ul className="mt-4 space-y-2 text-sm text-slate-600">
               {summaryLoading ? (
@@ -339,7 +458,7 @@ const PreparePage = () => {
             {renderWeeklyList()}
           </div>
           <div className="border-b border-slate-200/70 p-6">
-            <h3 className="text-xl font-semibold">Where I notice the impact</h3>
+            <h3 className="text-xl font-semibold">Where this affects my life</h3>
             <p className="mt-1 text-sm text-slate-500">Areas of life that feel affected.</p>
             <ul className="mt-4 space-y-2 text-sm text-slate-600">
               {summaryLoading ? (
@@ -383,7 +502,7 @@ const PreparePage = () => {
             </div>
           </div>
           <div className="border-b border-slate-200/70 p-6">
-            <h3 className="text-xl font-semibold">Things that seem connected or influential</h3>
+            <h3 className="text-xl font-semibold">Things that seem connected</h3>
             <p className="mt-1 text-sm text-slate-500">Observed relationships, not causation.</p>
             <ul className="mt-4 space-y-2 text-sm text-slate-600">
               {summaryLoading ? (
@@ -396,7 +515,7 @@ const PreparePage = () => {
                       <div className="flex items-start gap-2">
                         <span className="mt-2 h-1.5 w-1.5 rounded-full bg-slate-400" />
                         <div>
-                          <span>{item.text}</span>
+                          <span>{renderInfluenceLabel(item.text)}</span>
                           {renderInlineEvidence("relatedInfluences", item.text)}
                         </div>
                       </div>
@@ -416,13 +535,13 @@ const PreparePage = () => {
             {renderAdditionalNotes("relatedInfluences", "Add any context about things that feel connected.")}
           </div>
           <div className="border-b border-slate-200/70 p-6">
-            <h3 className="text-xl font-semibold">What seems unclear or hard to tell</h3>
+            <h3 className="text-xl font-semibold">Areas I’m not sure about</h3>
             <p className="mt-1 text-sm text-slate-500">Areas I'm not sure about yet.</p>
             <ul className="mt-4 space-y-2 text-sm text-slate-600">
               {summaryLoading ? (
                 <li className="text-sm text-slate-500">Capturing uncertainties to discuss...</li>
-              ) : listItems(summary?.unclearAreas).filter((item) => isVisible("unclear", item.text)).length ? (
-                listItems(summary?.unclearAreas)
+              ) : listItems(unclearItems).filter((item) => isVisible("unclear", item.text)).length ? (
+                listItems(unclearItems)
                   .filter((item) => isVisible("unclear", item.text))
                   .map((item) => (
                     <li key={item.id} className="flex items-start justify-between gap-3">
@@ -597,6 +716,11 @@ const PreparePage = () => {
                 className="h-4 w-4 accent-brand"
               />
             </label>
+            {portalEnabled && includeAppendix ? (
+              <p className="text-xs text-slate-500">
+                The clinician appendix will be included when sharing via portal.
+              </p>
+            ) : null}
             <div className="flex flex-wrap gap-3">
               <Button variant="secondary">Download PDF</Button>
               <Button variant="secondary">Share link</Button>

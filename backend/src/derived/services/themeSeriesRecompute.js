@@ -4,6 +4,43 @@ const { PIPELINE_VERSION } = require("../pipelineVersion");
 const { computeSourceVersionForRange } = require("../versioning");
 
 const MAX_ALL_TIME_DAYS = 730;
+const DEFAULT_INTENSITY = 0.4;
+
+const severityToIntensity = (severity) => {
+  if (!severity) return DEFAULT_INTENSITY;
+  const normalized = String(severity).trim().toUpperCase();
+  if (normalized === "SEVERE") return 1.0;
+  if (normalized === "MODERATE") return 0.7;
+  if (normalized === "MILD") return 0.4;
+  return DEFAULT_INTENSITY;
+};
+
+const mapLabelToTheme = (label) => {
+  const map = {
+    SYMPTOM_MOOD: "Low mood",
+    SYMPTOM_ANXIETY: "Anxiety",
+    SYMPTOM_SLEEP: "Sleep changes",
+    SYMPTOM_SOMATIC: "Body/energy changes",
+    SYMPTOM_COGNITIVE: "Self-critical thoughts",
+    SYMPTOM_MANIA: "High energy shifts",
+    SYMPTOM_PSYCHOSIS: "Unusual perceptions",
+    SYMPTOM_TRAUMA: "Trauma responses",
+    IMPAIRMENT: "Life impact",
+  };
+  if (map[label]) return map[label];
+  return String(label)
+    .replace(/_/g, " ")
+    .trim()
+    .toLowerCase();
+};
+
+const shouldIncludeUnit = (unit) => {
+  const label = unit?.label;
+  if (!label) return false;
+  if (!label.startsWith("SYMPTOM_") && !label.startsWith("IMPACT_")) return false;
+  const polarity = unit?.attributes?.polarity || unit?.polarity;
+  return polarity === "PRESENT";
+};
 
 const getRangeStartIso = (rangeKey) => {
   if (rangeKey === "all_time") return null;
@@ -82,29 +119,45 @@ const recomputeThemeSeriesForUser = async ({ userId, rangeKey }) => {
     }
     const themeMap = dayThemeMap.get(signal.dateISO);
 
-    const themeIntensities = Array.isArray(signal.themeIntensities) && signal.themeIntensities.length
-      ? signal.themeIntensities
-      : [];
-
-    if (themeIntensities.length) {
-      themeIntensities.forEach((item) => {
-        if (!item?.theme) return;
-        const key = item.theme.trim().toLowerCase();
-        if (!key) return;
-        const prev = themeMap.get(key) || { intensity: 0, confidence: 0.6 };
-        const intensity = Math.min(1, prev.intensity + (Number(item.intensity) || 0));
-        const confidence = Math.max(prev.confidence, 0.7);
-        themeMap.set(key, { intensity, confidence });
-      });
-    } else if (Array.isArray(signal.themes)) {
-      signal.themes.forEach((theme) => {
+    const evidenceUnits = Array.isArray(signal.evidenceUnits) ? signal.evidenceUnits : [];
+    if (evidenceUnits.length) {
+      evidenceUnits.forEach((unit) => {
+        if (!shouldIncludeUnit(unit)) return;
+        const theme = mapLabelToTheme(unit.label);
+        if (!theme) return;
         const key = theme.trim().toLowerCase();
         if (!key) return;
+        const intensity = severityToIntensity(unit?.attributes?.severity || unit?.severity);
         const prev = themeMap.get(key) || { intensity: 0, confidence: 0.6 };
-        const intensity = Math.min(1, prev.intensity + 1);
-        const confidence = Math.max(prev.confidence, 0.6);
-        themeMap.set(key, { intensity, confidence });
+        const nextIntensity = Math.max(prev.intensity, intensity);
+        const confidence = Math.max(prev.confidence, 0.7);
+        themeMap.set(key, { intensity: nextIntensity, confidence });
       });
+    } else {
+      const themeIntensities = Array.isArray(signal.themeIntensities) && signal.themeIntensities.length
+        ? signal.themeIntensities
+        : [];
+
+      if (themeIntensities.length) {
+        themeIntensities.forEach((item) => {
+          if (!item?.theme) return;
+          const key = item.theme.trim().toLowerCase();
+          if (!key) return;
+          const prev = themeMap.get(key) || { intensity: 0, confidence: 0.6 };
+          const intensity = Math.min(1, prev.intensity + (Number(item.intensity) || 0));
+          const confidence = Math.max(prev.confidence, 0.7);
+          themeMap.set(key, { intensity, confidence });
+        });
+      } else if (Array.isArray(signal.themes)) {
+        signal.themes.forEach((theme) => {
+          const key = theme.trim().toLowerCase();
+          if (!key) return;
+          const prev = themeMap.get(key) || { intensity: 0, confidence: 0.6 };
+          const intensity = Math.min(1, prev.intensity + 1);
+          const confidence = Math.max(prev.confidence, 0.6);
+          themeMap.set(key, { intensity, confidence });
+        });
+      }
     }
   });
 

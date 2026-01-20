@@ -7,6 +7,7 @@ const entrySignalsSchema = new mongoose.Schema(
     dateISO: { type: String, required: true, index: true },
     themes: { type: [String], default: [] },
     themeIntensities: { type: [{ theme: String, intensity: Number }], default: [] },
+    evidenceUnits: { type: [mongoose.Schema.Types.Mixed], default: [] },
     timeMentions: { type: [String], default: [] },
     lifeAreas: { type: [String], default: [] },
     influences: { type: [String], default: [] },

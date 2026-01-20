@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import DailyCheckInModal from "../components/features/DailyCheckInModal";
 import QuickNoteInput from "../components/features/QuickNoteInput";
 import Button from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
 import type { CheckInMetric } from "../types/checkIn";
 import PageHeader from "../components/layout/PageHeader";
+import { apiFetch } from "../lib/apiClient";
+import { useAuth } from "../contexts/AuthContext";
 
 const defaultCheckInMetrics: CheckInMetric[] = [
   { id: "energy", label: "Energy", lowLabel: "Drained", highLabel: "Charged", value: 62 },
@@ -16,9 +18,14 @@ const defaultCheckInMetrics: CheckInMetric[] = [
 ];
 
 const CheckInPage = () => {
+  const { status } = useAuth();
   const [checkInOpen, setCheckInOpen] = useState(false);
   const [checkInMetrics, setCheckInMetrics] = useState<CheckInMetric[]>(defaultCheckInMetrics);
   const [checkInNote, setCheckInNote] = useState("");
+  const [savedMessage, setSavedMessage] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const todayISO = useMemo(() => new Date().toISOString().slice(0, 10), []);
 
   const averageSignal = Math.round(
     checkInMetrics.reduce((sum, metric) => sum + metric.value, 0) / checkInMetrics.length,
@@ -30,12 +37,63 @@ const CheckInPage = () => {
     );
   };
 
+  useEffect(() => {
+    if (status !== "authed") return;
+    apiFetch<{ checkIn: { metrics: CheckInMetric[]; note: string } | null }>(
+      `/check-ins/${todayISO}`,
+    )
+      .then(({ checkIn }) => {
+        if (!checkIn) return;
+        if (Array.isArray(checkIn.metrics) && checkIn.metrics.length) {
+          setCheckInMetrics(checkIn.metrics as CheckInMetric[]);
+        }
+        if (typeof checkIn.note === "string") {
+          setCheckInNote(checkIn.note);
+        }
+      })
+      .catch(() => {
+        // Silent fail for now; page still usable.
+      });
+  }, [status, todayISO]);
+
+  const handleSave = async () => {
+    setSaving(true);
+    setSaveError(null);
+    setSavedMessage(null);
+    try {
+      await apiFetch("/check-ins", {
+        method: "POST",
+        body: JSON.stringify({
+          dateISO: todayISO,
+          metrics: checkInMetrics.map(({ id, label, value }) => ({ id, label, value })),
+          note: checkInNote,
+        }),
+      });
+      setSavedMessage("Check-in saved.");
+      setCheckInOpen(false);
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : "Unable to save check-in.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <div className="space-y-8 text-slate-900">
       <PageHeader
         pageId="check-in"
         actions={<Button onClick={() => setCheckInOpen(true)}>Start check-in</Button>}
       />
+      {savedMessage ? (
+        <Card className="border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700">
+          {savedMessage}
+        </Card>
+      ) : null}
+      {saveError ? (
+        <Card className="border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">
+          {saveError}
+        </Card>
+      ) : null}
       <section className="grid gap-6 lg:grid-cols-[1.3fr_1fr]">
         <Card className="p-6">
           <h3 className="text-xl font-semibold">Today's signals</h3>
@@ -66,7 +124,7 @@ const CheckInPage = () => {
             <QuickNoteInput value={checkInNote} onChange={setCheckInNote} />
           </div>
           <div className="mt-4 flex justify-end">
-            <Button variant="secondary" onClick={() => setCheckInOpen(true)}>
+            <Button variant="secondary" onClick={() => setCheckInOpen(true)} disabled={saving}>
               Edit in modal
             </Button>
           </div>
@@ -79,7 +137,7 @@ const CheckInPage = () => {
         onMetricChange={handleMetricChange}
         onNoteChange={setCheckInNote}
         onClose={() => setCheckInOpen(false)}
-        onSave={() => setCheckInOpen(false)}
+        onSave={handleSave}
       />
     </div>
   );

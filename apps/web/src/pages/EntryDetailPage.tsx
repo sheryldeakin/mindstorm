@@ -142,7 +142,7 @@ const EntryDetailPage = () => {
     () => buildDerivedPrompts(filteredUnits, mapping.derived_prompts?.questions_to_explore),
     [filteredUnits, mapping.derived_prompts?.questions_to_explore],
   );
-  const contextTags = useMemo(() => buildContextImpactTags(data), [data]);
+  const contextTags = useMemo(() => (data ? buildContextImpactTags(data) : []), [data]);
   const topSignalLabels = groupedSignals.map((group) => group.patientLabel);
 
   if (loading) {

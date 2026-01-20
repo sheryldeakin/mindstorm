@@ -1,6 +1,7 @@
 const asyncHandler = require("../utils/asyncHandler");
 const SnapshotSummary = require("../derived/models/SnapshotSummary");
 const ConnectionsGraph = require("../derived/models/ConnectionsGraph");
+const Cycle = require("../derived/models/Cycle");
 const EntrySignals = require("../derived/models/EntrySignals");
 const ThemeSeries = require("../derived/models/ThemeSeries");
 const WeeklySummary = require("../models/WeeklySummary");
@@ -599,7 +600,7 @@ const getPatterns = asyncHandler(async (req, res) => {
     };
   });
 
-  const selectedTheme = patternId && topThemes.includes(patternId) ? patternId : topThemes[0];
+const selectedTheme = patternId && topThemes.includes(patternId) ? patternId : topThemes[0];
   const detail = selectedTheme
     ? buildPatternDetail({ theme: selectedTheme, rangeKey, signals, entryMap, weeklySummaries })
     : null;
@@ -607,4 +608,26 @@ const getPatterns = asyncHandler(async (req, res) => {
   res.json({ patterns, detail });
 });
 
-module.exports = { getSnapshot, getWeeklySummaries, getConnectionsGraph, getPatterns };
+const getCycles = asyncHandler(async (req, res) => {
+  const rangeKey = req.query.rangeKey || "last_30_days";
+  const cycles = await Cycle.find({ userId: req.user._id, rangeKey, stale: false }).lean();
+  const fallback = await Cycle.find({ userId: req.user._id, rangeKey }).lean();
+  const activeCycles = (cycles.length ? cycles : fallback).filter(
+    (cycle) => cycle.sourceNode && cycle.targetNode,
+  );
+
+  res.json({
+    cycles: activeCycles.map((cycle) => ({
+      sourceNode: cycle.sourceNode,
+      targetNode: cycle.targetNode,
+      frequency: cycle.frequency || 0,
+      confidence: cycle.confidence || 0,
+      lagDaysMin: cycle.lagDaysMin || 0,
+      avgLag: cycle.avgLag || 0,
+      evidenceEntryIds: cycle.evidenceEntryIds || [],
+    })),
+    stale: cycles.length ? false : fallback.length === 0,
+  });
+});
+
+module.exports = { getSnapshot, getWeeklySummaries, getConnectionsGraph, getCycles, getPatterns };

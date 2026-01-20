@@ -3,100 +3,45 @@ import * as go from "gojs";
 import Button from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
 import PageHeader from "../components/layout/PageHeader";
+import { apiFetch } from "../lib/apiClient";
+import { useAuth } from "../contexts/AuthContext";
+import { usePatientTranslation } from "../hooks/usePatientTranslation";
 
-type NodeData = { key: string; text: string; color: string; loc: string };
-type LinkData = { from: string; to: string; color: string };
+type NodeData = {
+  key: string;
+  text: string;
+  color: string;
+  loc: string;
+  kind: "symptom" | "context" | "impact";
+};
+type LinkData = {
+  from: string;
+  to: string;
+  color: string;
+  weight: number;
+  lagDaysMin?: number;
+  avgLag?: number;
+};
+type CycleEdge = {
+  sourceNode: string;
+  targetNode: string;
+  frequency: number;
+  confidence: number;
+  lagDaysMin?: number;
+  avgLag?: number;
+  evidenceEntryIds: string[];
+};
 
 const CARD_COLOR = "#dad9d9";
 const TEXT_COLOR = "#122F41";
 const BASE_LINE_COLOR = "#d3d3d3";
 
-const nodeDataArray: NodeData[] = [
-  { key: "A", text: "No Inner Monologue", color: CARD_COLOR, loc: "50 10" },
-  { key: "B", text: "Aphantasia", color: CARD_COLOR, loc: "250 10" },
-  { key: "C", text: "Childhood Trauma", color: CARD_COLOR, loc: "700 10" },
-  { key: "D", text: "Trauma", color: CARD_COLOR, loc: "900 10" },
-  { key: "E", text: "Poor Working Memory", color: CARD_COLOR, loc: "150 100" },
-  { key: "F", text: "Interpersonal Relationship Issues", color: CARD_COLOR, loc: "750 100" },
-  { key: "G", text: "Dyslexia", color: CARD_COLOR, loc: "800 250" },
-  { key: "H", text: "ADHD", color: CARD_COLOR, loc: "600 250" },
-  { key: "I", text: "Anxiety", color: CARD_COLOR, loc: "400 250" },
-  { key: "J", text: "Depression", color: CARD_COLOR, loc: "200 250" },
-  { key: "K", text: "Poor Emotional/Mood Regulation\n  Substance Abuse/Addiction\n  Impulsivity", color: CARD_COLOR, loc: "450 400" },
-  { key: "L", text: "Objectivity/\nAbsolute Thinking", color: CARD_COLOR, loc: "100 500" },
-  { key: "M", text: "Perfectionism\n  High Expectations", color: CARD_COLOR, loc: "850 500" },
-  { key: "N", text: "Overwhelmed\n  Frustrated\n  Confused", color: CARD_COLOR, loc: "500 600" },
-];
-
-const linkDataArray: LinkData[] = [
-  { from: "A", to: "E", color: TEXT_COLOR },
-  { from: "A", to: "G", color: TEXT_COLOR },
-  { from: "B", to: "E", color: TEXT_COLOR },
-  { from: "C", to: "F", color: TEXT_COLOR },
-  { from: "C", to: "I", color: TEXT_COLOR },
-  { from: "C", to: "J", color: TEXT_COLOR },
-  { from: "D", to: "F", color: TEXT_COLOR },
-  { from: "D", to: "I", color: TEXT_COLOR },
-  { from: "D", to: "J", color: TEXT_COLOR },
-  { from: "D", to: "N", color: TEXT_COLOR },
-  { from: "E", to: "G", color: TEXT_COLOR },
-  { from: "E", to: "H", color: TEXT_COLOR },
-  { from: "E", to: "I", color: TEXT_COLOR },
-  { from: "E", to: "J", color: TEXT_COLOR },
-  { from: "E", to: "L", color: TEXT_COLOR },
-  { from: "E", to: "N", color: TEXT_COLOR },
-  { from: "F", to: "I", color: TEXT_COLOR },
-  { from: "F", to: "J", color: TEXT_COLOR },
-  { from: "F", to: "K", color: TEXT_COLOR },
-  { from: "F", to: "M", color: TEXT_COLOR },
-  { from: "G", to: "E", color: TEXT_COLOR },
-  { from: "G", to: "H", color: TEXT_COLOR },
-  { from: "G", to: "I", color: TEXT_COLOR },
-  { from: "G", to: "J", color: TEXT_COLOR },
-  { from: "G", to: "K", color: TEXT_COLOR },
-  { from: "G", to: "L", color: TEXT_COLOR },
-  { from: "G", to: "N", color: TEXT_COLOR },
-  { from: "H", to: "E", color: TEXT_COLOR },
-  { from: "H", to: "F", color: TEXT_COLOR },
-  { from: "H", to: "G", color: TEXT_COLOR },
-  { from: "H", to: "I", color: TEXT_COLOR },
-  { from: "H", to: "J", color: TEXT_COLOR },
-  { from: "H", to: "K", color: TEXT_COLOR },
-  { from: "H", to: "M", color: TEXT_COLOR },
-  { from: "H", to: "N", color: TEXT_COLOR },
-  { from: "I", to: "E", color: TEXT_COLOR },
-  { from: "I", to: "F", color: TEXT_COLOR },
-  { from: "I", to: "G", color: TEXT_COLOR },
-  { from: "I", to: "H", color: TEXT_COLOR },
-  { from: "I", to: "J", color: TEXT_COLOR },
-  { from: "I", to: "K", color: TEXT_COLOR },
-  { from: "I", to: "M", color: TEXT_COLOR },
-  { from: "I", to: "N", color: TEXT_COLOR },
-  { from: "J", to: "E", color: TEXT_COLOR },
-  { from: "J", to: "F", color: TEXT_COLOR },
-  { from: "J", to: "G", color: TEXT_COLOR },
-  { from: "J", to: "H", color: TEXT_COLOR },
-  { from: "J", to: "I", color: TEXT_COLOR },
-  { from: "J", to: "N", color: TEXT_COLOR },
-  { from: "K", to: "F", color: TEXT_COLOR },
-  { from: "K", to: "G", color: TEXT_COLOR },
-  { from: "K", to: "H", color: TEXT_COLOR },
-  { from: "K", to: "I", color: TEXT_COLOR },
-  { from: "K", to: "N", color: TEXT_COLOR },
-  { from: "L", to: "E", color: TEXT_COLOR },
-  { from: "L", to: "G", color: TEXT_COLOR },
-  { from: "L", to: "J", color: TEXT_COLOR },
-  { from: "L", to: "N", color: TEXT_COLOR },
-  { from: "M", to: "F", color: TEXT_COLOR },
-  { from: "M", to: "H", color: TEXT_COLOR },
-  { from: "M", to: "I", color: TEXT_COLOR },
-  { from: "M", to: "N", color: TEXT_COLOR },
-  { from: "N", to: "E", color: TEXT_COLOR },
-  { from: "N", to: "G", color: TEXT_COLOR },
-  { from: "N", to: "H", color: TEXT_COLOR },
-  { from: "N", to: "I", color: TEXT_COLOR },
-  { from: "N", to: "J", color: TEXT_COLOR },
-];
+const toLinkColor = (confidence: number) => {
+  if (confidence >= 0.7) return "#0f172a";
+  if (confidence >= 0.45) return "#334155";
+  if (confidence >= 0.25) return "#64748b";
+  return "#cbd5f5";
+};
 
 const buildAdjacency = (links: LinkData[]) => {
   const adjacency = new Map<string, string[]>();
@@ -124,21 +69,82 @@ const gatherPaths = (start: string, adjacency: Map<string, string[]>, depth = 6)
 };
 
 const CyclesGraphPage = () => {
+  const { status } = useAuth();
+  const { getPatientLabel } = usePatientTranslation();
   const diagramRef = useRef<HTMLDivElement | null>(null);
   const diagramInstance = useRef<go.Diagram | null>(null);
+  const [cycleEdges, setCycleEdges] = useState<CycleEdge[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [selection, setSelection] = useState<{ primary: string | null; comparison: string | null }>({
     primary: null,
     comparison: null,
   });
-  const adjacency = useMemo(() => buildAdjacency(linkDataArray), []);
+  const nodeDataArray = useMemo<NodeData[]>(() => {
+    const labels = new Set<string>();
+    cycleEdges.forEach((edge) => {
+      labels.add(edge.sourceNode);
+      labels.add(edge.targetNode);
+    });
+    return Array.from(labels).map((label, index) => ({
+      key: label,
+      text: getPatientLabel(label),
+      color: CARD_COLOR,
+      loc: `${index * 120} 0`,
+      kind: label.startsWith("CONTEXT_")
+        ? "context"
+        : label.startsWith("IMPACT_")
+          ? "impact"
+          : "symptom",
+    }));
+  }, [cycleEdges, getPatientLabel]);
+
+  const linkDataArray = useMemo<LinkData[]>(() => {
+    return cycleEdges.map((edge) => ({
+      from: edge.sourceNode,
+      to: edge.targetNode,
+      color: toLinkColor(edge.confidence),
+      weight: edge.frequency,
+      lagDaysMin: edge.lagDaysMin ?? 0,
+      avgLag: edge.avgLag ?? 0,
+    }));
+  }, [cycleEdges]);
+
+  const adjacency = useMemo(() => buildAdjacency(linkDataArray), [linkDataArray]);
   const [cycles, setCycles] = useState<string[][]>([]);
   const [selectedCycleIndex, setSelectedCycleIndex] = useState<number | null>(null);
   const [hoveredCycleIndex, setHoveredCycleIndex] = useState<number | null>(null);
-  const [pairFrom, setPairFrom] = useState<string>(nodeDataArray[0].key);
-  const [pairTo, setPairTo] = useState<string>(nodeDataArray[1].key);
+  const [pairFrom, setPairFrom] = useState<string>("");
+  const [pairTo, setPairTo] = useState<string>("");
   const [pairPaths, setPairPaths] = useState<string[][]>([]);
   const [fromTotals, setFromTotals] = useState<number>(0);
   const [showAdvanced, setShowAdvanced] = useState(false);
+
+  useEffect(() => {
+    if (status !== "authed") {
+      setCycleEdges([]);
+      setError(null);
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    apiFetch<{ cycles: CycleEdge[] }>("/derived/cycles?rangeKey=all_time")
+      .then((response) => {
+        setCycleEdges(response.cycles || []);
+      })
+      .catch((err) => {
+        setError(err instanceof Error ? err.message : "Unable to load cycles.");
+        setCycleEdges([]);
+      })
+      .finally(() => setLoading(false));
+  }, [status]);
+
+  useEffect(() => {
+    if (!nodeDataArray.length) return;
+    setPairFrom((prev) => prev || nodeDataArray[0].key);
+    setPairTo((prev) => prev || nodeDataArray[Math.min(1, nodeDataArray.length - 1)].key);
+  }, [nodeDataArray]);
 
   const handleNodeSelection = useCallback((nodeKey: string) => {
     setCycles([]);
@@ -155,7 +161,7 @@ const CyclesGraphPage = () => {
   }, []);
 
   useEffect(() => {
-    if (!showAdvanced || !diagramRef.current) {
+    if (!showAdvanced || !diagramRef.current || nodeDataArray.length === 0) {
       return;
     }
 
@@ -192,7 +198,7 @@ const CyclesGraphPage = () => {
         go.Shape,
         "RoundedRectangle",
         {
-          strokeWidth: 0,
+          strokeWidth: 1,
           fill: CARD_COLOR,
           portId: "",
           fromLinkable: true,
@@ -200,7 +206,19 @@ const CyclesGraphPage = () => {
           fromSpot: go.Spot.AllSides,
           toSpot: go.Spot.AllSides,
         },
-        new go.Binding("fill", "isHighlighted", (h, obj) => (h ? TEXT_COLOR : obj.part?.data.color ?? CARD_COLOR)).ofObject(),
+        new go.Binding("figure", "kind", (kind) => (kind === "context" ? "Rectangle" : "RoundedRectangle")),
+        new go.Binding("fill", "", (data, obj) => {
+          if (obj.part?.isHighlighted) return TEXT_COLOR;
+          if (data.kind === "context") return "#f1f5f9";
+          if (data.kind === "impact") return "#f8fafc";
+          return CARD_COLOR;
+        }),
+        new go.Binding("stroke", "kind", (kind) => {
+          if (kind === "context") return "#94a3b8";
+          if (kind === "impact") return "#475569";
+          return "transparent";
+        }),
+        new go.Binding("strokeDashArray", "kind", (kind) => (kind === "context" ? [4, 3] : null)),
         new go.Binding("stroke", "data.isIntermediateHighlighted", (h) => (h ? "lightblue" : "transparent")).ofObject(),
         new go.Binding("strokeWidth", "data.isIntermediateHighlighted", (h) => (h ? 5 : 0)).ofObject(),
       ),
@@ -231,12 +249,43 @@ const CyclesGraphPage = () => {
       $(
         go.Shape,
         { isPanelMain: true },
-        new go.Binding("stroke", "isHighlighted", (h) => (h ? "lightblue" : BASE_LINE_COLOR)).ofObject(),
-        new go.Binding("strokeWidth", "isHighlighted", (h) => (h ? 8 : 1)).ofObject(),
+        new go.Binding("stroke", "", (data, obj) => {
+          const isHighlighted = obj.part?.isHighlighted;
+          return isHighlighted ? "lightblue" : data.color || BASE_LINE_COLOR;
+        }).ofObject(),
+        new go.Binding("strokeWidth", "", (data, obj) => {
+          const isHighlighted = obj.part?.isHighlighted;
+          if (isHighlighted) return 8;
+          const weight = Math.max(1, Math.min(6, data.weight || 1));
+          return weight;
+        }).ofObject(),
+        new go.Binding("strokeDashArray", "avgLag", (lag) => (lag > 1 ? [4, 3] : null)),
       ),
       $(
         go.Shape,
         { toArrow: "Standard", stroke: null, fill: TEXT_COLOR, scale: 0.75 },
+      ),
+      $(
+        go.Panel,
+        "Auto",
+        { segmentFraction: 0.66 },
+        $(go.Shape, "RoundedRectangle", {
+          fill: "white",
+          stroke: "#e2e8f0",
+          strokeWidth: 1,
+        }),
+        $(
+          go.TextBlock,
+          {
+            margin: new go.Margin(2, 6, 2, 6),
+            font: "10px 'Inter'",
+            stroke: "#64748b",
+          },
+          new go.Binding("text", "avgLag", (lag) => {
+            if (!lag || lag < 0.5) return "Same day";
+            return `+ ${lag}d`;
+          }),
+        ),
       ),
     );
 
@@ -251,7 +300,7 @@ const CyclesGraphPage = () => {
         diagramInstance.current = null;
       }
     };
-  }, [handleNodeSelection, showAdvanced]);
+  }, [handleNodeSelection, showAdvanced, nodeDataArray, linkDataArray]);
 
   useEffect(() => {
     const { primary, comparison } = selection;
@@ -352,7 +401,7 @@ const CyclesGraphPage = () => {
       nodesWithoutPaths: nodesWithoutPaths || "All nodes participate",
       diversity: uniqueNodes.size.toString(),
     };
-  }, [cycles]);
+  }, [cycles, nodeDataArray]);
 
   const highlightGraph = useCallback(() => {
     const diagram = diagramInstance.current;
@@ -406,7 +455,10 @@ const CyclesGraphPage = () => {
     return "Review the list to highlight each unique path connecting your two selections.";
   }, [selection]);
 
-  const nodeKeyToText = useMemo(() => Object.fromEntries(nodeDataArray.map((node) => [node.key, node.text])), []);
+  const nodeKeyToText = useMemo(
+    () => Object.fromEntries(nodeDataArray.map((node) => [node.key, node.text])),
+    [nodeDataArray],
+  );
 
   useEffect(() => {
     if (!pairFrom) return;
@@ -417,9 +469,9 @@ const CyclesGraphPage = () => {
   }, [pairFrom, pairTo, adjacency]);
 
   const pairPercent = useMemo(() => {
-    if (!fromTotals) return 0;
+    if (!fromTotals || !pairFrom) return 0;
     return Math.min(100, Math.round((pairPaths.length / fromTotals) * 100));
-  }, [pairPaths, fromTotals]);
+  }, [pairPaths, fromTotals, pairFrom]);
 
   const suggestionMatrix: Record<string, string> = {
     "I->M": "When Anxiety feeds Perfectionism, pause to name a win from today before bed.",
@@ -435,6 +487,8 @@ const CyclesGraphPage = () => {
     const defaultMessage = `Notice how ${nodeKeyToText[pairFrom]} often links to ${nodeKeyToText[pairTo]}. Try journaling what happens in between and rehearse an exit cue.`;
     return custom ?? defaultMessage;
   }, [pairFrom, pairTo, suggestionMatrix, nodeKeyToText]);
+
+  const hasData = nodeDataArray.length > 0;
 
   return (
     <div className="space-y-10 text-slate-900">
@@ -454,6 +508,7 @@ const CyclesGraphPage = () => {
                   className="mt-1 rounded-2xl border border-slate-200 px-3 py-2 text-sm text-slate-700"
                   value={pairFrom}
                   onChange={(e) => setPairFrom(e.target.value)}
+                  disabled={!hasData}
                 >
                   {nodeDataArray.map((node) => (
                     <option key={node.key} value={node.key}>
@@ -468,6 +523,7 @@ const CyclesGraphPage = () => {
                   className="mt-1 rounded-2xl border border-slate-200 px-3 py-2 text-sm text-slate-700"
                   value={pairTo}
                   onChange={(e) => setPairTo(e.target.value)}
+                  disabled={!hasData}
                 >
                   {nodeDataArray
                     .filter((node) => node.key !== pairFrom)
@@ -482,11 +538,22 @@ const CyclesGraphPage = () => {
           </div>
         )}
       >
+        {loading ? (
+          <Card className="mb-4 p-4 text-sm text-slate-500">Loading cycles…</Card>
+        ) : error ? (
+          <Card className="mb-4 p-4 text-sm text-rose-600">{error}</Card>
+        ) : !hasData ? (
+          <Card className="mb-4 p-4 text-sm text-slate-500">
+            No cycles detected yet. Generate more entries or rebuild derived data.
+          </Card>
+        ) : null}
         <div className="grid gap-6 lg:grid-cols-3">
           <Card className="p-5">
             <p className="text-xs uppercase tracking-[0.4em] text-slate-400">Frequency</p>
             <h3 className="mt-3 text-3xl font-semibold text-brand">{pairPaths.length}</h3>
-            <p className="text-sm text-slate-500">{pairPercent}% of paths starting at {nodeKeyToText[pairFrom]}</p>
+            <p className="text-sm text-slate-500">
+              {pairPercent}% of paths starting at {nodeKeyToText[pairFrom] || "—"}
+            </p>
           </Card>
           <Card className="p-5 lg:col-span-2">
             <p className="text-xs uppercase tracking-[0.4em] text-slate-400">Top paths</p>

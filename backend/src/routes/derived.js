@@ -4,6 +4,7 @@ const {
   getSnapshot,
   getWeeklySummaries,
   getConnectionsGraph,
+  getCycles,
   getPatterns,
 } = require("../controllers/derivedController");
 
@@ -13,6 +14,7 @@ router.use(protect);
 router.get("/snapshot", getSnapshot);
 router.get("/weekly-summaries", getWeeklySummaries);
 router.get("/connections", getConnectionsGraph);
+router.get("/cycles", getCycles);
 router.get("/patterns", getPatterns);
 
 module.exports = router;
