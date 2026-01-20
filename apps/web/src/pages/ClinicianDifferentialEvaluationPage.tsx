@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import PageHeader from "../components/layout/PageHeader";
 import { Card } from "../components/ui/Card";
 import DifferentialOverview from "../components/clinician/differential/DifferentialOverview";
 import DiagnosisReasoningPanel from "../components/clinician/differential/DiagnosisReasoningPanel";
 import ComorbidityView from "../components/clinician/differential/ComorbidityView";
+import ComorbidityWarnings from "../components/clinician/differential/ComorbidityWarnings";
 import type { DifferentialDiagnosis, CriterionItem, SymptomCourseRow } from "../components/clinician/differential/types";
 import type { CaseEntry, ClinicianCase } from "../types/clinician";
 import { apiFetch } from "../lib/apiClient";
@@ -83,7 +84,9 @@ const ClinicianDifferentialEvaluationContent = ({
   } = useClinicalCase();
   const [selectedKey, setSelectedKey] = useState<DifferentialDiagnosis["key"]>("mdd");
   const [pinnedKeys, setPinnedKeys] = useState<DifferentialDiagnosis["key"][]>([]);
+  const hasHydratedPins = useRef(false);
   const baseLogic = useDiagnosticLogic(entries, { windowDays: 36500, overrides: nodeOverrides });
+  const manicHistory = baseLogic.getStatusForLabels(["SYMPTOM_MANIA"]) === "MET";
 
   useEffect(() => {
     onCaseChange(error);
@@ -103,7 +106,37 @@ const ClinicianDifferentialEvaluationContent = ({
     setSelectedKey(diagnosesSorted(diagnoses)[0]?.key || "mdd");
   }, [diagnoses]);
 
+  const persistPins = (nextPins: DifferentialDiagnosis["key"][]) => {
+    if (!caseId) return;
+    window.localStorage.setItem(`clinician:pins:${caseId}`, JSON.stringify(nextPins));
+  };
+
+  useEffect(() => {
+    if (!caseId) return;
+    hasHydratedPins.current = false;
+    const stored = window.localStorage.getItem(`clinician:pins:${caseId}`);
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) {
+          setPinnedKeys(parsed);
+        }
+      } catch {
+        setPinnedKeys([]);
+      }
+    } else {
+      setPinnedKeys([]);
+    }
+    hasHydratedPins.current = true;
+  }, [caseId]);
+
   const selectedDiagnosis = diagnoses.find((item) => item.key === selectedKey) || diagnoses[0];
+  const activeDiagnoses =
+    pinnedKeys.length > 0
+      ? pinnedKeys
+      : selectedDiagnosis
+        ? [selectedDiagnosis.key]
+        : [];
   const shortId = caseId ? caseId.slice(0, 6) : "Case";
 
   return (
@@ -148,15 +181,20 @@ const ClinicianDifferentialEvaluationContent = ({
               <h3 className="text-sm font-semibold text-slate-700">Differential overview</h3>
               <p className="text-xs text-slate-500">Ranked by criteria coverage.</p>
             </div>
+            <ComorbidityWarnings selectedDiagnoses={activeDiagnoses} manicHistory={manicHistory} />
             <DifferentialOverview
               diagnoses={diagnosesSorted(diagnoses)}
               selectedKey={selectedKey}
               pinnedKeys={pinnedKeys}
               onSelect={setSelectedKey}
               onTogglePin={(key) => {
-                setPinnedKeys((prev) =>
-                  prev.includes(key) ? prev.filter((item) => item !== key) : [...prev, key],
-                );
+                setPinnedKeys((prev) => {
+                  const next = prev.includes(key)
+                    ? prev.filter((item) => item !== key)
+                    : [...prev, key];
+                  persistPins(next);
+                  return next;
+                });
               }}
             />
             <div className="pt-2">

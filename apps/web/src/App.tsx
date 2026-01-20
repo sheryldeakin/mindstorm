@@ -6,7 +6,6 @@ import Navbar from "./components/layout/Navbar";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import EntryEditorPage from "./pages/EntryEditorPage";
 import EntryDetailPage from "./pages/EntryDetailPage";
-import EntryDetailV2Page from "./pages/EntryDetailV2Page";
 import EntryEditPage from "./pages/EntryEditPage";
 import CheckInPage from "./pages/CheckInPage";
 import ConnectionsPage from "./pages/ConnectionsPage";
@@ -88,7 +87,6 @@ const App = () => {
             <Route path="journal" element={<JournalDashboard />} />
             <Route path="entry" element={<EntryEditorPage />} />
             <Route path="entry/:id" element={<EntryDetailPage />} />
-            <Route path="entry/:id/v2" element={<EntryDetailV2Page />} />
             <Route path="entry/:id/edit" element={<EntryEditPage />} />
             <Route path="check-in" element={<CheckInPage />} />
             <Route path="connections" element={<ConnectionsPage />} />
@@ -150,7 +148,6 @@ const App = () => {
         <Route path="/journal" element={<Navigate to="/patient/journal" replace />} />
         <Route path="/entry" element={<Navigate to="/patient/entry" replace />} />
         <Route path="/entry/:id" element={<Navigate to="/patient/entry/:id" replace />} />
-        <Route path="/entry/:id/v2" element={<Navigate to="/patient/entry/:id/v2" replace />} />
         <Route path="/entry/:id/edit" element={<Navigate to="/patient/entry/:id/edit" replace />} />
         <Route path="/check-in" element={<Navigate to="/patient/check-in" replace />} />
         <Route path="/connections" element={<Navigate to="/patient/connections" replace />} />

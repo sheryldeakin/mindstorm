@@ -6,6 +6,7 @@ import type { ConnectionEdge, ConnectionNode } from "../types/connections";
 import { apiFetch } from "../lib/apiClient";
 import { useAuth } from "../contexts/AuthContext";
 import PageHeader from "../components/layout/PageHeader";
+import { usePatientTranslation } from "../hooks/usePatientTranslation";
 
 const CoMovementChart = ({ fromSeries, toSeries }: { fromSeries: number[]; toSeries: number[] }) => (
   <div className="relative h-16 w-full">
@@ -38,6 +39,7 @@ const ConnectionsPage = () => {
   const [selectedEdge, setSelectedEdge] = useState<ConnectionEdge | undefined>(undefined);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { getPatientLabel } = usePatientTranslation();
 
   useEffect(() => {
     if (status !== "authed") {
@@ -65,17 +67,38 @@ const ConnectionsPage = () => {
       .finally(() => setLoading(false));
   }, [status]);
 
+  const mapConnectionLabel = (label: string) => {
+    if (label === "CONTEXT_STRESSOR") return "Life Stressors";
+    if (label === "CONTEXT_MEDICAL") return "Physical Health";
+    return getPatientLabel(label);
+  };
+
+  const mappedNodes = nodes.map((node) => ({
+    ...node,
+    label: mapConnectionLabel(node.label),
+  }));
+
+  const mappedEdges = edges.map((edge) => ({
+    ...edge,
+    label: mapConnectionLabel(edge.label),
+  }));
+
+  const selectedMappedEdge = mappedEdges.find((edge) => edge.id === selectedEdge?.id);
+
   return (
     <div className="space-y-8 text-slate-900">
       <PageHeader pageId="connections" />
       <CausalityDisclaimer />
       <ConnectionsGraph
-        nodes={nodes}
-        edges={edges}
-        selectedEdgeId={selectedEdge?.id}
-        onEdgeSelect={(edge) => setSelectedEdge(edge)}
+        nodes={mappedNodes}
+        edges={mappedEdges}
+        selectedEdgeId={selectedMappedEdge?.id}
+        onEdgeSelect={(edge) => {
+          const original = edges.find((item) => item.id === edge.id);
+          setSelectedEdge(original);
+        }}
         loading={loading}
-        emptyState={!!error || (!loading && nodes.length === 0)}
+        emptyState={!!error || (!loading && mappedNodes.length === 0)}
       />
       <section className="ms-card ms-elev-2 rounded-3xl p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -84,12 +107,12 @@ const ConnectionsPage = () => {
             <p className="mt-1 text-sm text-slate-500">
               {error
                 ? "Unable to load evidence yet."
-                : selectedEdge
-                ? `Quotes for ${selectedEdge.label}.`
+                : selectedMappedEdge
+                ? `These often appear together in your writing.`
                 : "Select a connection to view quotes."}
             </p>
           </div>
-          {selectedEdge && (
+          {selectedMappedEdge && (
             <button
               type="button"
               onClick={() => setSelectedEdge(undefined)}
@@ -99,16 +122,16 @@ const ConnectionsPage = () => {
             </button>
           )}
         </div>
-        {selectedEdge?.movement ? (
+        {selectedMappedEdge?.movement ? (
           <div className="mt-6 space-y-3">
             <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Movement</p>
-            {selectedEdge.movement.fromSeries.length && selectedEdge.movement.toSeries.length ? (
+            {selectedMappedEdge.movement.fromSeries.length && selectedMappedEdge.movement.toSeries.length ? (
               <>
                 <CoMovementChart
-                  fromSeries={selectedEdge.movement.fromSeries || []}
-                  toSeries={selectedEdge.movement.toSeries || []}
+                  fromSeries={selectedMappedEdge.movement.fromSeries || []}
+                  toSeries={selectedMappedEdge.movement.toSeries || []}
                 />
-                <p className="text-sm text-slate-500">{selectedEdge.movement.summary}</p>
+                <p className="text-sm text-slate-500">{selectedMappedEdge.movement.summary}</p>
               </>
             ) : (
               <p className="text-sm text-slate-500">No co-movement data available yet.</p>
@@ -119,9 +142,9 @@ const ConnectionsPage = () => {
           <p className="mt-4 text-sm text-slate-500">Loading evidence...</p>
         ) : error ? (
           <p className="mt-4 text-sm text-rose-600">{error}</p>
-        ) : selectedEdge ? (
+        ) : selectedMappedEdge ? (
           <div className="mt-6 space-y-4">
-            {selectedEdge.evidence.length ? selectedEdge.evidence.map((evidence) => (
+            {selectedMappedEdge.evidence.length ? selectedMappedEdge.evidence.map((evidence) => (
               <div key={evidence.id} className="ms-glass-surface rounded-2xl border p-4">
                 <p className="text-sm text-slate-700">“{evidence.quote}”</p>
                 <p className="mt-2 text-xs text-slate-400">{evidence.source}</p>

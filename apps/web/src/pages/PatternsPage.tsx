@@ -17,6 +17,7 @@ import { useAuth } from "../contexts/AuthContext";
 import PageHeader from "../components/layout/PageHeader";
 import type { PatternMetric } from "../types/journal";
 import type { PatternDetail, PatternSummary } from "../types/patterns";
+import { usePatientTranslation } from "../hooks/usePatientTranslation";
 
 const tabOptions = [
   { id: "week", label: "This week" },
@@ -51,6 +52,7 @@ const PatternsPage = () => {
   const { data: insights, loading: insightsLoading, error: insightsError, empty: insightsEmpty } = useInsights({
     limit: 6,
   });
+  const { getPatientLabel, getIntensityLabel } = usePatientTranslation();
 
   const rangeDays = range === "week" ? 7 : range === "month" ? 30 : 90;
 
@@ -66,14 +68,31 @@ const PatternsPage = () => {
     });
   }, [entries, rangeDays]);
 
+  const evidenceUnitsInRange = useMemo(() => {
+    return entriesInRange.flatMap((entry) => entry.evidenceUnits || []);
+  }, [entriesInRange]);
+
+  const severityToScore = (severity?: string | null) => {
+    if (!severity) return null;
+    const normalized = severity.toLowerCase();
+    if (normalized.includes("severe")) return 3;
+    if (normalized.includes("moderate")) return 2;
+    if (normalized.includes("mild")) return 1;
+    return null;
+  };
+
   const emotionFrequency = useMemo(() => {
     const counts = new Map<string, number>();
-    entriesInRange.forEach((entry) => {
-      entry.emotions?.forEach((emotion) => {
-        if (!emotion.label) return;
-        counts.set(emotion.label, (counts.get(emotion.label) || 0) + 1);
-      });
+    evidenceUnitsInRange.forEach((unit) => {
+      if (!unit.label.startsWith("SYMPTOM_")) return;
+      if (unit.label === "SYMPTOM_RISK") return;
+      const patientLabel = getPatientLabel(unit.label);
+      counts.set(patientLabel, (counts.get(patientLabel) || 0) + 1);
     });
+    const riskCount = evidenceUnitsInRange.filter((unit) => unit.label === "SYMPTOM_RISK").length;
+    if (riskCount > 0) {
+      counts.set("Safety Support", (counts.get("Safety Support") || 0) + riskCount);
+    }
     const total = Array.from(counts.values()).reduce((sum, value) => sum + value, 0);
     return Array.from(counts.entries())
       .sort((a, b) => b[1] - a[1])
@@ -82,15 +101,14 @@ const PatternsPage = () => {
         label,
         value: total ? Math.round((count / total) * 100) : 0,
       }));
-  }, [entriesInRange]);
+  }, [evidenceUnitsInRange, getPatientLabel]);
 
   const triggerBreakdown = useMemo(() => {
     const counts = new Map<string, number>();
-    entriesInRange.forEach((entry) => {
-      entry.triggers?.forEach((trigger) => {
-        if (!trigger) return;
-        counts.set(trigger, (counts.get(trigger) || 0) + 1);
-      });
+    evidenceUnitsInRange.forEach((unit) => {
+      if (!unit.label.startsWith("CONTEXT_")) return;
+      const label = getPatientLabel(unit.label);
+      counts.set(label, (counts.get(label) || 0) + 1);
     });
     const total = Array.from(counts.values()).reduce((sum, value) => sum + value, 0);
     return Array.from(counts.entries())
@@ -100,20 +118,32 @@ const PatternsPage = () => {
         label,
         percent: total ? Math.round((count / total) * 100) : 0,
       }));
-  }, [entriesInRange]);
+  }, [evidenceUnitsInRange, getPatientLabel]);
 
   const patternMetrics = useMemo<PatternMetric[]>(() => {
     const entryCount = entriesInRange.length;
-    const emotions = entriesInRange.flatMap((entry) => entry.emotions || []);
-    const avgIntensity = emotions.length
-      ? Math.round(emotions.reduce((sum, emotion) => sum + (emotion.intensity || 0), 0) / emotions.length)
+    const symptomUnits = evidenceUnitsInRange.filter((unit) => unit.label.startsWith("SYMPTOM_"));
+    const intensityScores = symptomUnits
+      .map((unit) => severityToScore(unit.attributes?.severity))
+      .filter((value): value is number => value !== null);
+    const avgScore = intensityScores.length
+      ? intensityScores.reduce((sum, value) => sum + value, 0) / intensityScores.length
       : 0;
-    const triggers = entriesInRange.flatMap((entry) => entry.triggers || []);
-    const triggerCounts = triggers.reduce((acc, trigger) => {
-      acc[trigger] = (acc[trigger] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-    const topTrigger = Object.entries(triggerCounts).sort((a, b) => b[1] - a[1])[0]?.[0];
+    const avgIntensityLabel = avgScore
+      ? getIntensityLabel(avgScore >= 2.5 ? "SEVERE" : avgScore >= 1.5 ? "MODERATE" : "MILD")
+      : "—";
+    const contextUnits = evidenceUnitsInRange.filter((unit) => unit.label.startsWith("CONTEXT_"));
+    const topContext = contextUnits.length
+      ? getPatientLabel(
+          contextUnits
+            .map((unit) => unit.label)
+            .sort((a, b) => {
+              const countA = contextUnits.filter((unit) => unit.label === a).length;
+              const countB = contextUnits.filter((unit) => unit.label === b).length;
+              return countB - countA;
+            })[0],
+        )
+      : "—";
 
     return [
       {
@@ -125,20 +155,20 @@ const PatternsPage = () => {
       },
       {
         id: "metric-emotion",
-        label: "Avg emotion intensity",
-        value: avgIntensity ? `${avgIntensity}%` : "—",
-        delta: avgIntensity ? "Across tagged emotions" : "Add more reflections",
-        status: avgIntensity > 50 ? "up" : "down",
+        label: "Average signal intensity",
+        value: avgScore ? avgIntensityLabel : "—",
+        delta: avgScore ? "Across recent signals" : "Add more reflections",
+        status: avgScore >= 2 ? "up" : "down",
       },
       {
         id: "metric-trigger",
-        label: "Top trigger",
-        value: topTrigger || "—",
-        delta: topTrigger ? "Most frequent" : "Waiting on triggers",
+        label: "Most common context",
+        value: topContext || "—",
+        delta: topContext !== "—" ? "Often mentioned" : "Waiting on context signals",
         status: "steady",
       },
     ];
-  }, [entriesInRange, range]);
+  }, [entriesInRange, evidenceUnitsInRange, range, getIntensityLabel, getPatientLabel]);
 
   const rangeKey = patternRange;
 
@@ -291,7 +321,7 @@ const PatternsPage = () => {
       </PageHeader>
       <section className="grid gap-6 lg:grid-cols-2">
         <Card className="p-6">
-          <h3 className="text-xl font-semibold">Emotion frequency</h3>
+          <h3 className="text-xl font-semibold">Signals frequency</h3>
           <div className="mt-6 space-y-4">
             {entriesLoading ? (
               <div className="h-20 animate-pulse rounded-2xl bg-slate-100" />
@@ -316,7 +346,7 @@ const PatternsPage = () => {
           </div>
         </Card>
         <Card className="p-6">
-          <h3 className="text-xl font-semibold">Trigger categories</h3>
+          <h3 className="text-xl font-semibold">Context categories</h3>
           <div className="mt-6 space-y-4">
             {entriesLoading ? (
               <div className="h-20 animate-pulse rounded-2xl bg-slate-100" />

@@ -10,11 +10,11 @@ type ImpactItem = {
   examples: Array<{ span: string; dateISO: string }>;
 };
 
-const DOMAIN_RULES: Record<ImpactDomain, RegExp> = {
-  "Work/School": /(work|job|boss|office|deadline|school|class|assignment|meeting|shift)/i,
-  Social: /(friend|friends|partner|family|relationship|social|text|call|dinner|people)/i,
-  "Self-Care": /(shower|bath|laundry|brush|eat|cooking|clean|hygiene|bed|sleep)/i,
-  Safety: /(harm|hurt|unsafe|danger|suicid|self-harm|kill)/i,
+const LABEL_MAP: Record<string, ImpactDomain> = {
+  IMPACT_WORK: "Work/School",
+  IMPACT_SOCIAL: "Social",
+  IMPACT_SELF_CARE: "Self-Care",
+  IMPACT_SAFETY: "Safety",
 };
 
 const toSeverity = (count: number): ImpactItem["severity"] => {
@@ -25,16 +25,18 @@ const toSeverity = (count: number): ImpactItem["severity"] => {
 };
 
 const buildImpactSummary = (entries: CaseEntry[]): ImpactItem[] => {
-  const evidenceItems: Array<EvidenceUnit & { dateISO: string }> = entries.flatMap((entry) =>
-    (entry.evidenceUnits || [])
-      .filter((unit) => unit.label === "IMPAIRMENT")
-      .map((unit) => ({ ...unit, dateISO: entry.dateISO })),
+  const units: Array<EvidenceUnit & { dateISO: string }> = entries.flatMap((entry) =>
+    (entry.evidenceUnits || []).map((unit) => ({ ...unit, dateISO: entry.dateISO })),
   );
-  const hasAnyEvidence = evidenceItems.length > 0;
+  const labeledUnits = units.filter(
+    (unit) =>
+      unit.label in LABEL_MAP &&
+      unit.attributes?.polarity !== "ABSENT",
+  );
+  const hasAnyEvidence = labeledUnits.length > 0;
 
-  return (Object.keys(DOMAIN_RULES) as ImpactDomain[]).map((domain) => {
-    const regex = DOMAIN_RULES[domain];
-    const matches = evidenceItems.filter((item) => regex.test(item.span));
+  return Object.values(LABEL_MAP).map((domain) => {
+    const matches = labeledUnits.filter((unit) => LABEL_MAP[unit.label] === domain);
     return {
       domain,
       count: matches.length,
