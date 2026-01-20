@@ -10,6 +10,7 @@ import useDiagnosticLogic, { type DiagnosticStatus } from "../hooks/useDiagnosti
 import { DIAGNOSTIC_GRAPH_NODES } from "../lib/diagnosticGraphConfig";
 import { buildClarificationPrompts } from "../lib/clinicianPrompts";
 import FunctionalImpactCard from "../components/clinician/FunctionalImpactCard";
+import useSessionDelta from "../hooks/useSessionDelta";
 
 const ClinicianLogicGraphPage = () => {
   const [cases, setCases] = useState<ClinicianCase[]>([]);
@@ -21,6 +22,7 @@ const ClinicianLogicGraphPage = () => {
   const [selectedNode, setSelectedNode] = useState<{ id: string; label: string; labels?: string[] } | null>(null);
   const [nodeOverrides, setNodeOverrides] = useState<Record<string, DiagnosticStatus>>({});
   const [rejectedEvidenceKeys, setRejectedEvidenceKeys] = useState<Set<string>>(new Set());
+  const sessionDelta = useSessionDelta(selectedCase);
 
   useEffect(() => {
     let active = true;
@@ -128,6 +130,22 @@ const ClinicianLogicGraphPage = () => {
     });
   };
 
+  const handleEvidenceFeedback = async (
+    item: EvidenceUnit & { dateISO: string },
+    feedbackType: "correct" | "wrong_label" | "wrong_polarity",
+  ) => {
+    if (!selectedCase) return;
+    await apiFetch(`/clinician/cases/${selectedCase}/feedback`, {
+      method: "POST",
+      body: JSON.stringify({
+        entryDateISO: item.dateISO,
+        span: item.span,
+        label: item.label,
+        feedbackType,
+      }),
+    });
+  };
+
   return (
     <div className="space-y-6 text-slate-900">
       <PageHeader
@@ -166,6 +184,7 @@ const ClinicianLogicGraphPage = () => {
               overrides={labelOverrides}
               nodeOverrides={nodeOverrides}
               rejectedEvidenceKeys={rejectedEvidenceKeys}
+              lastAccessISO={sessionDelta.lastAccessISO}
               onNodeSelect={(node) =>
                 setSelectedNode({ id: node.id, label: node.label, labels: node.evidenceLabels })
               }
@@ -198,6 +217,7 @@ const ClinicianLogicGraphPage = () => {
         onOverrideChange={handleOverrideChange}
         rejectedKeys={rejectedEvidenceKeys}
         onToggleReject={handleToggleReject}
+        onFeedback={handleEvidenceFeedback}
         onClose={() => setSelectedNode(null)}
       />
     </div>

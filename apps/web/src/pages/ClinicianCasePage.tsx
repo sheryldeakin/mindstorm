@@ -17,6 +17,8 @@ import SpecifierChips from "../components/clinician/SpecifierChips";
 import InquiryAssistant from "../components/clinician/InquiryAssistant";
 import ClinicalNoteGenerator from "../components/clinician/ClinicalNoteGenerator";
 import ClinicianNotesPanel from "../components/clinician/ClinicianNotesPanel";
+import TimeWindowFilter from "../components/clinician/TimeWindowFilter";
+import useSessionDelta from "../hooks/useSessionDelta";
 
 const ClinicianCasePage = () => {
   const { userId } = useParams();
@@ -30,6 +32,7 @@ const ClinicianCasePage = () => {
   const [highlightLabels, setHighlightLabels] = useState<string[] | null>(null);
   const [notes, setNotes] = useState<ClinicianNote[]>([]);
   const [overrideRecords, setOverrideRecords] = useState<ClinicianOverrideRecord[]>([]);
+  const [windowDays, setWindowDays] = useState<number>(90);
 
   useEffect(() => {
     if (!userId) return;
@@ -109,6 +112,21 @@ const ClinicianCasePage = () => {
   );
 
   const useWeeklyHeatmap = entries.length > 60;
+  const sessionDelta = useSessionDelta(userId);
+  const heatmapEntries = useMemo(() => {
+    if (windowDays <= 0) return entries;
+    if (!entries.length) return [];
+    const sorted = [...entries].sort((a, b) => a.dateISO.localeCompare(b.dateISO));
+    const latest = sorted[sorted.length - 1];
+    if (!latest) return [];
+    const latestDate = new Date(`${latest.dateISO}T00:00:00Z`);
+    const cutoff = new Date(latestDate);
+    cutoff.setDate(cutoff.getDate() - windowDays + 1);
+    return sorted.filter((entry) => {
+      const entryDate = new Date(`${entry.dateISO}T00:00:00Z`);
+      return entryDate >= cutoff && entryDate <= latestDate;
+    });
+  }, [entries, windowDays]);
 
   const coverage = useMemo(
     () => buildCoverageMetrics(entries, undefined, rejectedEvidenceKeys, { nodeOverrides }),
@@ -187,6 +205,22 @@ const ClinicianCasePage = () => {
     });
   };
 
+  const handleEvidenceFeedback = async (
+    item: EvidenceUnit & { dateISO: string },
+    feedbackType: "correct" | "wrong_label" | "wrong_polarity",
+  ) => {
+    if (!userId) return;
+    await apiFetch(`/clinician/cases/${userId}/feedback`, {
+      method: "POST",
+      body: JSON.stringify({
+        entryDateISO: item.dateISO,
+        span: item.span,
+        label: item.label,
+        feedbackType,
+      }),
+    });
+  };
+
   return (
     <div className="space-y-8 text-slate-900">
       <PageHeader
@@ -201,15 +235,25 @@ const ClinicianCasePage = () => {
       ) : (
         <>
           <Card className="p-6">
-            <h3 className="text-lg font-semibold">Clinical course heatmap</h3>
-            <p className="mt-1 text-sm text-slate-500">
-              {useWeeklyHeatmap ? "Weekly rollup view." : "Daily view."}
-            </p>
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <h3 className="text-lg font-semibold">Clinical course heatmap</h3>
+                <p className="mt-1 text-sm text-slate-500">
+                  {useWeeklyHeatmap ? "Weekly rollup view." : "Daily view."} New activity is highlighted since your last review.
+                </p>
+              </div>
+              <TimeWindowFilter
+                value={windowDays}
+                onChange={setWindowDays}
+                onReset={sessionDelta.markReviewed}
+              />
+            </div>
             <div className="mt-4">
               <SymptomHeatmap
-                entries={entries}
+                entries={heatmapEntries}
                 groupByWeek={useWeeklyHeatmap}
                 highlightLabels={highlightLabels ?? []}
+                lastAccessISO={sessionDelta.lastAccessISO}
               />
             </div>
           </Card>
@@ -238,6 +282,7 @@ const ClinicianCasePage = () => {
                 overrides={labelOverrides}
                 nodeOverrides={nodeOverrides}
                 rejectedEvidenceKeys={rejectedEvidenceKeys}
+                lastAccessISO={sessionDelta.lastAccessISO}
                 onOverrideChange={handleNodeOverride}
                 onNodeSelect={(node) =>
                   setSelectedNode({ id: node.id, label: node.label, labels: node.evidenceLabels })
@@ -350,6 +395,7 @@ const ClinicianCasePage = () => {
         onOverrideChange={handleOverrideChange}
         rejectedKeys={rejectedEvidenceKeys}
         onToggleReject={handleToggleReject}
+        onFeedback={handleEvidenceFeedback}
         onClose={() => setSelectedNode(null)}
       />
     </div>

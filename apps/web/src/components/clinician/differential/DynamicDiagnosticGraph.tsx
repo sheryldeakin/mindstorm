@@ -24,6 +24,7 @@ type DynamicDiagnosticGraphProps = {
   onNodeSelect?: (node: GraphNode) => void;
   nodeOverrides?: Record<string, "MET" | "EXCLUDED" | "UNKNOWN">;
   onOverrideChange?: (nodeId: string, status: "MET" | "EXCLUDED" | "UNKNOWN" | null) => void;
+  lastAccessISO?: string | null;
 };
 
 const statusClass = (status: string) => {
@@ -86,12 +87,18 @@ const DynamicDiagnosticGraph = ({
   onNodeSelect,
   nodeOverrides,
   onOverrideChange,
+  lastAccessISO,
 }: DynamicDiagnosticGraphProps) => {
   const diagnosis = getDepressiveDiagnosisByKey(diagnosisKey);
   const config = getDepressiveConfigByKey(diagnosisKey);
   const nodes = toGraphNodes(diagnosis, mode);
   const baseLogic = useDiagnosticLogic(entries, { windowDays: 36500 });
-  const { getStatusForLabels } = useDiagnosticLogic(entries, { windowDays: 36500, overrides: nodeOverrides });
+  const { getStatusForLabels } = baseLogic;
+  const lastAccessDate = lastAccessISO ? new Date(lastAccessISO) : null;
+  const priorEntries = lastAccessDate
+    ? entries.filter((entry) => new Date(`${entry.dateISO}T00:00:00Z`) <= lastAccessDate)
+    : [];
+  const priorLogic = useDiagnosticLogic(priorEntries, { windowDays: 36500 });
 
   const criteriaCount = config
     ? config.criteria.reduce((count, criterion) => {
@@ -108,6 +115,18 @@ const DynamicDiagnosticGraph = ({
     return getStatusForLabels(node.evidenceLabels);
   };
 
+  const getPriorNodeStatus = (node: GraphNode) => {
+    if (!lastAccessDate) return "UNKNOWN";
+    if (node.kind === "diagnosis" && config) {
+      const priorCount = config.criteria.reduce((count, criterion) => {
+        const status = priorLogic.getStatusForLabels(criterion.evidenceLabels);
+        return count + (status === "MET" ? 1 : 0);
+      }, 0);
+      return priorCount >= config.required ? "MET" : "UNKNOWN";
+    }
+    return priorLogic.getStatusForLabels(node.evidenceLabels);
+  };
+
   const renderColumn = (kind: GraphNode["kind"], title: string) => {
     const columnNodes = nodes.filter((node) => node.kind === kind);
     if (!columnNodes.length) return null;
@@ -117,6 +136,8 @@ const DynamicDiagnosticGraph = ({
         <div className="mt-3 space-y-3">
           {columnNodes.map((node) => {
             const status = getNodeStatus(node);
+            const priorStatus = getPriorNodeStatus(node);
+            const hasChanged = lastAccessDate && priorStatus !== "UNKNOWN" && status !== priorStatus;
             const overrideStatus = nodeOverrides?.[node.id] || null;
             const autoStatus = node.evidenceLabels?.length
               ? baseLogic.getStatusForLabels(node.evidenceLabels)
@@ -129,6 +150,7 @@ const DynamicDiagnosticGraph = ({
                 className={clsx(
                   "w-full rounded-xl border px-4 py-3 text-left text-sm font-medium transition",
                   statusClass(status),
+                  hasChanged && "ring-2 ring-sky-300 animate-pulse",
                 )}
               >
                 <button
@@ -140,6 +162,7 @@ const DynamicDiagnosticGraph = ({
                     {node.label}
                   </span>
                   <span className="text-[11px] uppercase">{statusLabel}</span>
+                  {hasChanged ? <span className="text-[11px] uppercase text-sky-500">New</span> : null}
                 </button>
                 <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px]">
                   <button

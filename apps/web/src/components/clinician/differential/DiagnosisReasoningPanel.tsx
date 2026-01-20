@@ -16,6 +16,7 @@ type DiagnosisReasoningPanelProps = {
   entries: CaseEntry[];
   nodeOverrides?: Record<string, "MET" | "EXCLUDED" | "UNKNOWN">;
   onOverrideChange?: (nodeId: string, status: "MET" | "EXCLUDED" | "UNKNOWN" | null) => void;
+  lastAccessISO?: string | null;
 };
 
 const DiagnosisReasoningPanel = ({
@@ -24,6 +25,7 @@ const DiagnosisReasoningPanel = ({
   entries,
   nodeOverrides,
   onOverrideChange,
+  lastAccessISO,
 }: DiagnosisReasoningPanelProps) => {
   return (
     <div className="space-y-6">
@@ -78,6 +80,7 @@ const DiagnosisReasoningPanel = ({
         entries={entries}
         nodeOverrides={nodeOverrides}
         onOverrideChange={onOverrideChange}
+        lastAccessISO={lastAccessISO}
       />
 
       <Card className="p-6">

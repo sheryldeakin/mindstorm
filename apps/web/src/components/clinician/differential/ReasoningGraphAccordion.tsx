@@ -8,6 +8,7 @@ type ReasoningGraphAccordionProps = {
   entries: CaseEntry[];
   nodeOverrides?: Record<string, "MET" | "EXCLUDED" | "UNKNOWN">;
   onOverrideChange?: (nodeId: string, status: "MET" | "EXCLUDED" | "UNKNOWN" | null) => void;
+  lastAccessISO?: string | null;
 };
 
 const ReasoningGraphAccordion = ({
@@ -15,6 +16,7 @@ const ReasoningGraphAccordion = ({
   entries,
   nodeOverrides,
   onOverrideChange,
+  lastAccessISO,
 }: ReasoningGraphAccordionProps) => {
   const [mode, setMode] = useState<GraphMode>("core");
   return (
@@ -46,6 +48,7 @@ const ReasoningGraphAccordion = ({
           mode={mode}
           nodeOverrides={nodeOverrides}
           onOverrideChange={onOverrideChange}
+          lastAccessISO={lastAccessISO}
         />
       </div>
     </details>

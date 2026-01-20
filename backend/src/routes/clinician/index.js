@@ -10,6 +10,7 @@ const {
   createCaseNote,
   updateCaseNote,
   deleteCaseNote,
+  createEvidenceFeedback,
 } = require("../../controllers/clinicianController");
 
 const router = express.Router();
@@ -34,6 +35,7 @@ router.get("/cases/:userId/notes", getCaseNotes);
 router.post("/cases/:userId/notes", createCaseNote);
 router.patch("/cases/:userId/notes/:noteId", updateCaseNote);
 router.delete("/cases/:userId/notes/:noteId", deleteCaseNote);
+router.post("/cases/:userId/feedback", createEvidenceFeedback);
 
 router.get("/criteria-coverage", (_req, res) => {
   res.json({

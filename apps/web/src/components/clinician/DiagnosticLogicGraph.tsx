@@ -15,6 +15,7 @@ type DiagnosticLogicGraphProps = {
   overrides?: Record<string, "MET" | "EXCLUDED" | "UNKNOWN">;
   nodeOverrides?: Record<string, "MET" | "EXCLUDED" | "UNKNOWN">;
   rejectedEvidenceKeys?: Set<string>;
+  lastAccessISO?: string | null;
   onNodeSelect: (node: GraphNode) => void;
   onOverrideChange?: (nodeId: string, status: "MET" | "EXCLUDED" | "UNKNOWN" | null) => void;
 };
@@ -32,6 +33,7 @@ const DiagnosticLogicGraph = ({
   overrides,
   nodeOverrides,
   rejectedEvidenceKeys,
+  lastAccessISO,
   onNodeSelect,
   onOverrideChange,
 }: DiagnosticLogicGraphProps) => {
@@ -41,6 +43,11 @@ const DiagnosticLogicGraph = ({
   const exclusionNodes = NODES.filter((node) => node.kind === "exclusion");
   const baseLogic = useDiagnosticLogic(entries, { rejectedEvidenceKeys });
   const { getStatusForLabels } = baseLogic;
+  const lastAccessDate = lastAccessISO ? new Date(lastAccessISO) : null;
+  const priorEntries = lastAccessDate
+    ? entries.filter((entry) => new Date(`${entry.dateISO}T00:00:00Z`) <= lastAccessDate)
+    : [];
+  const priorLogic = useDiagnosticLogic(priorEntries, { rejectedEvidenceKeys });
 
   const impairmentStatus = getStatusForLabels(["IMPAIRMENT"]);
   const symptomMetCount = symptomNodes.filter(
@@ -70,10 +77,37 @@ const DiagnosticLogicGraph = ({
     return getStatusForLabels(node.evidenceLabels);
   };
 
+  const getPriorNodeStatus = (node: GraphNode) => {
+    if (!lastAccessDate) return "UNKNOWN";
+    if (node.id === "mdd-root") {
+      const impairmentStatus = priorLogic.getStatusForLabels(["IMPAIRMENT"]);
+      const symptomMetCount = symptomNodes.filter(
+        (item) => priorLogic.getStatusForLabels(item.evidenceLabels) === "MET",
+      ).length;
+      if (impairmentStatus === "EXCLUDED") return "EXCLUDED";
+      if (impairmentStatus !== "MET") return "UNKNOWN";
+      return symptomMetCount >= 5 ? "MET" : "UNKNOWN";
+    }
+    if (node.id === "duration") {
+      const spanDays = (() => {
+        if (!priorEntries.length) return 0;
+        const sorted = [...priorEntries].sort((a, b) => a.dateISO.localeCompare(b.dateISO));
+        const start = new Date(`${sorted[0].dateISO}T00:00:00Z`);
+        const end = new Date(`${sorted[sorted.length - 1].dateISO}T00:00:00Z`);
+        return Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+      })();
+      return spanDays >= 14 ? "MET" : "UNKNOWN";
+    }
+    return priorLogic.getStatusForLabels(node.evidenceLabels);
+  };
+
   const renderColumn = (nodes: GraphNode[]) => (
     <div className="space-y-3">
       {nodes.map((node) => {
         const status = getNodeStatus(node);
+        const priorStatus = getPriorNodeStatus(node);
+        const hasChanged =
+          lastAccessDate && priorStatus !== "UNKNOWN" && status !== priorStatus;
         const overrideStatus = nodeOverrides?.[node.id] || null;
         const autoStatus = node.evidenceLabels?.length
           ? baseLogic.getStatusForLabels(node.evidenceLabels)
@@ -90,6 +124,7 @@ const DiagnosticLogicGraph = ({
             className={clsx(
               "w-full rounded-xl border px-4 py-3 text-left text-sm font-medium transition",
               statusClass(status),
+              hasChanged && "relative ring-2 ring-sky-300 animate-pulse",
             )}
           >
             <button
@@ -98,7 +133,10 @@ const DiagnosticLogicGraph = ({
               className="flex w-full items-center justify-between gap-2 text-left"
             >
               <span className={clsx(overrideStatus === "EXCLUDED" && "line-through")}>{node.label}</span>
-              <span className="text-[11px] uppercase">{statusLabel}</span>
+              <span className="text-[11px] uppercase">
+                {statusLabel}
+                {hasChanged ? <span className="ml-2 text-sky-500">New</span> : null}
+              </span>
             </button>
             <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px]">
               <button

@@ -13,6 +13,7 @@ type EvidenceDrawerProps = {
   onOverrideChange?: (status: "MET" | "EXCLUDED" | "UNKNOWN" | null) => void;
   rejectedKeys?: Set<string>;
   onToggleReject?: (item: EvidenceItem) => void;
+  onFeedback?: (item: EvidenceItem, type: "correct" | "wrong_label" | "wrong_polarity") => void;
   onClose: () => void;
 };
 
@@ -26,6 +27,7 @@ const EvidenceDrawer = ({
   onOverrideChange,
   rejectedKeys,
   onToggleReject,
+  onFeedback,
   onClose,
 }: EvidenceDrawerProps) => {
   if (!open) return null;
@@ -108,15 +110,48 @@ const EvidenceDrawer = ({
                     Confidence: {(item.confidence * 100).toFixed(0)}%
                   </p>
                 ) : null}
-                {onToggleReject ? (
-                  <button
-                    type="button"
-                    onClick={() => onToggleReject(item)}
-                    className="mt-2 text-xs font-semibold text-slate-500 hover:text-slate-700"
-                  >
-                    {isRejected ? "Restore" : "Reject as irrelevant"}
-                  </button>
-                ) : null}
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  {onFeedback ? (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => onFeedback(item, "correct")}
+                        className="rounded-full border border-emerald-200 bg-emerald-50 px-2 py-1 text-[11px] font-semibold text-emerald-700"
+                      >
+                        ✅ Correct
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          onFeedback(item, "wrong_label");
+                          if (onToggleReject && !isRejected) onToggleReject(item);
+                        }}
+                        className="rounded-full border border-rose-200 bg-rose-50 px-2 py-1 text-[11px] font-semibold text-rose-700"
+                      >
+                        ❌ Wrong label
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          onFeedback(item, "wrong_polarity");
+                          if (onToggleReject && !isRejected) onToggleReject(item);
+                        }}
+                        className="rounded-full border border-amber-200 bg-amber-50 px-2 py-1 text-[11px] font-semibold text-amber-700"
+                      >
+                        ⚠️ Wrong polarity
+                      </button>
+                    </>
+                  ) : null}
+                  {onToggleReject ? (
+                    <button
+                      type="button"
+                      onClick={() => onToggleReject(item)}
+                      className="text-[11px] font-semibold text-slate-500 hover:text-slate-700"
+                    >
+                      {isRejected ? "Restore" : "Remove from calc"}
+                    </button>
+                  ) : null}
+                </div>
               </Card>
             );
             })

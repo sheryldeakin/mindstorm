@@ -29,9 +29,15 @@ type SymptomHeatmapProps = {
   entries: CaseEntry[];
   groupByWeek?: boolean;
   highlightLabels?: string[];
+  lastAccessISO?: string | null;
 };
 
-const SymptomHeatmap = ({ entries, groupByWeek = false, highlightLabels = [] }: SymptomHeatmapProps) => {
+const SymptomHeatmap = ({
+  entries,
+  groupByWeek = false,
+  highlightLabels = [],
+  lastAccessISO,
+}: SymptomHeatmapProps) => {
   if (!entries.length) {
     return <p className="text-sm text-slate-500">No entry data available.</p>;
   }
@@ -79,6 +85,12 @@ const SymptomHeatmap = ({ entries, groupByWeek = false, highlightLabels = [] }: 
   const contextByBucket = new Map(
     buckets.map((bucket) => [bucket.key, getContextTags(bucket.entries)]),
   );
+  const lastAccessDate = lastAccessISO ? new Date(lastAccessISO) : null;
+  const isNewBucket = (key: string) => {
+    if (!lastAccessDate) return false;
+    const bucketDate = new Date(`${key.length === 7 ? `${key}-01` : key}T00:00:00Z`);
+    return bucketDate > lastAccessDate;
+  };
 
   return (
     <div className="overflow-auto">
@@ -90,6 +102,7 @@ const SymptomHeatmap = ({ entries, groupByWeek = false, highlightLabels = [] }: 
             const hasContext = contextColumns.has(bucket.key);
             const hasMedical = contextTags.some((tag) => /medical/i.test(tag));
             const hasSubstance = contextTags.some((tag) => /substance/i.test(tag));
+            const isNew = isNewBucket(bucket.key);
             return (
               <span
                 key={bucket.key}
@@ -107,6 +120,7 @@ const SymptomHeatmap = ({ entries, groupByWeek = false, highlightLabels = [] }: 
                 ) : (
                   <span className="h-1.5 w-1.5" />
                 )}
+                {isNew ? <span className="h-1 w-6 rounded-full bg-sky-400" /> : null}
                 {hasContext ? (
                   <span className="text-[9px] uppercase text-indigo-500">
                     {hasMedical ? "Med" : hasSubstance ? "Sub" : "Ctx"}
@@ -139,12 +153,14 @@ const SymptomHeatmap = ({ entries, groupByWeek = false, highlightLabels = [] }: 
                 const hasEntry = bucket.entries.length > 0;
                 const intensity = getIntensity(units);
                 const contextTags = contextByBucket.get(bucket.key) || [];
+                const isNew = isNewBucket(bucket.key);
                 return (
                   <span
                     key={`${cluster.id}-${bucket.key}`}
                     className={clsx(
                       "h-5 w-full rounded-sm border border-slate-200",
                       getCellClass(hasEntry, intensity),
+                      isNew && "ring-2 ring-sky-300 ring-offset-1",
                     )}
                     title={contextTags.length ? contextTags.join(", ") : undefined}
                     aria-label={contextTags.length ? contextTags.join(", ") : undefined}
@@ -172,6 +188,9 @@ const SymptomHeatmap = ({ entries, groupByWeek = false, highlightLabels = [] }: 
           </span>
           <span className="inline-flex items-center gap-2">
             <span className="h-3 w-3 rounded-full bg-indigo-400" /> Context event
+          </span>
+          <span className="inline-flex items-center gap-2">
+            <span className="h-1 w-6 rounded-full bg-sky-400" /> New since last review
           </span>
         </div>
       </div>

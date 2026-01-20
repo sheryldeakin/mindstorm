@@ -4,10 +4,12 @@ import type { DiagnosisCard as DiagnosisCardType } from "./types";
 type DiagnosisCardProps = {
   data: DiagnosisCardType;
   selected: boolean;
+  pinned: boolean;
   onSelect: (key: DiagnosisCardType["key"]) => void;
+  onTogglePin?: (key: DiagnosisCardType["key"]) => void;
 };
 
-const DiagnosisCard = ({ data, selected, onSelect }: DiagnosisCardProps) => {
+const DiagnosisCard = ({ data, selected, pinned, onSelect, onTogglePin }: DiagnosisCardProps) => {
   return (
     <button
       type="button"
@@ -23,16 +25,32 @@ const DiagnosisCard = ({ data, selected, onSelect }: DiagnosisCardProps) => {
           <p className="text-xs uppercase tracking-[0.3em] text-slate-400">{data.abbreviation}</p>
           <h4 className="mt-1 text-sm font-semibold text-slate-800">{data.title}</h4>
         </div>
-        <span
-          className={clsx(
-            "rounded-full px-2 py-1 text-xs font-semibold",
-            data.likelihood === "High" && "bg-emerald-100 text-emerald-700",
-            data.likelihood === "Moderate" && "bg-amber-100 text-amber-700",
-            data.likelihood === "Low" && "bg-slate-100 text-slate-500",
-          )}
-        >
-          {data.likelihood}
-        </span>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={(event) => {
+              event.stopPropagation();
+              onTogglePin?.(data.key);
+            }}
+            className={clsx(
+              "rounded-full border px-2 py-1 text-[11px] font-semibold",
+              pinned ? "border-indigo-400 bg-indigo-100 text-indigo-700" : "border-slate-200 text-slate-500",
+            )}
+            aria-pressed={pinned}
+          >
+            {pinned ? "Pinned" : "Pin"}
+          </button>
+          <span
+            className={clsx(
+              "rounded-full px-2 py-1 text-xs font-semibold",
+              data.likelihood === "High" && "bg-emerald-100 text-emerald-700",
+              data.likelihood === "Moderate" && "bg-amber-100 text-amber-700",
+              data.likelihood === "Low" && "bg-slate-100 text-slate-500",
+            )}
+          >
+            {data.likelihood}
+          </span>
+        </div>
       </div>
       {data.shortSummary ? (
         <p className="mt-2 text-xs text-slate-500">{data.shortSummary}</p>

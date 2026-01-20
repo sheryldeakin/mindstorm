@@ -3,6 +3,7 @@ const Entry = require("../models/Entry");
 const User = require("../models/User");
 const ClinicianOverride = require("../models/ClinicianOverride");
 const ClinicianNote = require("../models/ClinicianNote");
+const EvidenceFeedback = require("../models/EvidenceFeedback");
 
 const listCases = asyncHandler(async (_req, res) => {
   const threshold = new Date();
@@ -247,6 +248,33 @@ const deleteCaseNote = asyncHandler(async (req, res) => {
   res.json({ status: "deleted" });
 });
 
+const createEvidenceFeedback = asyncHandler(async (req, res) => {
+  const { userId } = req.params;
+  const clinicianId = req.user._id;
+  const { entryDateISO, span, label, feedbackType } = req.body || {};
+  if (!entryDateISO || !span || !label || !feedbackType) {
+    return res.status(400).json({ message: "entryDateISO, span, label, feedbackType are required." });
+  }
+  const feedback = await EvidenceFeedback.create({
+    clinicianId,
+    patientId: userId,
+    entryDateISO,
+    span,
+    label,
+    feedbackType,
+  });
+  res.status(201).json({
+    feedback: {
+      id: feedback._id.toString(),
+      entryDateISO: feedback.entryDateISO,
+      span: feedback.span,
+      label: feedback.label,
+      feedbackType: feedback.feedbackType,
+      createdAt: feedback.createdAt,
+    },
+  });
+});
+
 module.exports = {
   listCases,
   getCaseEntries,
@@ -257,4 +285,5 @@ module.exports = {
   createCaseNote,
   updateCaseNote,
   deleteCaseNote,
+  createEvidenceFeedback,
 };

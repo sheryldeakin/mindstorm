@@ -4,11 +4,13 @@ import PageHeader from "../components/layout/PageHeader";
 import { Card } from "../components/ui/Card";
 import DifferentialOverview from "../components/clinician/differential/DifferentialOverview";
 import DiagnosisReasoningPanel from "../components/clinician/differential/DiagnosisReasoningPanel";
+import ComorbidityView from "../components/clinician/differential/ComorbidityView";
 import type { DifferentialDiagnosis, CriterionItem, SymptomCourseRow } from "../components/clinician/differential/types";
 import type { CaseEntry, ClinicianCase, ClinicianOverrideRecord } from "../types/clinician";
 import { apiFetch } from "../lib/apiClient";
 import { buildClarificationPrompts } from "../lib/clinicianPrompts";
 import useDiagnosticLogic from "../hooks/useDiagnosticLogic";
+import useSessionDelta from "../hooks/useSessionDelta";
 import {
   depressiveDiagnosisConfigs,
   mapNodeToEvidence,
@@ -21,9 +23,11 @@ const ClinicianDifferentialEvaluationPage = () => {
   const [cases, setCases] = useState<ClinicianCase[]>([]);
   const [entries, setEntries] = useState<CaseEntry[]>([]);
   const [selectedKey, setSelectedKey] = useState<DifferentialDiagnosis["key"]>("mdd");
+  const [pinnedKeys, setPinnedKeys] = useState<DifferentialDiagnosis["key"][]>([]);
   const [nodeOverrides, setNodeOverrides] = useState<Record<string, "MET" | "EXCLUDED" | "UNKNOWN">>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const sessionDelta = useSessionDelta(caseId);
 
   useEffect(() => {
     let active = true;
@@ -135,8 +139,17 @@ const ClinicianDifferentialEvaluationPage = () => {
             <DifferentialOverview
               diagnoses={diagnosesSorted(diagnoses)}
               selectedKey={selectedKey}
+              pinnedKeys={pinnedKeys}
               onSelect={setSelectedKey}
+              onTogglePin={(key) => {
+                setPinnedKeys((prev) =>
+                  prev.includes(key) ? prev.filter((item) => item !== key) : [...prev, key],
+                );
+              }}
             />
+            <div className="pt-2">
+              <ComorbidityView pinnedKeys={pinnedKeys} />
+            </div>
           </div>
           {selectedDiagnosis ? (
             <DiagnosisReasoningPanel
@@ -170,6 +183,7 @@ const ClinicianDifferentialEvaluationPage = () => {
                   }),
                 });
               }}
+              lastAccessISO={sessionDelta.lastAccessISO}
             />
           ) : null}
         </div>

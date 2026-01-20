@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import type { CaseEntry } from "../../types/clinician";
 import type { DiagnosticStatus } from "../../hooks/useDiagnosticLogic";
 import { DIAGNOSTIC_GRAPH_NODES } from "../../lib/diagnosticGraphConfig";
+import ICDCodeGenerator from "./ICDCodeGenerator";
 
 type ClinicalNoteGeneratorProps = {
   entries: CaseEntry[];
@@ -98,6 +99,7 @@ const ClinicalNoteGenerator = ({
       >
         Reset draft
       </button>
+      <ICDCodeGenerator entries={entries} />
     </div>
   );
 };
