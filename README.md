@@ -17,6 +17,12 @@ Key files:
 - `packages/criteria-graph/criteria_specs/v1/depressive_disorders.json`
 - `packages/criteria-graph/criteria_specs/v1/depressive_disorders_patient_view.json`
 
+## Architecture (Data Flow)
+1) Journal entry saved → stored as raw text + metadata.  
+2) Evidence extraction generates `evidenceUnits` (labels + attributes).  
+3) Patient UI renders translated “experience” language from evidenceUnits.  
+4) Clinician UI renders criteria coverage, gates, and logic graphs from the same evidence.  
+
 ## Setup
 ```bash
 npm install
