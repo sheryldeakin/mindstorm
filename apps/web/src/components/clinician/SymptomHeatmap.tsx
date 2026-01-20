@@ -59,7 +59,7 @@ const SymptomHeatmap = ({ entries, groupByWeek = false, highlightLabels = [] }: 
     const tags = new Set<string>();
     bucketEntries.forEach((entry) => {
       if (entry.context_tags?.length) {
-        entry.context_tags.forEach((tag) => tags.add(tag));
+        entry.context_tags.forEach((tag) => tags.add(tag.toLowerCase()));
         return;
       }
       (entry.evidenceUnits || []).forEach((unit) => {
@@ -75,6 +75,9 @@ const SymptomHeatmap = ({ entries, groupByWeek = false, highlightLabels = [] }: 
     buckets
       .filter((bucket) => getContextTags(bucket.entries).length > 0)
       .map((bucket) => bucket.key),
+  );
+  const contextByBucket = new Map(
+    buckets.map((bucket) => [bucket.key, getContextTags(bucket.entries)]),
   );
 
   return (
@@ -97,8 +100,9 @@ const SymptomHeatmap = ({ entries, groupByWeek = false, highlightLabels = [] }: 
               >
                 {contextTags.length > 0 ? (
                   <span
-                    className="h-1.5 w-1.5 rounded-full bg-indigo-400"
+                    className="h-1.5 w-1.5 rounded-full bg-indigo-400 cursor-help"
                     title={contextTags.join(", ")}
+                    aria-label={contextTags.join(", ")}
                   />
                 ) : (
                   <span className="h-1.5 w-1.5" />
@@ -134,15 +138,16 @@ const SymptomHeatmap = ({ entries, groupByWeek = false, highlightLabels = [] }: 
                 );
                 const hasEntry = bucket.entries.length > 0;
                 const intensity = getIntensity(units);
-                const hasContext = contextColumns.has(bucket.key);
+                const contextTags = contextByBucket.get(bucket.key) || [];
                 return (
                   <span
                     key={`${cluster.id}-${bucket.key}`}
                     className={clsx(
                       "h-5 w-full rounded-sm border border-slate-200",
-                      hasContext && "border-l-2 border-l-indigo-300 ring-1 ring-indigo-100",
                       getCellClass(hasEntry, intensity),
                     )}
+                    title={contextTags.length ? contextTags.join(", ") : undefined}
+                    aria-label={contextTags.length ? contextTags.join(", ") : undefined}
                   />
                 );
               })}
@@ -166,7 +171,7 @@ const SymptomHeatmap = ({ entries, groupByWeek = false, highlightLabels = [] }: 
             <span className="h-3 w-3 rounded-sm bg-red-500" /> High
           </span>
           <span className="inline-flex items-center gap-2">
-            <span className="h-3 w-3 rounded-sm border-l-2 border-l-indigo-300 bg-white" /> Context event
+            <span className="h-3 w-3 rounded-full bg-indigo-400" /> Context event
           </span>
         </div>
       </div>

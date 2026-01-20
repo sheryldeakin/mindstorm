@@ -16,4 +16,5 @@ export const DIAGNOSTIC_GRAPH_NODES: GraphNodeConfig[] = [
   { id: "impairment", label: "Impact gate", kind: "gate", evidenceLabels: ["IMPAIRMENT"] },
   { id: "mania", label: "Mania gate", kind: "exclusion", evidenceLabels: ["SYMPTOM_MANIA"] },
   { id: "substance", label: "Context factor: substance/med", kind: "exclusion", evidenceLabels: ["CONTEXT_SUBSTANCE"] },
+  { id: "medical", label: "Context factor: medical", kind: "exclusion", evidenceLabels: ["CONTEXT_MEDICAL"] },
 ];

@@ -1,6 +1,8 @@
 const asyncHandler = require("../utils/asyncHandler");
 const Entry = require("../models/Entry");
 const User = require("../models/User");
+const ClinicianOverride = require("../models/ClinicianOverride");
+const ClinicianNote = require("../models/ClinicianNote");
 
 const listCases = asyncHandler(async (_req, res) => {
   const threshold = new Date();
@@ -113,4 +115,146 @@ const getCaseEntries = asyncHandler(async (req, res) => {
   });
 });
 
-module.exports = { listCases, getCaseEntries };
+const getCaseOverrides = asyncHandler(async (req, res) => {
+  const { userId } = req.params;
+  const clinicianId = req.user._id;
+  const overrides = await ClinicianOverride.find({ clinicianId, patientId: userId })
+    .sort({ updatedAt: -1 })
+    .lean();
+  res.json({
+    overrides: overrides.map((item) => ({
+      id: item._id.toString(),
+      nodeId: item.nodeId,
+      status: item.status,
+      originalStatus: item.originalStatus || "UNKNOWN",
+      originalEvidence: item.originalEvidence || "",
+      updatedAt: item.updatedAt,
+    })),
+  });
+});
+
+const upsertCaseOverride = asyncHandler(async (req, res) => {
+  const { userId } = req.params;
+  const clinicianId = req.user._id;
+  const { nodeId, status, originalStatus, originalEvidence } = req.body || {};
+
+  if (!nodeId || !status) {
+    return res.status(400).json({ message: "nodeId and status are required." });
+  }
+
+  const update = {
+    clinicianId,
+    patientId: userId,
+    nodeId,
+    status,
+    originalStatus: originalStatus || "UNKNOWN",
+    originalEvidence: originalEvidence || "",
+  };
+
+  const override = await ClinicianOverride.findOneAndUpdate(
+    { clinicianId, patientId: userId, nodeId },
+    update,
+    { new: true, upsert: true, setDefaultsOnInsert: true },
+  );
+
+  res.json({
+    override: {
+      id: override._id.toString(),
+      nodeId: override.nodeId,
+      status: override.status,
+      originalStatus: override.originalStatus,
+      originalEvidence: override.originalEvidence,
+      updatedAt: override.updatedAt,
+    },
+  });
+});
+
+const deleteCaseOverride = asyncHandler(async (req, res) => {
+  const { userId, nodeId } = req.params;
+  const clinicianId = req.user._id;
+  await ClinicianOverride.findOneAndDelete({ clinicianId, patientId: userId, nodeId });
+  res.json({ status: "deleted" });
+});
+
+const getCaseNotes = asyncHandler(async (req, res) => {
+  const { userId } = req.params;
+  const clinicianId = req.user._id;
+  const notes = await ClinicianNote.find({ clinicianId, patientId: userId })
+    .sort({ createdAt: -1 })
+    .lean();
+  res.json({
+    notes: notes.map((note) => ({
+      id: note._id.toString(),
+      title: note.title,
+      body: note.body,
+      createdAt: note.createdAt,
+      updatedAt: note.updatedAt,
+    })),
+  });
+});
+
+const createCaseNote = asyncHandler(async (req, res) => {
+  const { userId } = req.params;
+  const clinicianId = req.user._id;
+  const { title, body } = req.body || {};
+  if (!title || !body) {
+    return res.status(400).json({ message: "title and body are required." });
+  }
+  const note = await ClinicianNote.create({
+    clinicianId,
+    patientId: userId,
+    title,
+    body,
+  });
+  res.status(201).json({
+    note: {
+      id: note._id.toString(),
+      title: note.title,
+      body: note.body,
+      createdAt: note.createdAt,
+      updatedAt: note.updatedAt,
+    },
+  });
+});
+
+const updateCaseNote = asyncHandler(async (req, res) => {
+  const { userId, noteId } = req.params;
+  const clinicianId = req.user._id;
+  const { title, body } = req.body || {};
+  const note = await ClinicianNote.findOneAndUpdate(
+    { _id: noteId, clinicianId, patientId: userId },
+    { title, body },
+    { new: true },
+  );
+  if (!note) {
+    return res.status(404).json({ message: "Note not found." });
+  }
+  res.json({
+    note: {
+      id: note._id.toString(),
+      title: note.title,
+      body: note.body,
+      createdAt: note.createdAt,
+      updatedAt: note.updatedAt,
+    },
+  });
+});
+
+const deleteCaseNote = asyncHandler(async (req, res) => {
+  const { userId, noteId } = req.params;
+  const clinicianId = req.user._id;
+  await ClinicianNote.findOneAndDelete({ _id: noteId, clinicianId, patientId: userId });
+  res.json({ status: "deleted" });
+});
+
+module.exports = {
+  listCases,
+  getCaseEntries,
+  getCaseOverrides,
+  upsertCaseOverride,
+  deleteCaseOverride,
+  getCaseNotes,
+  createCaseNote,
+  updateCaseNote,
+  deleteCaseNote,
+};

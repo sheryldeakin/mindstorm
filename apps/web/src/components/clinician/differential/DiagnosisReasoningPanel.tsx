@@ -14,9 +14,17 @@ type DiagnosisReasoningPanelProps = {
   diagnosis: DifferentialDiagnosis;
   diagnosisKey: DepressiveDiagnosisKey;
   entries: CaseEntry[];
+  nodeOverrides?: Record<string, "MET" | "EXCLUDED" | "UNKNOWN">;
+  onOverrideChange?: (nodeId: string, status: "MET" | "EXCLUDED" | "UNKNOWN" | null) => void;
 };
 
-const DiagnosisReasoningPanel = ({ diagnosis, diagnosisKey, entries }: DiagnosisReasoningPanelProps) => {
+const DiagnosisReasoningPanel = ({
+  diagnosis,
+  diagnosisKey,
+  entries,
+  nodeOverrides,
+  onOverrideChange,
+}: DiagnosisReasoningPanelProps) => {
   return (
     <div className="space-y-6">
       <Card className="p-6">
@@ -65,7 +73,12 @@ const DiagnosisReasoningPanel = ({ diagnosis, diagnosisKey, entries }: Diagnosis
         </div>
       </Card>
 
-      <ReasoningGraphAccordion diagnosisKey={diagnosisKey} entries={entries} />
+      <ReasoningGraphAccordion
+        diagnosisKey={diagnosisKey}
+        entries={entries}
+        nodeOverrides={nodeOverrides}
+        onOverrideChange={onOverrideChange}
+      />
 
       <Card className="p-6">
         <h3 className="text-lg font-semibold">Active specifier patterns</h3>

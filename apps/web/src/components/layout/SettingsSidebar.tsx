@@ -16,6 +16,7 @@ import {
 
 type SettingsSidebarProps = {
   basePath?: string;
+  collapsed?: boolean;
 };
 
 const buildSettingsSections = (basePath: string) => [
@@ -32,12 +33,12 @@ const buildSettingsSections = (basePath: string) => [
   { id: "ai-insights", label: "AI & Insights", to: `${basePath}/ai-insights`, icon: Brain },
 ];
 
-const SettingsSidebar = ({ basePath = "/patient/settings" }: SettingsSidebarProps) => {
+const SettingsSidebar = ({ basePath = "/patient/settings", collapsed = false }: SettingsSidebarProps) => {
   const settingsSections = buildSettingsSections(basePath);
   return (
-    <aside className="hidden w-60 flex-col gap-2 lg:flex">
-      <div className="ms-card ms-elev-1 p-4">
-        <p className="small-label text-brand/70">Settings</p>
+    <aside className={clsx("hidden flex-col gap-2 lg:flex", collapsed ? "w-16" : "w-60")}>
+      <div className={clsx("ms-card ms-elev-1 p-4", collapsed && "px-2")}>
+        <p className={clsx("small-label text-brand/70", collapsed && "sr-only")}>Settings</p>
         <div className="mt-4 flex flex-col gap-1">
           {settingsSections.map((section) => (
             <NavLink key={section.id} to={section.to}>
@@ -45,6 +46,7 @@ const SettingsSidebar = ({ basePath = "/patient/settings" }: SettingsSidebarProp
                 <span
                   className={clsx(
                     "relative flex items-center gap-3 rounded-2xl px-3 py-2 text-sm transition",
+                    collapsed && "justify-center px-2",
                     isActive ? "text-brand" : "text-brand/60 hover:text-brand",
                   )}
                 >
@@ -52,7 +54,7 @@ const SettingsSidebar = ({ basePath = "/patient/settings" }: SettingsSidebarProp
                     <span className="absolute left-1 top-1/2 h-4 w-0.5 -translate-y-1/2 rounded-full bg-brand/60" />
                   )}
                   <section.icon className="h-4 w-4" strokeWidth={1.6} />
-                  {section.label}
+                  <span className={clsx(collapsed && "sr-only")}>{section.label}</span>
                 </span>
               )}
             </NavLink>

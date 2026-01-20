@@ -6,9 +6,16 @@ import type { DepressiveDiagnosisKey } from "../../../lib/depressiveCriteriaConf
 type ReasoningGraphAccordionProps = {
   diagnosisKey: DepressiveDiagnosisKey;
   entries: CaseEntry[];
+  nodeOverrides?: Record<string, "MET" | "EXCLUDED" | "UNKNOWN">;
+  onOverrideChange?: (nodeId: string, status: "MET" | "EXCLUDED" | "UNKNOWN" | null) => void;
 };
 
-const ReasoningGraphAccordion = ({ diagnosisKey, entries }: ReasoningGraphAccordionProps) => {
+const ReasoningGraphAccordion = ({
+  diagnosisKey,
+  entries,
+  nodeOverrides,
+  onOverrideChange,
+}: ReasoningGraphAccordionProps) => {
   const [mode, setMode] = useState<GraphMode>("core");
   return (
     <details className="rounded-2xl border border-slate-200 bg-white p-4">
@@ -33,7 +40,13 @@ const ReasoningGraphAccordion = ({ diagnosisKey, entries }: ReasoningGraphAccord
         </button>
       </div>
       <div className="mt-4">
-        <DynamicDiagnosticGraph diagnosisKey={diagnosisKey} entries={entries} mode={mode} />
+        <DynamicDiagnosticGraph
+          diagnosisKey={diagnosisKey}
+          entries={entries}
+          mode={mode}
+          nodeOverrides={nodeOverrides}
+          onOverrideChange={onOverrideChange}
+        />
       </div>
     </details>
   );

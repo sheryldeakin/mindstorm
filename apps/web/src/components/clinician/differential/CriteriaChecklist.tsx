@@ -8,6 +8,9 @@ type CriteriaChecklistProps = {
     current: number;
     required: number;
     total: number;
+    base?: number;
+    added?: number;
+    subtracted?: number;
     window?: {
       label: string;
       current: number;
@@ -22,8 +25,30 @@ const CriteriaChecklist = ({ items, summary }: CriteriaChecklistProps) => {
   return (
     <div className="space-y-3">
       <div className="space-y-1 text-xs text-slate-500">
-        <div>
-          Lifetime coverage: {summary.current}/{summary.total} criteria — Required: {summary.required}/{summary.total}
+        <div className="flex flex-wrap items-center gap-2">
+          <span>
+            Lifetime coverage: {summary.current}/{summary.total} criteria — Required: {summary.required}/{summary.total}
+          </span>
+          {typeof summary.base === "number" ? (
+            <span className="text-slate-400">
+              (
+              <span className="text-slate-500">{summary.base}</span>
+              {summary.added ? (
+                <>
+                  {" "}
+                  <span className="text-emerald-600">+ {summary.added}</span>
+                </>
+              ) : null}
+              {summary.subtracted ? (
+                <>
+                  {" "}
+                  <span className="text-rose-600">- {summary.subtracted}</span>
+                </>
+              ) : null}
+              {" "}
+              = {summary.current})
+            </span>
+          ) : null}
         </div>
         {summary.window ? (
           <div>

@@ -13,11 +13,15 @@ const navItems = [
   { label: "Prepare", to: "/patient/prepare", icon: FileText },
 ];
 
-const SidebarNav = () => {
+type SidebarNavProps = {
+  collapsed?: boolean;
+};
+
+const SidebarNav = ({ collapsed = false }: SidebarNavProps) => {
   return (
-    <aside className="hidden w-60 flex-col gap-2 lg:flex">
-      <div className="ms-card ms-elev-1 p-4">
-        <p className="small-label text-brand/70">Navigate</p>
+    <aside className={clsx("hidden flex-col gap-2 lg:flex", collapsed ? "w-16" : "w-60")}>
+      <div className={clsx("ms-card ms-elev-1 p-4", collapsed && "px-2")}>
+        <p className={clsx("small-label text-brand/70", collapsed && "sr-only")}>Navigate</p>
         <div className="mt-4 flex flex-col gap-1">
           {navItems.map(({ label, to, icon: Icon }) => (
             <NavLink key={to + label} to={to}>
@@ -25,6 +29,7 @@ const SidebarNav = () => {
                 <span
                   className={clsx(
                     "relative flex items-center gap-3 rounded-2xl px-3 py-2 text-sm transition",
+                    collapsed && "justify-center px-2",
                     isActive ? "text-brand" : "text-brand/60 hover:text-brand",
                   )}
                 >
@@ -32,7 +37,7 @@ const SidebarNav = () => {
                     <span className="absolute left-1 top-1/2 h-4 w-0.5 -translate-y-1/2 rounded-full bg-brand/60" />
                   )}
                   <Icon className="h-4 w-4" strokeWidth={1.6} />
-                  {label}
+                  <span className={clsx(collapsed && "sr-only")}>{label}</span>
                 </span>
               )}
             </NavLink>

@@ -47,3 +47,48 @@ export const buildClarificationPrompts = (
 
   return prompts;
 };
+
+export const buildInquiryItems = (
+  entries: CaseEntry[],
+  getStatusForLabels: (labels?: string[]) => DiagnosticStatus,
+) => {
+  const items: { id: string; text: string }[] = [];
+  const spanDays = getTimelineSpan(entries);
+
+  if (spanDays > 0 && spanDays < 14) {
+    items.push({
+      id: "duration",
+      text: "Ask patient: Have these low mood signals lasted for at least 2 weeks without a break?",
+    });
+  }
+
+  if (getStatusForLabels(["IMPAIRMENT"]) !== "MET") {
+    items.push({
+      id: "impairment",
+      text: "Ask patient: How is this impacting work, relationships, or self-care right now?",
+    });
+  }
+
+  if (getStatusForLabels(["SYMPTOM_MANIA"]) === "UNKNOWN") {
+    items.push({
+      id: "mania",
+      text: "Ask patient: Have there been periods of unusually high energy or reduced need for sleep?",
+    });
+  }
+
+  if (!hasContextLabel(entries, "CONTEXT_SUBSTANCE") && !hasEvidenceLabel(entries, "CONTEXT_SUBSTANCE")) {
+    items.push({
+      id: "substance",
+      text: "Ask patient: Any recent alcohol, cannabis, or medication changes?",
+    });
+  }
+
+  if (!hasContextLabel(entries, "CONTEXT_MEDICAL") && !hasEvidenceLabel(entries, "CONTEXT_MEDICAL")) {
+    items.push({
+      id: "medical",
+      text: "Ask patient: Any medical conditions or changes that might explain these symptoms?",
+    });
+  }
+
+  return items;
+};

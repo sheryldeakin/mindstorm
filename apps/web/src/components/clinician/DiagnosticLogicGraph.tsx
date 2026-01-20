@@ -16,6 +16,7 @@ type DiagnosticLogicGraphProps = {
   nodeOverrides?: Record<string, "MET" | "EXCLUDED" | "UNKNOWN">;
   rejectedEvidenceKeys?: Set<string>;
   onNodeSelect: (node: GraphNode) => void;
+  onOverrideChange?: (nodeId: string, status: "MET" | "EXCLUDED" | "UNKNOWN" | null) => void;
 };
 
 const NODES: GraphNode[] = DIAGNOSTIC_GRAPH_NODES;
@@ -32,12 +33,14 @@ const DiagnosticLogicGraph = ({
   nodeOverrides,
   rejectedEvidenceKeys,
   onNodeSelect,
+  onOverrideChange,
 }: DiagnosticLogicGraphProps) => {
   const diagnosisNodes = NODES.filter((node) => node.kind === "diagnosis");
   const symptomNodes = NODES.filter((node) => node.kind === "symptom");
   const gateNodes = NODES.filter((node) => node.kind === "gate");
   const exclusionNodes = NODES.filter((node) => node.kind === "exclusion");
-  const { getStatusForLabels } = useDiagnosticLogic(entries, { overrides, rejectedEvidenceKeys });
+  const baseLogic = useDiagnosticLogic(entries, { rejectedEvidenceKeys });
+  const { getStatusForLabels } = baseLogic;
 
   const impairmentStatus = getStatusForLabels(["IMPAIRMENT"]);
   const symptomMetCount = symptomNodes.filter(
@@ -71,10 +74,10 @@ const DiagnosticLogicGraph = ({
     <div className="space-y-3">
       {nodes.map((node) => {
         const status = getNodeStatus(node);
-        const overrideStatus =
-          nodeOverrides?.[node.id] ||
-          node.evidenceLabels?.map((label) => overrides?.[label]).find((item) => item) ||
-          null;
+        const overrideStatus = nodeOverrides?.[node.id] || null;
+        const autoStatus = node.evidenceLabels?.length
+          ? baseLogic.getStatusForLabels(node.evidenceLabels)
+          : status;
         const statusLabel =
           status === "MET"
             ? "Evidence found"
@@ -82,25 +85,74 @@ const DiagnosticLogicGraph = ({
               ? "Evidence denied"
               : "No signal";
         return (
-          <button
+          <div
             key={node.id}
-            type="button"
-            onClick={() => onNodeSelect(node)}
             className={clsx(
               "w-full rounded-xl border px-4 py-3 text-left text-sm font-medium transition",
               statusClass(status),
             )}
           >
-            <div className="flex items-center justify-between">
-              <span>{node.label}</span>
+            <button
+              type="button"
+              onClick={() => onNodeSelect(node)}
+              className="flex w-full items-center justify-between gap-2 text-left"
+            >
+              <span className={clsx(overrideStatus === "EXCLUDED" && "line-through")}>{node.label}</span>
               <span className="text-[11px] uppercase">{statusLabel}</span>
+            </button>
+            <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px]">
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onOverrideChange?.(node.id, null);
+                }}
+                className={clsx(
+                  "rounded-full border px-2 py-1",
+                  !overrideStatus
+                    ? "border-slate-300 bg-slate-900 text-white"
+                    : "border-slate-200 bg-white text-slate-500",
+                )}
+              >
+                Auto
+              </button>
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onOverrideChange?.(node.id, "MET");
+                }}
+                className={clsx(
+                  "rounded-full border px-2 py-1",
+                  overrideStatus === "MET"
+                    ? "border-emerald-400 bg-emerald-100 text-emerald-700"
+                    : "border-slate-200 bg-white text-slate-500",
+                )}
+              >
+                Confirmed
+              </button>
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onOverrideChange?.(node.id, "EXCLUDED");
+                }}
+                className={clsx(
+                  "rounded-full border px-2 py-1",
+                  overrideStatus === "EXCLUDED"
+                    ? "border-rose-400 bg-rose-100 text-rose-700"
+                    : "border-slate-200 bg-white text-slate-500",
+                )}
+              >
+                Rejected
+              </button>
+              {overrideStatus ? (
+                <span className="rounded-full bg-slate-100 px-2 py-1 text-[10px] uppercase tracking-[0.2em] text-slate-500">
+                  Auto: {autoStatus} · Override: {overrideStatus}
+                </span>
+              ) : null}
             </div>
-            {overrideStatus ? (
-              <span className="mt-1 inline-flex text-[11px] uppercase tracking-[0.2em] text-slate-500">
-                Clinician override
-              </span>
-            ) : null}
-          </button>
+          </div>
         );
       })}
     </div>

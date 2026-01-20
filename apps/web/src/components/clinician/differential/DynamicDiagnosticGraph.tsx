@@ -22,6 +22,8 @@ type DynamicDiagnosticGraphProps = {
   entries: CaseEntry[];
   mode: GraphMode;
   onNodeSelect?: (node: GraphNode) => void;
+  nodeOverrides?: Record<string, "MET" | "EXCLUDED" | "UNKNOWN">;
+  onOverrideChange?: (nodeId: string, status: "MET" | "EXCLUDED" | "UNKNOWN" | null) => void;
 };
 
 const statusClass = (status: string) => {
@@ -82,11 +84,14 @@ const DynamicDiagnosticGraph = ({
   entries,
   mode,
   onNodeSelect,
+  nodeOverrides,
+  onOverrideChange,
 }: DynamicDiagnosticGraphProps) => {
   const diagnosis = getDepressiveDiagnosisByKey(diagnosisKey);
   const config = getDepressiveConfigByKey(diagnosisKey);
   const nodes = toGraphNodes(diagnosis, mode);
-  const { getStatusForLabels } = useDiagnosticLogic(entries, { windowDays: 36500 });
+  const baseLogic = useDiagnosticLogic(entries, { windowDays: 36500 });
+  const { getStatusForLabels } = useDiagnosticLogic(entries, { windowDays: 36500, overrides: nodeOverrides });
 
   const criteriaCount = config
     ? config.criteria.reduce((count, criterion) => {
@@ -96,6 +101,7 @@ const DynamicDiagnosticGraph = ({
     : 0;
 
   const getNodeStatus = (node: GraphNode) => {
+    if (nodeOverrides?.[node.id]) return nodeOverrides[node.id];
     if (node.kind === "diagnosis" && config) {
       return criteriaCount >= config.required ? "MET" : "UNKNOWN";
     }
@@ -111,23 +117,74 @@ const DynamicDiagnosticGraph = ({
         <div className="mt-3 space-y-3">
           {columnNodes.map((node) => {
             const status = getNodeStatus(node);
+            const overrideStatus = nodeOverrides?.[node.id] || null;
+            const autoStatus = node.evidenceLabels?.length
+              ? baseLogic.getStatusForLabels(node.evidenceLabels)
+              : status;
             const statusLabel =
               status === "MET" ? "Evidence found" : status === "EXCLUDED" ? "Evidence denied" : "No signal";
             return (
-              <button
+              <div
                 key={node.id}
-                type="button"
-                onClick={() => onNodeSelect?.(node)}
                 className={clsx(
                   "w-full rounded-xl border px-4 py-3 text-left text-sm font-medium transition",
                   statusClass(status),
                 )}
               >
-                <div className="flex items-center justify-between gap-2">
-                  <span className="truncate">{node.label}</span>
+                <button
+                  type="button"
+                  onClick={() => onNodeSelect?.(node)}
+                  className="flex w-full items-center justify-between gap-2 text-left"
+                >
+                  <span className={clsx("truncate", overrideStatus === "EXCLUDED" && "line-through")}>
+                    {node.label}
+                  </span>
                   <span className="text-[11px] uppercase">{statusLabel}</span>
+                </button>
+                <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px]">
+                  <button
+                    type="button"
+                    onClick={() => onOverrideChange?.(node.id, null)}
+                    className={clsx(
+                      "rounded-full border px-2 py-1",
+                      !overrideStatus
+                        ? "border-slate-300 bg-slate-900 text-white"
+                        : "border-slate-200 bg-white text-slate-500",
+                    )}
+                  >
+                    Auto
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onOverrideChange?.(node.id, "MET")}
+                    className={clsx(
+                      "rounded-full border px-2 py-1",
+                      overrideStatus === "MET"
+                        ? "border-emerald-400 bg-emerald-100 text-emerald-700"
+                        : "border-slate-200 bg-white text-slate-500",
+                    )}
+                  >
+                    Confirmed
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onOverrideChange?.(node.id, "EXCLUDED")}
+                    className={clsx(
+                      "rounded-full border px-2 py-1",
+                      overrideStatus === "EXCLUDED"
+                        ? "border-rose-400 bg-rose-100 text-rose-700"
+                        : "border-slate-200 bg-white text-slate-500",
+                    )}
+                  >
+                    Rejected
+                  </button>
+                  {overrideStatus ? (
+                    <span className="rounded-full bg-slate-100 px-2 py-1 text-[10px] uppercase tracking-[0.2em] text-slate-500">
+                      Auto: {autoStatus} · Override: {overrideStatus}
+                    </span>
+                  ) : null}
                 </div>
-              </button>
+              </div>
             );
           })}
         </div>

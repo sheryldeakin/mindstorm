@@ -41,6 +41,23 @@ export type ClinicianOverride = {
   note?: string | null;
 };
 
+export type ClinicianOverrideRecord = {
+  id: string;
+  nodeId: string;
+  status: "MET" | "EXCLUDED" | "UNKNOWN";
+  originalStatus: "MET" | "EXCLUDED" | "UNKNOWN";
+  originalEvidence?: string;
+  updatedAt?: string;
+};
+
+export type ClinicianNote = {
+  id: string;
+  title: string;
+  body: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type ClinicianCase = {
   userId: string;
   name: string;

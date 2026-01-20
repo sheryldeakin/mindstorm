@@ -59,6 +59,9 @@ export type DifferentialDiagnosis = {
     current: number;
     required: number;
     total: number;
+    base?: number;
+    added?: number;
+    subtracted?: number;
     window?: {
       label: string;
       current: number;

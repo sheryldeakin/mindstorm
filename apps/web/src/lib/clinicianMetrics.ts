@@ -1,4 +1,5 @@
 import type { CaseEntry, EvidenceUnit } from "../types/clinician";
+import { depressiveDiagnosisConfigs } from "./depressiveCriteriaConfig";
 
 type CoverageMetric = {
   label: string;
@@ -27,7 +28,7 @@ export const buildCoverageMetrics = (
   entries: CaseEntry[],
   overrides?: Record<string, "MET" | "EXCLUDED" | "UNKNOWN">,
   rejectedEvidenceKeys?: Set<string>,
-  options?: { windowDays?: number },
+  options?: { windowDays?: number; nodeOverrides?: Record<string, "MET" | "EXCLUDED" | "UNKNOWN"> },
 ) => {
   const getRecentEntries = (windowDays: number) => {
     if (!entries.length) return [];
@@ -51,6 +52,33 @@ export const buildCoverageMetrics = (
   const last14Days = getRecentEntries(windowDays);
   const allUnits = entries.flatMap((entry) => filterUnits(entry));
   const recentUnits = last14Days.flatMap((entry) => filterUnits(entry));
+  const mddConfig = depressiveDiagnosisConfigs.find((config) => config.key === "mdd");
+  const mddCriteria = mddConfig?.criteria ?? [];
+
+  const buildCriteriaPresence = (units: EvidenceUnit[]) =>
+    mddCriteria.reduce<Record<string, boolean>>((acc, criterion) => {
+      const hasSignal = units.some(
+        (unit) =>
+          criterion.evidenceLabels.includes(unit.label) &&
+          unit.attributes?.polarity === "PRESENT",
+      );
+      acc[criterion.id] = hasSignal;
+      return acc;
+    }, {});
+
+  const buildAdjustedCount = (units: EvidenceUnit[]) => {
+    if (!mddCriteria.length) return scoreByLabels(units, mddWeights, overrides);
+    const presence = buildCriteriaPresence(units);
+    const base = Object.values(presence).filter(Boolean).length;
+    const nodeOverrides = options?.nodeOverrides ?? {};
+    const added = mddCriteria.filter(
+      (criterion) => nodeOverrides[criterion.id] === "MET" && !presence[criterion.id],
+    ).length;
+    const subtracted = mddCriteria.filter(
+      (criterion) => nodeOverrides[criterion.id] === "EXCLUDED" && presence[criterion.id],
+    ).length;
+    return Math.max(0, base + added - subtracted);
+  };
 
   const mddWeights = {
     SYMPTOM_MOOD: 2,
@@ -73,10 +101,10 @@ export const buildCoverageMetrics = (
   const metrics: CoverageMetric[] = [
     {
       label: "MDD Criteria Coverage",
-      current: scoreByLabels(recentUnits, mddWeights, overrides),
-      lifetime: scoreByLabels(allUnits, mddWeights, overrides),
-      max: 9,
-      threshold: 5,
+      current: buildAdjustedCount(recentUnits),
+      lifetime: buildAdjustedCount(allUnits),
+      max: mddConfig?.total ?? 9,
+      threshold: mddConfig?.required ?? 5,
     },
     {
       label: "GAD Criteria Coverage",
