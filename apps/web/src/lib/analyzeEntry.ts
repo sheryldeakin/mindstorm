@@ -13,6 +13,8 @@ export interface LlmAnalysis {
   themeIntensities?: { theme: string; intensity: number }[];
   triggers: string[];
   summary?: string;
+  languageReflection?: string;
+  timeReflection?: string;
 }
 
 export const analyzeEntryText = async (text: string): Promise<LlmAnalysis> => {
@@ -30,5 +32,7 @@ export const analyzeEntryText = async (text: string): Promise<LlmAnalysis> => {
     themeIntensities: analysis.themeIntensities || [],
     triggers: analysis.triggers || [],
     summary: analysis.summary,
+    languageReflection: analysis.languageReflection,
+    timeReflection: analysis.timeReflection,
   };
 };

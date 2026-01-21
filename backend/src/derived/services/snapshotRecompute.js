@@ -570,11 +570,14 @@ const computeHistorySpanDays = (earliestISO, latestISO) => {
 /**
  * Recompute a cached snapshot summary for a user/range key.
  * Heavy work: loads entries, signals, weekly summaries, merges narrative, and stores snapshot.
- * @param {{ userId: import("mongoose").Types.ObjectId | string, rangeKey: string }} params
+ * @param {{ userId: import("mongoose").Types.ObjectId | string, rangeKey: string, incremental?: boolean }} params
  * @returns {Promise<void>}
  */
-const recomputeSnapshotForUser = async ({ userId, rangeKey }) => {
+const recomputeSnapshotForUser = async ({ userId, rangeKey, incremental = false }) => {
   console.log(`[snapshot] recompute start user=${userId} range=${rangeKey}`);
+  const existingSnapshot = incremental
+    ? await SnapshotSummary.findOne({ userId, rangeKey }).lean()
+    : null;
   const earliestEntry = await Entry.findOne({ userId, deletedAt: null })
     .sort({ dateISO: 1 })
     .select({ dateISO: 1 })
@@ -661,14 +664,47 @@ const recomputeSnapshotForUser = async ({ userId, rangeKey }) => {
   });
   snapshot.rangeCoverage = rangeCoverage;
   const timeRangeLabel = buildTimeRangeLabel(effectiveRangeKey);
-  const chunkSummaries = weeklySummaries
-    .map((item) => {
-      if (!item.summary) return null;
-      return { weekStart: item.weekStartISO, summary: item.summary };
-    })
-    .filter(Boolean);
+  const maxSummaryChars = Number.parseInt(process.env.SNAPSHOT_MERGE_SUMMARY_MAX_CHARS || "1200", 10);
+  const buildChunkSummaries = (items) =>
+    items
+      .map((item) => {
+        if (!item.summary) return null;
+        const summaryText = String(item.summary);
+        const trimmedSummary =
+          maxSummaryChars > 0 && summaryText.length > maxSummaryChars
+            ? summaryText.slice(0, maxSummaryChars)
+            : summaryText;
+        return { weekStart: item.weekStartISO, summary: trimmedSummary };
+      })
+      .filter(Boolean);
+  let chunkSummaries = buildChunkSummaries(weeklySummaries);
 
   let narrative = {};
+  const canUseIncremental =
+    incremental &&
+    existingSnapshot?.snapshot?.narrative &&
+    existingSnapshot?.computedAt &&
+    chunkSummaries.length;
+  if (canUseIncremental) {
+    const newWeekly = weeklySummaries.filter(
+      (item) => item.updatedAt && item.updatedAt > existingSnapshot.computedAt,
+    );
+    if (!newWeekly.length) {
+      narrative = existingSnapshot.snapshot.narrative;
+      chunkSummaries = [];
+      console.log("[snapshot] incremental merge skipped (no new weekly summaries)");
+    } else {
+      chunkSummaries = [
+        { weekStart: "cached", summary: existingSnapshot.snapshot.narrative },
+        ...buildChunkSummaries(newWeekly),
+      ];
+      console.log("[snapshot] incremental merge", {
+        newWeekly: newWeekly.length,
+        totalWeekly: weeklySummaries.length,
+      });
+    }
+  }
+
   if (chunkSummaries.length) {
     const baseUrl = process.env.OPENAI_API_URL || "https://api.openai.com/v1";
     const apiKey = process.env.OPENAI_API_KEY || "";
@@ -680,7 +716,8 @@ const recomputeSnapshotForUser = async ({ userId, rangeKey }) => {
     } else {
       const signalCounts = aggregateEvidenceUnits(signals);
       const signalContext = buildSignalContext(signalCounts);
-      const evidenceHighlights = buildEvidenceHighlights(signals);
+      const highlightLimit = Number.parseInt(process.env.SNAPSHOT_MERGE_HIGHLIGHT_LIMIT || "6", 10);
+      const evidenceHighlights = buildEvidenceHighlights(signals, highlightLimit);
       const mergeProgress = createProgress(
         Math.max(1, chunkSummaries.length - 1),
         `[snapshot] merge ${userId}:${effectiveRangeKey}`,
@@ -732,9 +769,10 @@ const recomputeSnapshotForUser = async ({ userId, rangeKey }) => {
 
 /**
  * Recompute all snapshots marked stale across users/ranges.
+ * @param {{ incremental?: boolean }} [options]
  * @returns {Promise<void>}
  */
-const recomputeStaleSnapshots = async () => {
+const recomputeStaleSnapshots = async ({ incremental = false } = {}) => {
   const stale = await SnapshotSummary.find({ stale: true }).lean();
   const userRangePairs = new Map();
   stale.forEach((doc) => {
@@ -742,7 +780,7 @@ const recomputeStaleSnapshots = async () => {
   });
 
   for (const pair of userRangePairs.values()) {
-    await recomputeSnapshotForUser(pair);
+    await recomputeSnapshotForUser({ ...pair, incremental });
   }
 };
 

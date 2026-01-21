@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import EntryCard from "../components/features/EntryCard";
-import EmotionChips from "../components/features/EmotionChips";
+import SignalChips from "../components/features/SignalChips";
 import InsightCard from "../components/features/InsightCard";
 import JournalTimeline from "../components/features/JournalTimeline";
 import Button from "../components/ui/Button";
@@ -100,10 +100,10 @@ const JournalDashboard = () => {
           <div className="mt-6">
             {entriesLoading ? (
               <div className="h-10 rounded-full bg-brand/10" />
-            ) : entries[0]?.emotions?.length ? (
-              <EmotionChips emotions={entries[0].emotions} active={entries[0].emotions[0]?.label ?? ""} />
+            ) : entries[0]?.evidenceUnits?.length ? (
+              <SignalChips evidenceUnits={entries[0].evidenceUnits} />
             ) : (
-              <p className="text-sm text-slate-500">Add an entry to see emotion chips here.</p>
+              <p className="text-sm text-slate-500">Add an entry to see signal chips here.</p>
             )}
           </div>
         </div>

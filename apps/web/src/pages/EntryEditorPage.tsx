@@ -30,7 +30,8 @@ const EntryEditorPage = () => {
   const [draftError, setDraftError] = useState<string | null>(null);
   const draftRequestRef = useRef(0);
   const lastAnalyzedTextRef = useRef("");
-  const draftText = [title, summary].filter(Boolean).join(". ").trim();
+  const bodyText = summary;
+  const draftText = [title, bodyText].filter(Boolean).join(". ").trim();
   const suggestedTitle = draftAnalysis?.title?.trim() || "";
   const formattedEntryDate = new Date(`${entryDate}T00:00:00`).toLocaleDateString(undefined, {
     weekday: "long",
@@ -92,28 +93,33 @@ const EntryEditorPage = () => {
     setAnalysisError(null);
     setAnalyzing(true);
     try {
-      const analysis =
+      let analysis =
         draftAnalysis && lastAnalyzedTextRef.current === combinedText
           ? draftAnalysis
-          : await analyzeEntryText(combinedText);
+          : null;
+      if (!analysis?.summary) {
+        analysis = await analyzeEntryText(combinedText);
+      }
       const combinedTags = new Set<string>();
-      analysis.emotions?.forEach((emotion) => {
+      analysis?.emotions?.forEach((emotion) => {
         if (emotion.label) combinedTags.add(emotion.label.toLowerCase());
       });
-      analysis.triggers?.forEach((trigger) => combinedTags.add(trigger));
-      analysis.themes?.forEach((theme) => combinedTags.add(theme));
-      const emotions = analysis.emotions || [];
+      analysis?.triggers?.forEach((trigger) => combinedTags.add(trigger));
+      analysis?.themes?.forEach((theme) => combinedTags.add(theme));
+      const emotions = analysis?.emotions || [];
 
       const entry = await createEntry({
         title: title || suggestedTitle || "Untitled reflection",
-        summary,
-        body: summary,
+        summary: analysis?.summary || "AI summary failed",
+        body: bodyText,
         tags: Array.from(combinedTags),
         emotions,
         date: entryDate,
-        triggers: analysis.triggers || [],
-        themes: analysis.themes || [],
-        themeIntensities: analysis.themeIntensities || [],
+        triggers: analysis?.triggers || [],
+        themes: analysis?.themes || [],
+        themeIntensities: analysis?.themeIntensities || [],
+        languageReflection: analysis?.languageReflection,
+        timeReflection: analysis?.timeReflection,
       });
       if (entry?.id) {
         navigate(`/patient/entry/${entry.id}`);

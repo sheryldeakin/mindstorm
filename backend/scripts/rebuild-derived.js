@@ -3,7 +3,6 @@ const mongoose = require("mongoose");
 const Entry = require("../src/models/Entry");
 const WeeklySummary = require("../src/models/WeeklySummary");
 const {
-  generateEntryEvidence,
   generateClinicalEvidenceUnits,
   generateWeeklySummary,
 } = require("../src/controllers/aiController");
@@ -159,27 +158,15 @@ const run = async () => {
     const entryProgress = createProgress(data.entries.length, `Entries ${userId}`);
     let entryCount = 0;
     await runWithConcurrency(data.entries, concurrency, async (entry) => {
-      const entryText = `Title: ${entry.title}\nSummary: ${entry.summary}`;
-      if (!onlyMissing || !entry.evidenceBySection) {
-        const evidence = await generateEntryEvidence(entryText);
-        if (!evidence?.error && evidence?.evidenceBySection) {
-          await Entry.updateOne(
-            { _id: entry._id },
-            { $set: { evidenceBySection: evidence.evidenceBySection } },
-          );
-          console.log(`Evidence updated for entry ${entry._id}`);
-        } else {
-          const details = evidence?.details ? ` ${JSON.stringify(evidence.details)}` : "";
-          console.warn(`Evidence skipped for entry ${entry._id}: ${evidence?.error}${details}`);
-        }
-      }
-
+      const entryText = `Title: ${entry.title}\nEntry: ${entry.body || entry.summary || ""}`;
+      let updatedEvidenceUnits = entry.evidenceUnits || [];
       if (!onlyMissing || !entry.evidenceUnits) {
         const clinicalEvidence = await generateClinicalEvidenceUnits(entryText);
         if (!clinicalEvidence?.error && clinicalEvidence?.evidenceUnits) {
+          updatedEvidenceUnits = clinicalEvidence.evidenceUnits;
           await Entry.updateOne(
             { _id: entry._id },
-            { $set: { evidenceUnits: clinicalEvidence.evidenceUnits } },
+            { $set: { evidenceUnits: updatedEvidenceUnits } },
           );
           console.log(`Evidence units updated for entry ${entry._id}`);
         } else {
@@ -195,8 +182,7 @@ const run = async () => {
         data: {
           themes: entry.themes || [],
           themeIntensities: entry.themeIntensities || [],
-          evidenceBySection: entry.evidenceBySection || {},
-          evidenceUnits: entry.evidenceUnits || [],
+          evidenceUnits: updatedEvidenceUnits,
         },
         sourceUpdatedAt: entry.updatedAt,
       });

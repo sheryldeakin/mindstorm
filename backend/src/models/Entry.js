@@ -61,7 +61,6 @@ const entrySchema = new mongoose.Schema(
       type: [{ theme: String, intensity: Number }],
       default: [],
     },
-    emotions: { type: [emotionSchema], default: [] },
     evidenceBySection: {
       recurringExperiences: { type: [String], default: [] },
       impactAreas: { type: [String], default: [] },
@@ -69,6 +68,9 @@ const entrySchema = new mongoose.Schema(
       unclearAreas: { type: [String], default: [] },
       questionsToExplore: { type: [String], default: [] },
     },
+    languageReflection: { type: String, default: "" },
+    timeReflection: { type: String, default: "" },
+    emotions: { type: [emotionSchema], default: [] },
     evidenceUnits: { type: [evidenceUnitSchema], default: [] },
     risk_signal: { type: riskSignalSchema, default: null },
     deletedAt: { type: Date, default: null },

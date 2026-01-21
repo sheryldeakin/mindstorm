@@ -1,5 +1,10 @@
 const Entry = require("../models/Entry");
-const { generateEntryEvidence, generateClinicalEvidenceUnits, generateWeeklySummary } = require("./aiController");
+const EntrySignals = require("../derived/models/EntrySignals");
+const {
+  generateClinicalEvidenceUnits,
+  generateWeeklySummary,
+  generateLegacyEntryAnalysis,
+} = require("./aiController");
 const { markDerivedStale, upsertEntrySignals } = require("../derived/services/derivedService");
 
 const getWeekStartIso = (dateIso) => {
@@ -62,7 +67,8 @@ const listEntries = asyncHandler(async (req, res) => {
     themes: entry.themes || [],
     emotions: entry.emotions || [],
     themeIntensities: entry.themeIntensities || [],
-    evidenceBySection: entry.evidenceBySection || {},
+    languageReflection: entry.languageReflection || "",
+    timeReflection: entry.timeReflection || "",
     evidenceUnits: entry.evidenceUnits || [],
   }));
 
@@ -85,15 +91,24 @@ const createEntry = asyncHandler(async (req, res) => {
     themes = [],
     emotions = [],
     themeIntensities = [],
+    languageReflection,
+    timeReflection,
     date,
     dateISO,
     evidenceUnits,
   } = req.body;
 
-  if (!title || !summary) {
-    return res.status(400).json({ message: "Title and summary are required." });
+  if (!title || (!summary && !body)) {
+    return res.status(400).json({ message: "Title and summary or body are required." });
   }
-  const entryBody = typeof body === "string" && body.trim() ? body.trim() : summary;
+  const entryBody = typeof body === "string" && body.trim()
+    ? body.trim()
+    : typeof summary === "string"
+      ? summary.trim()
+      : "";
+  const entrySummary = typeof summary === "string" && summary.trim()
+    ? summary.trim()
+    : entryBody.slice(0, 150).trim();
 
   const parsedDate = dateISO ? parseDateInput(dateISO) : parseDateInput(date);
   const normalizedDate = parsedDate && !Number.isNaN(parsedDate.getTime()) ? parsedDate : new Date();
@@ -105,50 +120,16 @@ const createEntry = asyncHandler(async (req, res) => {
     date: entryDate,
     dateISO: entryDateISO,
     title,
-    summary,
+    summary: entrySummary,
     body: entryBody,
     tags,
     triggers,
     themes,
     emotions,
     themeIntensities,
+    languageReflection: typeof languageReflection === "string" ? languageReflection.trim() : "",
+    timeReflection: typeof timeReflection === "string" ? timeReflection.trim() : "",
     evidenceUnits: Array.isArray(evidenceUnits) ? evidenceUnits : undefined,
-  });
-
-  const evidenceResult = await generateEntryEvidence(`Title: ${title}\nEntry: ${entryBody}`);
-  if (!evidenceResult?.error && evidenceResult?.evidenceBySection) {
-    entry.evidenceBySection = evidenceResult.evidenceBySection;
-    await entry.save();
-  }
-
-  if (!Array.isArray(evidenceUnits) || evidenceUnits.length === 0) {
-    const clinicalEvidenceResult = await generateClinicalEvidenceUnits(`Title: ${title}\nEntry: ${entryBody}`);
-    if (!clinicalEvidenceResult?.error && clinicalEvidenceResult?.evidenceUnits) {
-      entry.evidenceUnits = clinicalEvidenceResult.evidenceUnits;
-      await entry.save();
-    }
-  }
-
-  const weekStartIso = getWeekStartIso(entryDateISO);
-  if (weekStartIso) {
-    await generateWeeklySummary({ userId: req.user._id, weekStartIso });
-  }
-
-  await upsertEntrySignals({
-    userId: req.user._id,
-    entryId: entry._id,
-    dateISO: entry.dateISO,
-    data: {
-      themes,
-      themeIntensities,
-      evidenceBySection: entry.evidenceBySection || {},
-    },
-    sourceUpdatedAt: entry.updatedAt,
-  });
-  await markDerivedStale({
-    userId: req.user._id,
-    rangeKey: ["last_7_days", "last_30_days", "last_90_days", "last_365_days", "all_time"],
-    sourceVersion: entry.updatedAt,
   });
 
   res.status(201).json({
@@ -164,9 +145,78 @@ const createEntry = asyncHandler(async (req, res) => {
       themes: entry.themes || [],
       emotions: entry.emotions || [],
       themeIntensities: entry.themeIntensities || [],
-      evidenceBySection: entry.evidenceBySection || {},
+      languageReflection: entry.languageReflection || "",
+      timeReflection: entry.timeReflection || "",
       evidenceUnits: entry.evidenceUnits || [],
     },
+  });
+
+  setImmediate(async () => {
+    try {
+      console.log("[create-entry] post-save start", { entryId: entry._id.toString() });
+      const freshEntry = await Entry.findOne({ _id: entry._id, userId: req.user._id });
+      if (!freshEntry) return;
+      const entryForSave = freshEntry;
+      const entryBodyForSave = entryForSave.body || entryForSave.summary || entryBody;
+      const shouldAnalyzeLegacy =
+        !(entryForSave.emotions?.length || entryForSave.themes?.length || entryForSave.triggers?.length);
+      const needsReflections = !entryForSave.languageReflection || !entryForSave.timeReflection;
+      if (shouldAnalyzeLegacy || needsReflections) {
+        const legacyResult = await generateLegacyEntryAnalysis(entryBodyForSave);
+        if (!legacyResult?.error && legacyResult?.data) {
+          if (shouldAnalyzeLegacy) {
+            entryForSave.emotions = legacyResult.data.emotions || [];
+            entryForSave.themes = legacyResult.data.themes || [];
+            entryForSave.triggers = legacyResult.data.triggers || [];
+            entryForSave.themeIntensities = legacyResult.data.themeIntensities || [];
+          }
+          if (!entryForSave.languageReflection) {
+            entryForSave.languageReflection = legacyResult.data.languageReflection || "";
+          }
+          if (!entryForSave.timeReflection) {
+            entryForSave.timeReflection = legacyResult.data.timeReflection || "";
+          }
+          await entryForSave.save();
+          console.log("[create-entry] legacy signals saved", { entryId: entry._id.toString() });
+        }
+      }
+
+      const hasEvidenceUnits = Array.isArray(evidenceUnits) && evidenceUnits.length > 0;
+      const hasDraftUnits = hasEvidenceUnits && evidenceUnits.every((unit) => unit?.attributes?.type === "draft");
+      if (!hasEvidenceUnits || hasDraftUnits) {
+        const clinicalEvidenceResult = await generateClinicalEvidenceUnits(`Title: ${title}\nEntry: ${entryBodyForSave}`);
+        if (!clinicalEvidenceResult?.error && clinicalEvidenceResult?.evidenceUnits) {
+          entryForSave.evidenceUnits = clinicalEvidenceResult.evidenceUnits;
+          await entryForSave.save();
+          console.log("[create-entry] evidence units saved", { entryId: entry._id.toString() });
+        }
+      }
+
+      const weekStartIso = getWeekStartIso(entryDateISO);
+      if (weekStartIso) {
+        await generateWeeklySummary({ userId: req.user._id, weekStartIso });
+      }
+
+      await upsertEntrySignals({
+        userId: req.user._id,
+        entryId: entry._id,
+        dateISO: entry.dateISO,
+        data: {
+          themes: entryForSave.themes || [],
+          themeIntensities: entryForSave.themeIntensities || [],
+          evidenceUnits: entryForSave.evidenceUnits || [],
+        },
+        sourceUpdatedAt: entry.updatedAt,
+      });
+      await markDerivedStale({
+        userId: req.user._id,
+        rangeKey: ["last_7_days", "last_30_days", "last_90_days", "last_365_days", "all_time"],
+        sourceVersion: entry.updatedAt,
+      });
+      console.log("[create-entry] post-save complete", { entryId: entry._id.toString() });
+    } catch (error) {
+      console.warn("[create-entry] post-save processing failed", error?.message || error);
+    }
   });
 });
 
@@ -194,7 +244,8 @@ const getEntry = asyncHandler(async (req, res) => {
       triggers: entry.triggers || [],
       themes: entry.themes || [],
       emotions: entry.emotions || [],
-      evidenceBySection: entry.evidenceBySection || {},
+      languageReflection: entry.languageReflection || "",
+      timeReflection: entry.timeReflection || "",
       evidenceUnits: entry.evidenceUnits || [],
       createdAt: entry.createdAt,
       updatedAt: entry.updatedAt,
@@ -228,6 +279,9 @@ const updateEntry = asyncHandler(async (req, res) => {
   if (summary !== undefined && body === undefined && !entry.body) {
     entry.body = summary;
   }
+  if (body !== undefined && summary === undefined) {
+    entry.summary = body.slice(0, 150).trim();
+  }
 
   if (dateISO || date) {
     const parsedDate = dateISO ? parseDateInput(dateISO) : parseDateInput(date);
@@ -241,12 +295,6 @@ const updateEntry = asyncHandler(async (req, res) => {
 
   if (summary !== undefined || title !== undefined || body !== undefined) {
     const entryText = entry.body || entry.summary || "";
-    const evidenceResult = await generateEntryEvidence(`Title: ${entry.title}\nEntry: ${entryText}`);
-    if (!evidenceResult?.error && evidenceResult?.evidenceBySection) {
-      entry.evidenceBySection = evidenceResult.evidenceBySection;
-      await entry.save();
-    }
-
     const clinicalEvidenceResult = await generateClinicalEvidenceUnits(
       `Title: ${entry.title}\nEntry: ${entryText}`,
     );
@@ -270,7 +318,7 @@ const updateEntry = asyncHandler(async (req, res) => {
     data: {
       themes: entry.themes || [],
       themeIntensities: entry.themeIntensities || [],
-      evidenceBySection: entry.evidenceBySection || {},
+      evidenceUnits: entry.evidenceUnits || [],
     },
     sourceUpdatedAt: entry.updatedAt,
   });
@@ -293,7 +341,6 @@ const updateEntry = asyncHandler(async (req, res) => {
       themes: entry.themes || [],
       emotions: entry.emotions || [],
       themeIntensities: entry.themeIntensities || [],
-      evidenceBySection: entry.evidenceBySection || {},
       evidenceUnits: entry.evidenceUnits || [],
       createdAt: entry.createdAt,
       updatedAt: entry.updatedAt,
@@ -302,20 +349,23 @@ const updateEntry = asyncHandler(async (req, res) => {
 });
 
 /**
- * Soft-delete an entry for the authenticated user.
+ * Delete an entry for the authenticated user.
  * @param {import("express").Request} req
  * @param {import("express").Response} res
  * @returns {Promise<void>} Responds with 204 or 404.
  */
 const deleteEntry = asyncHandler(async (req, res) => {
-  const entry = await Entry.findOneAndUpdate(
-    { _id: req.params.id, userId: req.user._id, deletedAt: null },
-    { $set: { deletedAt: new Date() } },
-    { new: true },
-  );
+  const entry = await Entry.findOneAndDelete({ _id: req.params.id, userId: req.user._id });
   if (!entry) {
     return res.status(404).json({ message: "Entry not found." });
   }
+
+  await EntrySignals.deleteOne({ userId: req.user._id, entryId: entry._id });
+  await markDerivedStale({
+    userId: req.user._id,
+    rangeKey: ["last_7_days", "last_30_days", "last_90_days", "last_365_days", "all_time"],
+    sourceVersion: new Date(),
+  });
 
   res.status(204).send();
 });

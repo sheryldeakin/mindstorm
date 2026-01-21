@@ -9,7 +9,9 @@ const { callLlmWithRetry } = require("../utils/ai/summaryMerger");
 const buildPrompt = () =>
   [
     "You are a therapist assistant that extracts structured data from a journal entry.",
-    "Return strict JSON with keys: title (short 3-6 word title), emotions (array of {label, intensity 0-100, tone: positive|neutral|negative}), themes (array of short themes, 1-3 words), themeIntensities (array of {theme, intensity 0-1}), triggers (array of short phrases), summary (1-2 sentences).",
+    "Return strict JSON with keys: title (short 3-6 word title), emotions (array of {label, intensity 0-100, tone: positive|neutral|negative}), themes (array of short themes, 1-3 words), themeIntensities (array of {theme, intensity 0-1}), triggers (array of short phrases), summary (1-2 sentences),",
+    "languageReflection (Sentence starting 'You're using strong words like...' listing 1-2 specific emotive words quoted from text),",
+    "timeReflection (Sentence starting 'You mentioned...' summarizing specific duration/frequency stated in text, e.g., 'You mentioned this has been happening for a few days').",
     "Keep it concise and avoid long text. Use lower-case for themes/triggers. Title should be in title case.",
   ].join(" ");
 
@@ -60,19 +62,6 @@ const buildPrepareChunkPrompt = (timeRangeLabel, signalContext) =>
     "questionsToExplore (array of strings).",
     `Time range label: ${timeRangeLabel}.`,
     signalContext ? `Detected Signals (PRESENT counts): ${signalContext}` : "Detected Signals: none.",
-  ].join(" ");
-
-/**
- * Builds the LLM prompt for evidence snippet extraction.
- * @returns {string}
- */
-const buildEntryEvidencePrompt = () =>
-  [
-    "You are extracting short evidence snippets from a single journal entry.",
-    "Use exact phrases from the entry. No diagnosis terms. No interpretations.",
-    "Return strict JSON with keys:",
-    "recurringExperiences (array of short quotes), impactAreas (array of short quotes), relatedInfluences (array of short quotes),",
-    "unclearAreas (array of short quotes), questionsToExplore (array of short quotes).",
   ].join(" ");
 
 /**
@@ -184,6 +173,19 @@ const buildClinicalSignalPrompt = () =>
     
     "Constraints: Return at most 8 evidence units. Keep each span under 260 characters.",
     "If nothing is present, return an empty evidence_units array.",
+  ].join(" ");
+
+/**
+ * Builds the LLM prompt for evidence snippet extraction.
+ * @returns {string}
+ */
+const buildEntryEvidencePrompt = () =>
+  [
+    "You are extracting short evidence snippets from a single journal entry.",
+    "Use exact phrases from the entry. No diagnosis terms. No interpretations.",
+    "Return strict JSON with keys:",
+    "recurringExperiences (array of short quotes), impactAreas (array of short quotes), relatedInfluences (array of short quotes),",
+    "unclearAreas (array of short quotes), questionsToExplore (array of short quotes).",
   ].join(" ");
 
 /**
@@ -609,48 +611,6 @@ const callLlmRawWithRetry = async ({ baseUrl, apiKey, model, messages, maxTokens
 };
 
 /**
- * Extract patient-authored evidence snippets by section from a single entry.
- * Prompt strategy: quote-level extraction with no interpretation, strict JSON output.
- * @param {string} entryText
- * @returns {Promise<{evidenceBySection?: Record<string, string[]>, error?: string, details?: object}>}
- */
-const generateEntryEvidence = async (entryText) => {
-  const baseUrl = process.env.OPENAI_API_URL || "https://api.openai.com/v1";
-  const apiKey = process.env.OPENAI_API_KEY || "";
-  const model = process.env.OPENAI_MODEL || "gpt-4o-mini";
-  const isLocal = baseUrl.includes("localhost") || baseUrl.includes("127.0.0.1");
-
-  if (!apiKey && !isLocal) {
-    return { error: "OPENAI_API_KEY is not set." };
-  }
-
-  const response = await callLlmWithRetry({
-    baseUrl,
-    apiKey,
-    model,
-    messages: [
-      { role: "system", content: buildEntryEvidencePrompt() },
-      { role: "user", content: `Journal entry:\n${entryText}\nReturn JSON only.` },
-    ],
-    maxTokens: 220,
-  });
-
-  if (response.error) {
-    return { error: response.error, details: response.details };
-  }
-
-  return {
-    evidenceBySection: {
-      recurringExperiences: response.data.recurringExperiences || [],
-      impactAreas: response.data.impactAreas || [],
-      relatedInfluences: response.data.relatedInfluences || [],
-      unclearAreas: response.data.unclearAreas || [],
-      questionsToExplore: response.data.questionsToExplore || [],
-    },
-  };
-};
-
-/**
  * Extract Evidence Units (clinical signals) from a single entry text.
  * Prompt strategy: span extraction + attribute labeling with strict schema.
  * @param {string} entryText
@@ -804,6 +764,48 @@ const generateClinicalEvidenceUnits = async (entryText) => {
 };
 
 /**
+ * Extract patient-authored evidence snippets by section from a single entry.
+ * Prompt strategy: quote-level extraction with no interpretation, strict JSON output.
+ * @param {string} entryText
+ * @returns {Promise<{evidenceBySection?: Record<string, string[]>, error?: string, details?: object}>}
+ */
+const generateEntryEvidence = async (entryText) => {
+  const baseUrl = process.env.OPENAI_API_URL || "https://api.openai.com/v1";
+  const apiKey = process.env.OPENAI_API_KEY || "";
+  const model = process.env.OPENAI_MODEL || "gpt-4o-mini";
+  const isLocal = baseUrl.includes("localhost") || baseUrl.includes("127.0.0.1");
+
+  if (!apiKey && !isLocal) {
+    return { error: "OPENAI_API_KEY is not set." };
+  }
+
+  const response = await callLlmWithRetry({
+    baseUrl,
+    apiKey,
+    model,
+    messages: [
+      { role: "system", content: buildEntryEvidencePrompt() },
+      { role: "user", content: `Journal entry:\n${entryText}\nReturn JSON only.` },
+    ],
+    maxTokens: 220,
+  });
+
+  if (response.error) {
+    return { error: response.error, details: response.details };
+  }
+
+  return {
+    evidenceBySection: {
+      recurringExperiences: response.data.recurringExperiences || [],
+      impactAreas: response.data.impactAreas || [],
+      relatedInfluences: response.data.relatedInfluences || [],
+      unclearAreas: response.data.unclearAreas || [],
+      questionsToExplore: response.data.questionsToExplore || [],
+    },
+  };
+};
+
+/**
  * Generate and persist a weekly patient-facing summary for the given user and week.
  * Prompt strategy: grounded weekly summary using detected signals + entry text.
  * @param {{ userId: import("mongoose").Types.ObjectId | string, weekStartIso: string }} params
@@ -935,7 +937,7 @@ const analyzeEntry = asyncHandler(async (req, res) => {
         { role: "user", content: `Journal entry:\n${text}\nReturn JSON only.` },
       ],
       temperature: 0.2,
-      max_tokens: 200,
+      max_tokens: 240,
       response_format: { type: "json_object" },
     }),
   });
@@ -964,9 +966,72 @@ const analyzeEntry = asyncHandler(async (req, res) => {
       themeIntensities: parsed.themeIntensities || [],
       triggers: parsed.triggers || [],
       summary: parsed.summary,
+      languageReflection: parsed.languageReflection,
+      timeReflection: parsed.timeReflection,
     },
   });
 });
+
+/**
+ * Analyze entry text and return legacy patient signals.
+ * @param {string} text
+ * @returns {Promise<{ data?: { emotions?: Array<object>, themes?: string[], themeIntensities?: Array<object>, triggers?: string[] }, error?: string }>}
+ */
+const generateLegacyEntryAnalysis = async (text) => {
+  const baseUrl = process.env.OPENAI_API_URL || "https://api.openai.com/v1";
+  const apiKey = process.env.OPENAI_API_KEY || "";
+  const model = process.env.OPENAI_MODEL || "gpt-4o-mini";
+  const isLocal = baseUrl.includes("localhost") || baseUrl.includes("127.0.0.1");
+
+  if (!apiKey && !isLocal) {
+    return { error: "OPENAI_API_KEY is not set." };
+  }
+
+  const response = await fetch(`${baseUrl}/chat/completions`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey || "sk-local"}`,
+    },
+    body: JSON.stringify({
+      model,
+      messages: [
+        { role: "system", content: buildPrompt() },
+        { role: "user", content: `Journal entry:\n${text}\nReturn JSON only.` },
+      ],
+      temperature: 0.2,
+      max_tokens: 240,
+      response_format: { type: "json_object" },
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    return { error: `LLM request failed: ${errorText}` };
+  }
+
+  const data = await response.json();
+  const content = data.choices?.[0]?.message?.content;
+  if (!content) {
+    return { error: "No analysis returned." };
+  }
+
+  const parsed = extractJson(content);
+  if (!parsed) {
+    return { error: "Failed to parse analysis JSON." };
+  }
+
+  return {
+    data: {
+      emotions: parsed.emotions || [],
+      themes: parsed.themes || [],
+      themeIntensities: parsed.themeIntensities || [],
+      triggers: parsed.triggers || [],
+      languageReflection: parsed.languageReflection,
+      timeReflection: parsed.timeReflection,
+    },
+  };
+};
 
 /**
  * Maps a day range to a canonical range key.
@@ -1247,4 +1312,5 @@ module.exports = {
   generateEntryEvidence,
   generateClinicalEvidenceUnits,
   generateWeeklySummary,
+  generateLegacyEntryAnalysis,
 };

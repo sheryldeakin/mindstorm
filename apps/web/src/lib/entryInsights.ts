@@ -1,4 +1,13 @@
 import type { LlmAnalysis } from "./analyzeEntry";
+import type { EvidenceUnit } from "../types/journal";
+
+export type SignalBadge = {
+  label: string;
+  tone: "positive" | "neutral" | "negative";
+  intensity?: number;
+  intensityLabel?: string;
+  isDraft?: boolean;
+};
 
 const STRONG_PHRASES = [
   "exhausted",
@@ -22,7 +31,7 @@ const TIME_MARKERS = [
   { key: "day", label: "the past day" },
 ];
 
-export const buildOverallEmotions = (analysis?: LlmAnalysis | null) =>
+export const buildOverallEmotions = (analysis?: LlmAnalysis | null): SignalBadge[] =>
   (analysis?.emotions || []).map((emotion) => ({
     label: emotion.label,
     intensity: emotion.intensity,
@@ -40,6 +49,67 @@ export const buildTouchesOn = (analysis?: LlmAnalysis | null) => {
   });
   return Array.from(set);
 };
+
+const isPresentUnit = (unit: EvidenceUnit) => {
+  const polarity = unit.attributes?.polarity;
+  return polarity ? polarity === "PRESENT" : true;
+};
+
+const matchesPrefix = (label: string, prefixes?: string[]) =>
+  prefixes?.length ? prefixes.some((prefix) => label.startsWith(prefix)) : true;
+
+const collectEvidenceLabels = (
+  units: EvidenceUnit[],
+  mapLabel: (label: string) => string,
+  prefixes?: string[],
+) => {
+  const labels: string[] = [];
+  units.forEach((unit) => {
+    if (!unit?.label || !isPresentUnit(unit)) return;
+    if (!matchesPrefix(unit.label, prefixes)) return;
+    const mapped = mapLabel(unit.label);
+    if (!labels.includes(mapped)) labels.push(mapped);
+  });
+  return labels;
+};
+
+export const buildEvidenceBadges = (
+  units: EvidenceUnit[],
+  mapLabel: (label: string) => string,
+  mapSeverity: (severity: string) => string,
+  prefixes?: string[],
+): SignalBadge[] => {
+  const badges: SignalBadge[] = [];
+  units.forEach((unit) => {
+    if (!unit?.label || !isPresentUnit(unit)) return;
+    if (!matchesPrefix(unit.label, prefixes)) return;
+    const mapped = mapLabel(unit.label);
+    const existing = badges.find((badge) => badge.label === mapped);
+    if (existing) {
+      if (existing.isDraft && unit.attributes?.type !== "draft") {
+        existing.isDraft = false;
+      }
+      return;
+    }
+    const severity = unit.attributes?.severity;
+    const intensityLabel = severity ? mapSeverity(severity) : undefined;
+    const tone = unit.label.startsWith("CONTEXT_") || unit.label.startsWith("IMPACT_") ? "neutral" : "negative";
+    badges.push({ label: mapped, tone, intensityLabel, isDraft: unit.attributes?.type === "draft" });
+  });
+  return badges;
+};
+
+export const buildEvidenceThemes = (
+  units: EvidenceUnit[],
+  mapLabel: (label: string) => string,
+  prefixes?: string[],
+) => collectEvidenceLabels(units, mapLabel, prefixes);
+
+export const buildEvidenceTouchesOn = (
+  units: EvidenceUnit[],
+  mapLabel: (label: string) => string,
+  prefixes?: string[],
+) => collectEvidenceLabels(units, mapLabel, prefixes);
 
 export const buildLanguageReflection = (text: string) => {
   if (!text) return "";

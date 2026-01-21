@@ -491,18 +491,65 @@ const toLabel = (value) =>
     .join(" ");
 
 /**
+ * Maps evidence labels to patient-facing theme labels.
+ * @param {string} label
+ * @returns {string}
+ */
+const mapLabelToTheme = (label) => {
+  const map = {
+    SYMPTOM_MOOD: "Low mood",
+    SYMPTOM_ANXIETY: "Anxiety",
+    SYMPTOM_SLEEP: "Sleep changes",
+    SYMPTOM_SOMATIC: "Body/energy changes",
+    SYMPTOM_COGNITIVE: "Self-critical thoughts",
+    SYMPTOM_MANIA: "High energy shifts",
+    SYMPTOM_PSYCHOSIS: "Unusual perceptions",
+    SYMPTOM_TRAUMA: "Trauma responses",
+    IMPACT_WORK: "Work/school impact",
+    IMPACT_SOCIAL: "Relationship strain",
+    IMPACT_SELF_CARE: "Self-care struggles",
+    IMPACT: "Life impact",
+    IMPAIRMENT: "Life impact",
+    CONTEXT_STRESSOR: "Life stressors",
+    CONTEXT_MEDICAL: "Physical health changes",
+    CONTEXT_SUBSTANCE: "Substance or medication changes",
+  };
+  if (map[label]) return map[label];
+  return String(label || "")
+    .replace(/_/g, " ")
+    .trim()
+    .toLowerCase();
+};
+
+/**
  * Picks a representative quote from an entry for evidence display.
- * @param {{ evidenceBySection?: Record<string, string[]>, summary?: string }} entry
+ * @param {{ evidenceUnits?: Array<{ span?: string, attributes?: { polarity?: string, severity?: string } }>, summary?: string }} entry
  * @returns {string}
  */
 const pickEntryQuote = (entry) => {
-  const pools = [
-    ...(entry.evidenceBySection?.recurringExperiences || []),
-    ...(entry.evidenceBySection?.relatedInfluences || []),
-    ...(entry.evidenceBySection?.impactAreas || []),
-  ];
-  const quote = pools.find((item) => item && item.trim()) || entry.summary;
-  return quote ? quote.trim() : "";
+  const units = Array.isArray(entry.evidenceUnits) ? entry.evidenceUnits : [];
+  const candidates = units.filter(
+    (unit) =>
+      unit?.attributes?.polarity === "PRESENT" &&
+      unit?.span &&
+      unit.span.trim().length > 10,
+  );
+  if (candidates.length) {
+    const severityScore = (unit) => {
+      const severity = String(unit?.attributes?.severity || "").toUpperCase();
+      if (severity.includes("SEVERE") || severity.includes("HIGH")) return 3;
+      if (severity.includes("MODERATE")) return 2;
+      return 1;
+    };
+    const sorted = candidates.slice().sort((a, b) => {
+      const scoreDiff = severityScore(b) - severityScore(a);
+      if (scoreDiff !== 0) return scoreDiff;
+      return (b.span?.length || 0) - (a.span?.length || 0);
+    });
+    const best = sorted[0]?.span;
+    if (best) return best.trim();
+  }
+  return entry.summary ? entry.summary.trim() : "";
 };
 
 /**
@@ -760,23 +807,20 @@ const getPatterns = asyncHandler(async (req, res) => {
 
   const evidencePool = new Map();
   signals.forEach((signal) => {
-    const themes = (signal.themes || []).map((theme) => theme.trim().toLowerCase());
-    if (!themes.length) return;
-    const evidence = [
-      ...(signal.evidenceBySection?.recurringExperiences || []),
-      ...(signal.evidenceBySection?.impactAreas || []),
-      ...(signal.evidenceBySection?.relatedInfluences || []),
-    ]
-      .map((item) => item.trim())
-      .filter(Boolean);
-    themes.forEach((theme) => {
-      if (!evidencePool.has(theme)) evidencePool.set(theme, []);
-      const list = evidencePool.get(theme);
-      evidence.forEach((quote) => {
-        if (list.length < 6 && !list.includes(quote)) {
-          list.push(quote);
-        }
-      });
+    const units = Array.isArray(signal.evidenceUnits) ? signal.evidenceUnits : [];
+    units.forEach((unit) => {
+      if (unit?.attributes?.polarity !== "PRESENT") return;
+      if (!unit?.label || !unit?.span) return;
+      const theme = mapLabelToTheme(unit.label);
+      if (!theme) return;
+      const key = theme.trim().toLowerCase();
+      if (!key) return;
+      if (!evidencePool.has(key)) evidencePool.set(key, []);
+      const list = evidencePool.get(key);
+      const quote = unit.span.trim();
+      if (quote && list.length < 6 && !list.includes(quote)) {
+        list.push(quote);
+      }
     });
   });
 

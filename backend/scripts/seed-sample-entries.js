@@ -1,6 +1,10 @@
 const dotenv = require("dotenv");
 const mongoose = require("mongoose");
 const Entry = require("../src/models/Entry");
+const {
+  generateEntryEvidence,
+  generateClinicalEvidenceUnits,
+} = require("../src/controllers/aiController");
 
 dotenv.config();
 
@@ -560,10 +564,23 @@ const callLlm = async ({ baseUrl, apiKey, model, messages, maxTokens }) => {
   return data.choices?.[0]?.message?.content?.trim() || "";
 };
 
+const stripCodeFences = (text) =>
+  text.replace(/```(?:json)?/gi, "").replace(/```/g, "").trim();
+
+const parseSeedJson = (text) => {
+  if (!text) return null;
+  const cleaned = stripCodeFences(text);
+  try {
+    return JSON.parse(cleaned);
+  } catch {
+    return null;
+  }
+};
+
 /**
  * Expands a base symptom summary into a fuller journal entry.
  * @param {{ baseSymptoms: string, context: string, profile: Record<string, unknown>, lengthInstruction: string }} options
- * @returns {Promise<{ summary: string | null, reason?: string }>}
+ * @returns {Promise<{ title?: string | null, body: string | null, summary: string | null, emotions?: Array<object>, themes?: string[], triggers?: string[], themeIntensities?: Array<object>, languageReflection?: string, timeReflection?: string, reason?: string }>}
  */
 const expandSummaryWithLlm = async ({ baseSymptoms, context, profile, lengthInstruction }) => {
   const baseUrl = process.env.OPENAI_API_URL || "https://api.openai.com/v1";
@@ -573,7 +590,7 @@ const expandSummaryWithLlm = async ({ baseSymptoms, context, profile, lengthInst
   const isLocal = baseUrl.includes("localhost") || baseUrl.includes("127.0.0.1");
 
   if (!apiKey && !isLocal) {
-    return { summary: null, reason: "missing_api_key" };
+    return { body: null, summary: null, reason: "missing_api_key" };
   }
 
   const styleHints = [
@@ -604,6 +621,10 @@ const expandSummaryWithLlm = async ({ baseSymptoms, context, profile, lengthInst
           "Do not mention diagnoses or clinical terms. Show, don't tell.",
           "Keep it human and specific, avoid melodrama.",
           "Occasionally include hedging or attribution (e.g., 'maybe', 'I think it's because...').",
+          "After writing the entry, extract patient-facing metadata that matches the text exactly.",
+          "Language reflection must mirror words from the entry and start with: \"You're using strong words like...\"",
+          "Time reflection must start with: \"You mentioned...\" and reflect timing stated in the entry.",
+          "Use lower-case strings for themes and triggers.",
           `Target length: ${lengthInstruction}. Use plain language.`,
         ].join(" "),
       },
@@ -614,14 +635,43 @@ const expandSummaryWithLlm = async ({ baseSymptoms, context, profile, lengthInst
           `Clinical symptoms to weave in: "${baseSymptoms}"`,
           `Profile background: This user has ${profile.diagnosis} (${profile.specifiers.join(", ")})`,
           `Style hint: ${pickRandom(styleHints)}`,
-          "Write the journal entry.",
+          "Write a realistic journal entry based on this context.",
+          "Return strict JSON with two keys:",
+          "- title: Short 3-6 word title in title case.",
+          "- body: The full first-person narrative (4-6 sentences).",
+          "- summary: A 1-2 sentence reflective summary of the event.",
+          "- languageReflection: Sentence starting \"You're using strong words like...\" quoting 1-2 emotive words from the entry.",
+          "- timeReflection: Sentence starting \"You mentioned...\" summarizing duration/frequency stated in the entry.",
+          "- emotions: Array of { label, intensity (0-100), tone (positive|neutral|negative) } from the entry.",
+          "- themes: Array of 1-3 word themes in lower-case.",
+          "- triggers: Array of short lower-case phrases.",
+          "- themeIntensities: Array of { theme, intensity (0-1) } matching the themes.",
         ].join("\n"),
       },
     ],
     maxTokens: Number.isFinite(maxTokens) && maxTokens > 0 ? maxTokens : 220,
   });
 
-  return { summary: response || null };
+  const parsed = parseSeedJson(response);
+  if (parsed && typeof parsed === "object") {
+    return {
+      title: typeof parsed.title === "string" ? parsed.title.trim() : null,
+      body: typeof parsed.body === "string" ? parsed.body.trim() : null,
+      summary: typeof parsed.summary === "string" ? parsed.summary.trim() : null,
+      emotions: Array.isArray(parsed.emotions) ? parsed.emotions : [],
+      themes: Array.isArray(parsed.themes) ? parsed.themes : [],
+      triggers: Array.isArray(parsed.triggers) ? parsed.triggers : [],
+      themeIntensities: Array.isArray(parsed.themeIntensities) ? parsed.themeIntensities : [],
+      languageReflection: typeof parsed.languageReflection === "string"
+        ? parsed.languageReflection.trim()
+        : null,
+      timeReflection: typeof parsed.timeReflection === "string"
+        ? parsed.timeReflection.trim()
+        : null,
+      reason: "ok",
+    };
+  }
+  return { body: response || null, summary: null, reason: "invalid_json" };
 };
 
 /**
@@ -758,22 +808,58 @@ const buildEntry = async ({ date, profileKey, lengthTier }) => {
   if (expanded?.reason === "missing_api_key") {
     console.warn("OPENAI_API_KEY not set; using base symptom summary.");
   }
-  const themes = profile.themes || [];
-  const triggers = profile.triggers || [];
+  const bodyText = expanded?.body || baseSummary || "";
+  const summaryText =
+    expanded?.summary ||
+    (bodyText ? `${bodyText.slice(0, 150).trim()}...` : "");
+  const entryTitle = expanded?.title || `Reflection: ${profile.title}`;
+  const entryText = `Title: ${entryTitle}\nEntry: ${bodyText}`;
   const themeIntensity = () => Number((dailyIntensity * (0.9 + roll() * 0.2)).toFixed(2));
+  const resolvedThemes = expanded?.themes?.length ? expanded.themes : profile.themes || [];
+  const resolvedTriggers = expanded?.triggers?.length ? expanded.triggers : profile.triggers || [];
+  const resolvedEmotions = expanded?.emotions?.length
+    ? expanded.emotions
+    : profile.emotions || [{ label: "low", intensity: 50, tone: "negative" }];
+  const resolvedThemeIntensities = expanded?.themeIntensities?.length
+    ? expanded.themeIntensities
+    : resolvedThemes.map((theme) => ({ theme, intensity: themeIntensity() }));
+  let extractedUnits = null;
+  let extractedEvidence = null;
+
+  try {
+    const clinicalEvidence = await generateClinicalEvidenceUnits(entryText);
+    if (!clinicalEvidence?.error && Array.isArray(clinicalEvidence?.evidenceUnits)) {
+      extractedUnits = clinicalEvidence.evidenceUnits;
+    }
+  } catch (error) {
+    console.warn("Failed to generate evidence units for seed entry.", error?.message || error);
+  }
+
+  try {
+    const evidenceResult = await generateEntryEvidence(entryText);
+    if (!evidenceResult?.error && evidenceResult?.evidenceBySection) {
+      extractedEvidence = evidenceResult.evidenceBySection;
+    }
+  } catch (error) {
+    console.warn("Failed to generate evidence snippets for seed entry.", error?.message || error);
+  }
 
   return {
     date: formatFriendlyDate(date),
     dateISO: formatDateIso(date),
-    title: `Reflection: ${profile.title}`,
-    summary: expanded?.summary || baseSummary,
+    title: entryTitle,
+    body: bodyText,
+    summary: summaryText,
     risk_signal: riskSignal || undefined,
-    evidenceUnits,
+    evidenceUnits: extractedUnits || evidenceUnits,
     tags: [pickRandom(sampleTags), "seeded-sample"],
-    triggers: triggers.length ? [pickRandom(triggers)] : [],
-    themes,
-    themeIntensities: themes.map((theme) => ({ theme, intensity: themeIntensity() })),
-    emotions: profile.emotions || [{ label: "low", intensity: 50, tone: "negative" }],
+    triggers: resolvedTriggers,
+    themes: resolvedThemes,
+    themeIntensities: resolvedThemeIntensities,
+    emotions: resolvedEmotions,
+    languageReflection: expanded?.languageReflection || "",
+    timeReflection: expanded?.timeReflection || "",
+    evidenceBySection: extractedEvidence || undefined,
   };
 };
 

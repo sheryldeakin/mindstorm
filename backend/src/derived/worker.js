@@ -14,7 +14,7 @@ const startDerivedWorker = ({ intervalMs = 60000 } = {}) => {
       await recomputeStaleThemeSeries();
       await recomputeStaleConnections();
       await recomputeStaleCycles();
-      await recomputeStaleSnapshots();
+      await recomputeStaleSnapshots({ incremental: true });
     } catch (error) {
       console.warn("[derived-worker] derived recompute failed", error?.message || error);
     }

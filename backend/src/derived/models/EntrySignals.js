@@ -11,13 +11,6 @@ const entrySignalsSchema = new mongoose.Schema(
     timeMentions: { type: [String], default: [] },
     lifeAreas: { type: [String], default: [] },
     influences: { type: [String], default: [] },
-    evidenceBySection: {
-      recurringExperiences: { type: [String], default: [] },
-      impactAreas: { type: [String], default: [] },
-      relatedInfluences: { type: [String], default: [] },
-      unclearAreas: { type: [String], default: [] },
-      questionsToExplore: { type: [String], default: [] },
-    },
     pipelineVersion: { type: String, default: "entrySignals_v1" },
     sourceVersion: { type: String },
     sourceUpdatedAt: { type: Date },

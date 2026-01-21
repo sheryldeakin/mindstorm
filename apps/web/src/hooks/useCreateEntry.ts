@@ -10,9 +10,12 @@ interface CreateEntryInput {
   tags: string[];
   emotions?: JournalEntry["emotions"];
   themeIntensities?: JournalEntry["themeIntensities"];
+  languageReflection?: JournalEntry["languageReflection"];
+  timeReflection?: JournalEntry["timeReflection"];
   date?: string;
   triggers?: string[];
   themes?: string[];
+  evidenceUnits?: JournalEntry["evidenceUnits"];
 }
 
 const useCreateEntry = () => {
@@ -22,7 +25,20 @@ const useCreateEntry = () => {
   const [success, setSuccess] = useState(false);
 
   const createEntry = useCallback(
-    async ({ title, summary, body, tags, emotions = [], themeIntensities = [], date, triggers = [], themes = [] }: CreateEntryInput) => {
+    async ({
+      title,
+      summary,
+      body,
+      tags,
+      emotions = [],
+      themeIntensities = [],
+      languageReflection,
+      timeReflection,
+      date,
+      triggers = [],
+      themes = [],
+      evidenceUnits = [],
+    }: CreateEntryInput) => {
       setLoading(true);
       setError(null);
       setSuccess(false);
@@ -36,7 +52,20 @@ const useCreateEntry = () => {
       try {
         const { entry } = await apiFetch<{ entry: JournalEntry }>("/entries", {
           method: "POST",
-          body: JSON.stringify({ title, summary, body, tags, emotions, themeIntensities, date, triggers, themes }),
+          body: JSON.stringify({
+            title,
+            summary,
+            body,
+            tags,
+            emotions,
+            themeIntensities,
+            languageReflection,
+            timeReflection,
+            date,
+            triggers,
+            themes,
+            evidenceUnits,
+          }),
         });
 
         await apiFetch("/insights/refresh", { method: "POST" });

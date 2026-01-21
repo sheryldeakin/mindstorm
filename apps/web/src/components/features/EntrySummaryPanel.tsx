@@ -1,15 +1,16 @@
 import type { JournalEntry } from "../../types/journal";
 import {
   buildLanguageReflection,
-  buildOverallEmotions,
+  buildEvidenceBadges,
+  buildEvidenceThemes,
+  buildEvidenceTouchesOn,
   buildPatternHints,
   buildQuestions,
-  buildThemes,
   buildTimeReflection,
-  buildTouchesOn,
   buildWhatHelped,
 } from "../../lib/entryInsights";
 import Badge from "../ui/Badge";
+import { usePatientTranslation } from "../../hooks/usePatientTranslation";
 
 /** Patient-Facing: summarizes signals from a single journal entry in reflective language. */
 interface EntrySummaryPanelProps {
@@ -17,16 +18,23 @@ interface EntrySummaryPanelProps {
 }
 
 const EntrySummaryPanel = ({ entry }: EntrySummaryPanelProps) => {
-  const analysis = {
-    emotions: entry.emotions || [],
-    triggers: entry.triggers || [],
-    themes: entry.themes || [],
-  };
-  const themes = buildThemes(analysis);
-  const touchesOn = buildTouchesOn(analysis);
-  const overallEmotions = buildOverallEmotions(analysis);
-  const languageReflection = buildLanguageReflection(entry.summary || "");
-  const timeReflection = buildTimeReflection(entry.summary || "");
+  const { getPatientLabel, getIntensityLabel } = usePatientTranslation();
+  const evidenceUnits = entry.evidenceUnits || [];
+  const hasEvidence = evidenceUnits.length > 0;
+  const themes = hasEvidence
+    ? buildEvidenceThemes(evidenceUnits, getPatientLabel, ["SYMPTOM_", "IMPACT_", "CONTEXT_"])
+    : [];
+  const touchesOn = hasEvidence
+    ? buildEvidenceTouchesOn(evidenceUnits, getPatientLabel, ["IMPACT_", "CONTEXT_"])
+    : [];
+  const overallEmotions = hasEvidence
+    ? buildEvidenceBadges(evidenceUnits, getPatientLabel, getIntensityLabel, ["SYMPTOM_"])
+    : [];
+  const reflectionSource = entry.languageReflection || entry.timeReflection ? "" : entry.summary || entry.body || "";
+  const languageReflection =
+    entry.languageReflection || (reflectionSource ? buildLanguageReflection(reflectionSource) : "");
+  const timeReflection =
+    entry.timeReflection || (reflectionSource ? buildTimeReflection(reflectionSource) : "");
   const questions = buildQuestions(themes);
   const patternHints = buildPatternHints(themes);
   const whatHelped = buildWhatHelped(entry.summary || "");
@@ -40,7 +48,9 @@ const EntrySummaryPanel = ({ entry }: EntrySummaryPanelProps) => {
           {overallEmotions.length ? (
             overallEmotions.map((emotion) => (
               <Badge key={emotion.label} tone={emotion.tone}>
-                {emotion.label} · {emotion.intensity}%
+                {emotion.label}
+                {emotion.intensityLabel ? ` · ${emotion.intensityLabel}` : ""}
+                {emotion.intensity !== undefined ? ` · ${emotion.intensity}%` : ""}
               </Badge>
             ))
           ) : (

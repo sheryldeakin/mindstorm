@@ -41,13 +41,8 @@ export interface JournalEntry {
   triggers?: string[];
   themes?: string[];
   themeIntensities?: { theme: string; intensity: number }[];
-  evidenceBySection?: {
-    recurringExperiences?: string[];
-    impactAreas?: string[];
-    relatedInfluences?: string[];
-    unclearAreas?: string[];
-    questionsToExplore?: string[];
-  };
+  languageReflection?: string;
+  timeReflection?: string;
   evidenceUnits?: EvidenceUnit[];
   createdAt?: string;
   updatedAt?: string;

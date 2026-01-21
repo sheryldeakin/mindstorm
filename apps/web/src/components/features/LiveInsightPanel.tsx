@@ -1,11 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import type { LlmAnalysis } from "../../lib/analyzeEntry";
 import {
-  buildLanguageReflection,
-  buildOverallEmotions,
   buildQuestions,
+  buildOverallEmotions,
   buildThemes,
-  buildTimeReflection,
   buildTouchesOn,
 } from "../../lib/entryInsights";
 import Badge from "../ui/Badge";
@@ -16,6 +14,8 @@ interface LiveInsightPanelProps {
   loading?: boolean;
   error?: string | null;
   draftText: string;
+  showQuestions?: boolean;
+  processingLabel?: string;
 }
 
 const useTypewriter = (text: string, isActive: boolean, speed = 18) => {
@@ -43,13 +43,23 @@ const useTypewriter = (text: string, isActive: boolean, speed = 18) => {
   return output;
 };
 
-const LiveInsightPanel = ({ analysis, loading, error, draftText }: LiveInsightPanelProps) => {
-  const overallEmotions = buildOverallEmotions(analysis);
-  const themes = buildThemes(analysis);
-  const touchesOn = buildTouchesOn(analysis);
-  const languageReflection = buildLanguageReflection(draftText);
-  const timeReflection = buildTimeReflection(draftText);
-  const questions = buildQuestions(themes);
+const LiveInsightPanel = ({
+  analysis,
+  loading,
+  error,
+  draftText,
+  showQuestions = true,
+  processingLabel,
+}: LiveInsightPanelProps) => {
+  const legacyEmotions = buildOverallEmotions(analysis);
+  const impactAreas = buildThemes(analysis);
+  const contextSignals = buildTouchesOn(analysis);
+  const symptoms = legacyEmotions;
+  const languageReflection = analysis?.languageReflection || "";
+  const timeReflection = analysis?.timeReflection || "";
+  const themes = impactAreas;
+  const questionSeeds = symptoms.length ? symptoms.map((item) => item.label) : themes;
+  const questions = buildQuestions(questionSeeds);
   const hasDraft = Boolean(draftText.trim());
   const analysisKey = useMemo(() => JSON.stringify(analysis || {}), [analysis]);
   const [revealStep, setRevealStep] = useState(0);
@@ -84,19 +94,21 @@ const LiveInsightPanel = ({ analysis, loading, error, draftText }: LiveInsightPa
       {loading && (
         <div className="mt-3 h-1.5 w-full rounded-full bg-slate-100 loading-bar" aria-hidden />
       )}
-      {(loading || error) && (
+      {(loading || processingLabel || error) && (
         <div className="ms-glass-surface mt-3 flex items-center justify-between gap-3 rounded-2xl border px-3 py-2 text-xs text-slate-500">
           <div className="flex items-center gap-2" role="status" aria-live="polite">
-            {loading ? (
+            {loading || processingLabel ? (
               <>
                 <span className="inline-flex h-2 w-2 animate-pulse rounded-full bg-brand/60" />
-                <span>Analyzing your draft for signals...</span>
+                <span>{processingLabel || "Analyzing your draft for signals..."}</span>
               </>
             ) : (
               <span>Insights paused while we retry.</span>
             )}
           </div>
-          {loading && <span className="text-[10px] uppercase tracking-[0.2em] text-slate-400">Live</span>}
+          {(loading || processingLabel) && (
+            <span className="text-[10px] uppercase tracking-[0.2em] text-slate-400">Live</span>
+          )}
         </div>
       )}
       {!hasDraft && !loading ? (
@@ -104,44 +116,45 @@ const LiveInsightPanel = ({ analysis, loading, error, draftText }: LiveInsightPa
       ) : (
         <div className="mt-4 space-y-6">
           <div>
-            <h3 className="text-sm font-semibold text-slate-700">Overall emotions</h3>
+            <h3 className="text-sm font-semibold text-slate-700">What&apos;s showing up</h3>
             <div className="mt-3 flex flex-wrap gap-2">
               {loading || revealStep < 1 ? (
-                <div className="typing-line-no-caret text-sm text-slate-500">Generating emotion signals...</div>
-              ) : overallEmotions.length ? (
-                overallEmotions.map((emotion) => (
-                  <Badge key={emotion.label} tone={emotion.tone}>
-                    {emotion.label} · {emotion.intensity}%
+                <div className="typing-line-no-caret text-sm text-slate-500">Detecting symptoms...</div>
+              ) : symptoms.length ? (
+                symptoms.map((symptom) => (
+                  <Badge key={symptom.label} tone={symptom.tone}>
+                    {symptom.label}
+                    {symptom.intensity !== undefined ? ` · ${symptom.intensity}%` : ""}
                   </Badge>
                 ))
               ) : (
-                <p className="text-sm text-slate-500">Add more detail to surface emotions.</p>
+                <p className="text-sm text-slate-500">Add more detail to surface what&apos;s showing up.</p>
               )}
             </div>
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-slate-700">Themes</h3>
+            <h3 className="text-sm font-semibold text-slate-700">Where this affects your life</h3>
             <div className="mt-2 flex flex-wrap gap-2">
               {loading || revealStep < 2 ? (
-                <div className="typing-line-no-caret text-sm text-slate-500">Detecting themes...</div>
-              ) : themes.length ? (
-                themes.map((theme) => (
-                  <span key={theme} className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs text-slate-600">
-                    {theme}
+                <div className="typing-line-no-caret text-sm text-slate-500">Scanning for impact areas...</div>
+              ) : impactAreas.length ? (
+                impactAreas.map((area) => (
+                  <span key={area} className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs text-slate-600">
+                    {area}
                   </span>
                 ))
               ) : (
-                <p className="text-sm text-slate-500">Themes will appear as you write.</p>
+                <p className="text-sm text-slate-500">Impact areas will appear as you write.</p>
               )}
             </div>
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-slate-700">This entry touches on</h3>
+            <h3 className="text-sm font-semibold text-slate-700">Things that seem connected</h3>
             <ul className="mt-2 space-y-1 text-sm text-slate-600">
               {loading || revealStep < 3 ? (
-                <li className="typing-line-no-caret text-sm text-slate-500">Mapping related topics...</li>
-              ) : touchesOn.length ? (
-                touchesOn.slice(0, 4).map((item) => (
+                <li className="typing-line-no-caret text-sm text-slate-500">Mapping related context...</li>
+              ) : contextSignals.length ? (
+                contextSignals.slice(0, 4).map((item) => (
                   <li key={item} className="flex items-center gap-2">
                     <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
                     <span>{item}</span>
@@ -166,23 +179,25 @@ const LiveInsightPanel = ({ analysis, loading, error, draftText }: LiveInsightPa
                 : typedTime || "Mention timing (weeks, months, days) to surface a time reflection."}
             </p>
           </div>
-          <div>
-            <h3 className="text-sm font-semibold text-slate-700">Questions to expand on in journal entry</h3>
-            <ul className="mt-2 space-y-2 text-sm text-slate-600">
-              {loading || revealStep < 6 ? (
-                <li className="typing-line-no-caret text-sm text-slate-500">Generating reflective prompts...</li>
-              ) : (
-                <>
-                  <li className="ms-glass-surface rounded-2xl border px-3 py-2">
-                    {typedQuestionOne}
-                  </li>
-                  <li className="ms-glass-surface rounded-2xl border px-3 py-2">
-                    {typedQuestionTwo}
-                  </li>
-                </>
-              )}
-            </ul>
-          </div>
+          {showQuestions ? (
+            <div>
+              <h3 className="text-sm font-semibold text-slate-700">Questions to expand on in journal entry</h3>
+              <ul className="mt-2 space-y-2 text-sm text-slate-600">
+                {loading || revealStep < 6 ? (
+                  <li className="typing-line-no-caret text-sm text-slate-500">Generating reflective prompts...</li>
+                ) : (
+                  <>
+                    <li className="ms-glass-surface rounded-2xl border px-3 py-2">
+                      {typedQuestionOne}
+                    </li>
+                    <li className="ms-glass-surface rounded-2xl border px-3 py-2">
+                      {typedQuestionTwo}
+                    </li>
+                  </>
+                )}
+              </ul>
+            </div>
+          ) : null}
         </div>
       )}
     </aside>

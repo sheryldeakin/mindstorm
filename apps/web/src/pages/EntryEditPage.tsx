@@ -104,7 +104,6 @@ const EntryEditPage = () => {
         title,
         summary,
         dateISO: entryDate,
-        themeIntensities: draftAnalysis?.themeIntensities || [],
       });
       setActionMessage("Entry updated.");
       navigate(`/patient/entry/${id}`);

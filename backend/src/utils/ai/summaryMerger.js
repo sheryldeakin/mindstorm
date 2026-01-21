@@ -202,7 +202,8 @@ const shouldUseJsonResponseFormat = (baseUrl) => {
  */
 const callLlm = async ({ baseUrl, apiKey, model, messages, maxTokens }) => {
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 90000);
+  const timeoutMs = Number.parseInt(process.env.LLM_TIMEOUT_MS || "90000", 10);
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
     const responseFormat = shouldUseJsonResponseFormat(baseUrl)
