@@ -32,12 +32,7 @@ const PreparePage = () => {
   const [appendix, setAppendix] = useState<ClinicianAppendix | null>(null);
   const [summaryLoading, setSummaryLoading] = useState(false);
   const [summaryError, setSummaryError] = useState<string | null>(null);
-  const [summaryJobId, setSummaryJobId] = useState<string | null>(null);
-  const [summaryProgress, setSummaryProgress] = useState<{
-    percent: number;
-    stage: string;
-    detail?: { current?: number; total?: number };
-  }>({ percent: 0, stage: "queued" });
+  const [summaryGenerating, setSummaryGenerating] = useState(false);
   const [weeklySummaries, setWeeklySummaries] = useState<WeeklySummary[]>([]);
   const [weeklyLoading, setWeeklyLoading] = useState(false);
   const [weeklyError, setWeeklyError] = useState<string | null>(null);
@@ -81,22 +76,33 @@ const PreparePage = () => {
     setSummaryError(null);
     setSummary(null);
     setAppendix(null);
-    setSummaryJobId(null);
-    setSummaryProgress({ percent: 0, stage: "queued" });
-    apiFetch<{ jobId: string }>("/ai/prepare-summary", {
+    setSummaryGenerating(false);
+    apiFetch<{
+      summary: PrepareSummary | null;
+      appendix?: ClinicianAppendix;
+      stale?: boolean;
+      generating?: boolean;
+    }>("/ai/prepare-summary", {
       method: "POST",
       body: JSON.stringify({ rangeDays: rangeToDays(timeRange) }),
     })
-      .then(({ jobId }) => {
+      .then(({ summary: responseSummary, appendix: responseAppendix, generating }) => {
         if (!active) return;
-        setSummaryJobId(jobId);
+        setSummary(responseSummary);
+        setAppendix(responseAppendix || null);
+        setSummaryGenerating(Boolean(generating));
+        setWhySharingTouched(false);
+        setImpactNoteTouched(false);
       })
       .catch((err) => {
         if (!active) return;
         setSummaryError(err instanceof Error ? err.message : "Failed to build summary.");
-        setSummaryLoading(false);
         setSummary(null);
         setAppendix(null);
+      })
+      .finally(() => {
+        if (!active) return;
+        setSummaryLoading(false);
       });
     return () => {
       active = false;
@@ -104,80 +110,36 @@ const PreparePage = () => {
   }, [timeRange]);
 
   useEffect(() => {
-    if (!summaryJobId) return undefined;
+    if (!summaryGenerating) return undefined;
     let active = true;
-
-    const formatStage = (stage: string, detail?: { current?: number; total?: number }) => {
-      if (detail?.total && (stage === "backfilling_weekly_summaries" || stage === "merging_summaries")) {
-        const current = Math.min(detail.current || 0, detail.total);
-        return `Processing Week ${Math.max(1, current)} of ${detail.total}...`;
-      }
-      switch (stage) {
-        case "fetching_entries":
-          return "Collecting journal entries";
-        case "loading_weekly_summaries":
-          return "Loading weekly summaries";
-        case "backfilling_weekly_summaries":
-          return "Generating missing weekly summaries";
-        case "loading_signals":
-          return "Reading detected signals";
-        case "merging_summaries":
-          return "Merging summaries";
-        case "finalizing":
-          return "Finalizing summary";
-        case "completed":
-          return "Complete";
-        default:
-          return "Preparing summary";
-      }
-    };
 
     const poll = async () => {
       try {
         const response = await apiFetch<{
-          status: string;
-          stage?: string;
-          percent?: number;
-          result?: { summary: PrepareSummary; appendix?: ClinicianAppendix };
-          error?: string;
-          detail?: { current?: number; total?: number };
-        }>(`/ai/prepare-summary/${summaryJobId}`);
-
+          summary: PrepareSummary | null;
+          appendix?: ClinicianAppendix;
+          generating?: boolean;
+        }>("/ai/prepare-summary", {
+          method: "POST",
+          body: JSON.stringify({ rangeDays: rangeToDays(timeRange) }),
+        });
         if (!active) return;
-        const percent = typeof response.percent === "number" ? response.percent : 0;
-        const stage = response.stage || "queued";
-        const detail = response.detail;
-        setSummaryProgress({ percent, stage: formatStage(stage, detail), detail });
-
-        if (response.status === "completed") {
-          setSummary(response.result?.summary || null);
-          setAppendix(response.result?.appendix || null);
-          setWhySharingTouched(false);
-          setImpactNoteTouched(false);
-          setSummaryLoading(false);
-          setSummaryJobId(null);
-        }
-
-        if (response.status === "failed") {
-          setSummaryError(response.error || "Failed to build summary.");
-          setSummaryLoading(false);
-          setSummaryJobId(null);
-        }
+        setSummary(response.summary);
+        setAppendix(response.appendix || null);
+        setSummaryGenerating(Boolean(response.generating));
       } catch (err) {
         if (!active) return;
         setSummaryError(err instanceof Error ? err.message : "Failed to build summary.");
-        setSummaryLoading(false);
-        setSummaryJobId(null);
+        setSummaryGenerating(false);
       }
     };
 
-    poll();
-    const interval = setInterval(poll, 1200);
+    const interval = setInterval(poll, 5000);
     return () => {
       active = false;
       clearInterval(interval);
     };
-  }, [summaryJobId]);
+  }, [summaryGenerating, timeRange]);
 
   useEffect(() => {
     setWeeklyLoading(true);
@@ -335,17 +297,15 @@ const PreparePage = () => {
       {summaryLoading && (
         <div className="rounded-2xl border border-slate-200 p-4 text-xs text-slate-500" role="status" aria-live="polite">
           <div className="flex items-center justify-between">
-            <span>{summaryProgress.stage}</span>
-            <span className="text-[10px] uppercase tracking-[0.3em] text-slate-400">
-              {Math.min(99, Math.max(1, Math.round(summaryProgress.percent || 1)))}%
-            </span>
+            <span>Preparing your summary...</span>
+            <span className="text-[10px] uppercase tracking-[0.3em] text-slate-400">Working</span>
           </div>
-          <div className="mt-3 h-1.5 w-full rounded-full bg-slate-100" aria-hidden>
-            <div
-              className="h-full rounded-full bg-sky-400 transition-[width] duration-300"
-              style={{ width: `${Math.min(100, Math.max(2, summaryProgress.percent || 2))}%` }}
-            />
-          </div>
+          <div className="mt-3 h-1.5 w-full rounded-full bg-slate-100 loading-bar" aria-hidden />
+        </div>
+      )}
+      {!summaryLoading && summaryGenerating && (
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-xs text-amber-800">
+          Generating your summary in the background. This view will update automatically.
         </div>
       )}
       {summaryError && (
@@ -361,7 +321,7 @@ const PreparePage = () => {
               This is a personal reflection summary generated from my journal entries. It is not a
               diagnosis or medical opinion. It is meant to support conversation and shared understanding.
             </p>
-            {!summaryLoading && !summary && !summaryError && (
+            {!summaryLoading && !summary && !summaryError && !summaryGenerating && (
               <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
                 Summary not generated yet. Connect a model or try again to populate this document.
               </div>

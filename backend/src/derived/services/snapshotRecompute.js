@@ -5,6 +5,7 @@ const ThemeSeries = require("../models/ThemeSeries");
 const WeeklySummary = require("../../models/WeeklySummary");
 const { PIPELINE_VERSION } = require("../pipelineVersion");
 const { computeSourceVersionForRange } = require("../versioning");
+const { mergeSummaries } = require("../../utils/ai/summaryMerger");
 
 const getRangeStartIso = (rangeKey) => {
   if (rangeKey === "all_time") return null;
@@ -19,6 +20,79 @@ const getRangeStartIso = (rangeKey) => {
   const end = new Date();
   const start = new Date(end.getFullYear(), end.getMonth(), end.getDate() - (days - 1));
   return start.toISOString().slice(0, 10);
+};
+
+const buildTimeRangeLabel = (rangeKey) => {
+  switch (rangeKey) {
+    case "last_7_days":
+      return "Last 7 days";
+    case "last_30_days":
+      return "Last 30 days";
+    case "last_90_days":
+      return "Last 90 days";
+    case "last_365_days":
+      return "Last 12 months";
+    case "all_time":
+      return "All time";
+    default:
+      return "Last 30 days";
+  }
+};
+
+const aggregateEvidenceUnits = (signals) => {
+  const counts = new Map();
+  if (!Array.isArray(signals)) return counts;
+  signals.forEach((signal) => {
+    const units = Array.isArray(signal.evidenceUnits) ? signal.evidenceUnits : [];
+    units.forEach((unit) => {
+      const label = typeof unit?.label === "string" ? unit.label.trim() : "";
+      if (!label) return;
+      const polarity = unit?.attributes?.polarity || unit?.polarity;
+      if (polarity !== "PRESENT") return;
+      counts.set(label, (counts.get(label) || 0) + 1);
+    });
+  });
+  return counts;
+};
+
+const buildSignalContext = (counts) => {
+  const entries = Array.from(counts.entries());
+  if (!entries.length) return "";
+  return entries
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .map(([label, count]) => `${label}: ${count}`)
+    .join(", ");
+};
+
+const buildEvidenceHighlights = (signals, limit = 8) => {
+  const scored = [];
+  const seen = new Set();
+  const severityScore = (value) => {
+    if (!value) return 0;
+    const normalized = String(value).toUpperCase();
+    if (normalized === "SEVERE") return 2;
+    if (normalized === "MODERATE") return 1;
+    return 0;
+  };
+
+  signals.forEach((signal) => {
+    const units = Array.isArray(signal.evidenceUnits) ? signal.evidenceUnits : [];
+    units.forEach((unit) => {
+      if (!unit?.span) return;
+      if (unit.attributes?.polarity !== "PRESENT") return;
+      if (unit.attributes?.uncertainty && unit.attributes.uncertainty !== "LOW") return;
+      const key = `${signal.dateISO}::${unit.label}::${unit.span}`;
+      if (seen.has(key)) return;
+      seen.add(key);
+      const score = severityScore(unit.attributes?.severity);
+      scored.push({ span: unit.span, score, dateISO: signal.dateISO || "" });
+    });
+  });
+
+  return scored
+    .sort((a, b) => b.score - a.score || a.dateISO.localeCompare(b.dateISO))
+    .slice(0, limit)
+    .map((item) => item.span);
 };
 
 const buildDateList = (startIso, endIso) => {
@@ -260,9 +334,26 @@ const buildSnapshot = ({ entries, rangeKey, weeklySummaries, seriesDocs, signals
   const finalInfluences = influences.length ? influences : weeklyInfluences;
   const openQuestions = collectTopItems(weeklySummaries, "questionsToExplore", 3);
 
+  const rangeIntro = (() => {
+    switch (rangeKey) {
+      case "last_7_days":
+        return "In the last week,";
+      case "last_30_days":
+        return "In the last month,";
+      case "last_90_days":
+        return "In the last 3 months,";
+      case "last_365_days":
+        return "Over the past year,";
+      case "all_time":
+        return "Over time,";
+      default:
+        return "Lately,";
+    }
+  })();
+
   const snapshotParts = [];
   if (topThemes.length) {
-    snapshotParts.push(`Lately, your writing often touches on ${formatList(topThemes.slice(0, 3))}.`);
+    snapshotParts.push(`${rangeIntro} your writing often touches on ${formatList(topThemes.slice(0, 3))}.`);
   }
   if (finalImpactAreas.length) {
     snapshotParts.push(`These experiences seem to affect ${formatList(finalImpactAreas)}.`);
@@ -318,6 +409,49 @@ const recomputeSnapshotForUser = async ({ userId, rangeKey }) => {
   const seriesDocs = await ThemeSeries.find({ userId, rangeKey }).lean();
 
   const snapshot = buildSnapshot({ entries, rangeKey, weeklySummaries, seriesDocs, signals });
+  const timeRangeLabel = buildTimeRangeLabel(rangeKey);
+  const chunkSummaries = weeklySummaries
+    .map((item) => {
+      if (!item.summary) return null;
+      return { weekStart: item.weekStartISO, summary: item.summary };
+    })
+    .filter(Boolean);
+
+  let narrative = {};
+  if (chunkSummaries.length) {
+    const baseUrl = process.env.OPENAI_API_URL || "https://api.openai.com/v1";
+    const apiKey = process.env.OPENAI_API_KEY || "";
+    const model = process.env.OPENAI_MODEL || "gpt-4o-mini";
+    const isLocal = baseUrl.includes("localhost") || baseUrl.includes("127.0.0.1");
+
+    if (!apiKey && !isLocal) {
+      console.warn("[snapshot] missing OPENAI_API_KEY and not local", { baseUrl });
+    } else {
+      const signalCounts = aggregateEvidenceUnits(signals);
+      const signalContext = buildSignalContext(signalCounts);
+      const evidenceHighlights = buildEvidenceHighlights(signals);
+      const mergeResponse = await mergeSummaries({
+        summaries: chunkSummaries,
+        timeRangeLabel,
+        signalContext,
+        evidenceHighlights,
+        baseUrl,
+        apiKey,
+        model,
+      });
+
+      if (mergeResponse?.data) {
+        narrative = mergeResponse.data;
+      } else if (mergeResponse?.error) {
+        console.warn("[snapshot] merge error", { error: mergeResponse.error });
+      }
+    }
+  }
+  if (!narrative.overTimeSummary) {
+    narrative.overTimeSummary = snapshot.snapshotOverview || "";
+  }
+  narrative.timeRangeLabel = narrative.timeRangeLabel || timeRangeLabel;
+  snapshot.narrative = narrative || {};
   const sourceVersion = await computeSourceVersionForRange(userId, rangeKey);
 
   await SnapshotSummary.findOneAndUpdate(

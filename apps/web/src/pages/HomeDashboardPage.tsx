@@ -184,6 +184,16 @@ const HomeDashboardPage = () => {
     openQuestions?: string[];
     entryCount?: number;
     sourceEntryCount?: number;
+    narrative?: {
+      overTimeSummary?: string;
+      recurringExperiences?: string[];
+      impactAreas?: string[];
+      relatedInfluences?: string[];
+      questionsToExplore?: string[];
+      highlights?: string[];
+      shiftsOverTime?: string[];
+      contextImpactSummary?: string;
+    };
   } | null>(null);
   const [stale, setStale] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -218,6 +228,28 @@ const HomeDashboardPage = () => {
   }, [rangeKey, status]);
 
   useEffect(() => {
+    if (!stale || status !== "authed") return undefined;
+    let active = true;
+    const poll = async () => {
+      try {
+        const response = await apiFetch<{ snapshot: any; stale?: boolean }>(
+          `/derived/snapshot?rangeKey=${rangeKey}`,
+        );
+        if (!active) return;
+        setSnapshot(response.snapshot);
+        setStale(Boolean(response.stale));
+      } catch {
+        if (!active) return;
+      }
+    };
+    const interval = setInterval(poll, 5000);
+    return () => {
+      active = false;
+      clearInterval(interval);
+    };
+  }, [rangeKey, stale, status]);
+
+  useEffect(() => {
     if (status !== "authed") {
       return;
     }
@@ -240,18 +272,6 @@ const HomeDashboardPage = () => {
   const timeRangeSummary = snapshot?.timeRangeSummary || null;
   const helpedHighlights = snapshot?.whatHelped?.length ? snapshot.whatHelped : emptyHelpedHighlights;
   const gentlePrompts = snapshot?.prompts?.length ? snapshot.prompts : emptyPrompts;
-  const currentWeekSummary = useMemo(
-    () => (weeklySummaries.length ? weeklySummaries[weeklySummaries.length - 1] : null),
-    [weeklySummaries],
-  );
-  const weeklyHeading =
-    range === "week"
-      ? "This week so far"
-      : range === "month"
-        ? "This month so far"
-        : range === "year"
-          ? "This year so far"
-          : "All-time weekly summary";
   const rangeLabel =
     range === "week"
       ? "this week"
@@ -260,23 +280,25 @@ const HomeDashboardPage = () => {
         : range === "year"
           ? "this year"
           : "all time";
-  const weeklySubcopy =
-    range === "week"
-      ? "A snapshot of the current week."
-      : range === "all"
-        ? "Most recent week in your full history."
-        : "Most recent week in this range.";
-  const snapshotImpactAreas = snapshot?.impactAreas || [];
-  const snapshotInfluences = snapshot?.influences || [];
-  const snapshotQuestions = snapshot?.openQuestions || [];
+  const narrative = snapshot?.narrative || {};
+  const snapshotImpactAreas =
+    narrative.impactAreas?.length ? narrative.impactAreas : snapshot?.impactAreas || [];
+  const snapshotInfluences =
+    narrative.relatedInfluences?.length ? narrative.relatedInfluences : snapshot?.influences || [];
+  const snapshotQuestions =
+    narrative.questionsToExplore?.length ? narrative.questionsToExplore : snapshot?.openQuestions || [];
   const emptyContextCopy = hasEntries
     ? "Not available yet."
     : "Add a few entries to see this.";
   const snapshotSynthesis = buildSnapshotSynthesis(patterns, snapshotInfluences);
-  const snapshotNarrative =
-    hasEntries && (patterns.length || snapshotInfluences.length)
+  const snapshotNarrative = narrative.overTimeSummary?.trim()
+    ? narrative.overTimeSummary
+    : hasEntries && (patterns.length || snapshotInfluences.length)
       ? snapshotSynthesis
       : "Add a few journal entries to unlock your snapshot patterns.";
+  const narrativeHighlights = narrative.highlights || [];
+  const narrativeShifts = narrative.shiftsOverTime || [];
+  const contextImpactSummary = narrative.contextImpactSummary?.trim();
 
   return (
     <div className="space-y-12 text-slate-900">
@@ -290,7 +312,7 @@ const HomeDashboardPage = () => {
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <Tabs options={rangeOptions} activeId={range} onValueChange={setRange} />
-          {(loading || stale) && <span className="small-label text-slate-400">Updating</span>}
+          {(loading || stale) && <span className="small-label text-slate-400">Updating your snapshot...</span>}
         </div>
       </section>
 
@@ -302,23 +324,15 @@ const HomeDashboardPage = () => {
           </p>
         </div>
         <p className="mt-3 text-sm text-slate-600">{snapshotNarrative}</p>
-        <div className="mt-6">
-          {weeklyLoading ? (
-            <p className="mt-3 text-sm text-slate-500">Loading weekly summary...</p>
-          ) : weeklyError ? (
-            <p className="mt-3 text-sm text-rose-600">{weeklyError}</p>
-          ) : currentWeekSummary ? (
-            <div className="ms-glass-surface rounded-2xl border p-4">
-              <p className="small-label text-slate-400">
-                Week of {currentWeekSummary.weekStartISO} - {currentWeekSummary.weekEndISO}
-              </p>
-              <p className="mt-2 text-sm text-slate-600">
-                {currentWeekSummary.summary?.overTimeSummary || "No summary generated for this week yet."}
-              </p>
-              <div className="mt-3 text-sm text-slate-600">
-                {(currentWeekSummary.summary?.recurringExperiences?.length
-                  ? currentWeekSummary.summary.recurringExperiences
-                  : ["No recurring themes captured."])
+        {contextImpactSummary ? (
+          <p className="mt-2 text-sm text-slate-600">{contextImpactSummary}</p>
+        ) : null}
+        {(narrativeHighlights.length || narrativeShifts.length) ? (
+          <div className="mt-4 grid gap-4 text-sm text-slate-600 md:grid-cols-2">
+            <div>
+              <p className="small-label text-slate-400">Highlights</p>
+              <div className="mt-2 space-y-1">
+                {(narrativeHighlights.length ? narrativeHighlights : ["No highlights captured yet."])
                   .slice(0, 3)
                   .map((item) => (
                     <div key={item} className="flex items-center gap-2">
@@ -328,10 +342,21 @@ const HomeDashboardPage = () => {
                   ))}
               </div>
             </div>
-          ) : (
-            <p className="mt-3 text-sm text-slate-500">No weekly summary available yet.</p>
-          )}
-        </div>
+            <div>
+              <p className="small-label text-slate-400">Shifts over time</p>
+              <div className="mt-2 space-y-1">
+                {(narrativeShifts.length ? narrativeShifts : ["No shifts captured yet."])
+                  .slice(0, 3)
+                  .map((item) => (
+                    <div key={item} className="flex items-center gap-2">
+                      <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
+                      <span>{item}</span>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          </div>
+        ) : null}
         <div className="mt-6 grid gap-6 text-sm text-slate-600 lg:grid-cols-[1.3fr_2fr]">
           <div className="space-y-3">
             <p className="small-label text-slate-400">Life areas affected</p>

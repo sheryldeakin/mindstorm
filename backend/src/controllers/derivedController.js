@@ -1,5 +1,6 @@
 const asyncHandler = require("../utils/asyncHandler");
 const SnapshotSummary = require("../derived/models/SnapshotSummary");
+const { recomputeSnapshotForUser } = require("../derived/services/snapshotRecompute");
 const ConnectionsGraph = require("../derived/models/ConnectionsGraph");
 const Cycle = require("../derived/models/Cycle");
 const EntrySignals = require("../derived/models/EntrySignals");
@@ -339,9 +340,23 @@ const getSnapshot = asyncHandler(async (req, res) => {
   }).lean();
 
   if (!staleSnapshot) {
+    setImmediate(async () => {
+      try {
+        await recomputeSnapshotForUser({ userId: req.user._id, rangeKey });
+      } catch (err) {
+        console.warn("[snapshot] recompute failed", err?.message || err);
+      }
+    });
     return res.json({ snapshot: null, stale: true });
   }
 
+  setImmediate(async () => {
+    try {
+      await recomputeSnapshotForUser({ userId: req.user._id, rangeKey });
+    } catch (err) {
+      console.warn("[snapshot] recompute failed", err?.message || err);
+    }
+  });
   res.json({ snapshot: staleSnapshot.snapshot || null, stale: true });
 });
 

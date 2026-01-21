@@ -21,6 +21,9 @@ export interface PrepareSummary {
   relatedInfluences: string[];
   unclearAreas: string[];
   questionsToExplore: string[];
+  highlights?: string[];
+  shiftsOverTime?: string[];
+  contextImpactSummary?: string;
   evidenceBySection: {
     recurringExperiences?: { bullet: string; quotes: string[] }[];
     impactAreas?: { bullet: string; quotes: string[] }[];

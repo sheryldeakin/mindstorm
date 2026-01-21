@@ -1,12 +1,6 @@
 const asyncHandler = require("../utils/asyncHandler");
 const { generateClinicianAppendix } = require("../utils/clinicalMetrics");
-const {
-  createJob,
-  updateJob,
-  getJob,
-  completeJob,
-  failJob,
-} = require("../utils/prepareSummaryJobs");
+const { callLlmWithRetry } = require("../utils/ai/summaryMerger");
 
 const buildPrompt = () =>
   [
@@ -32,42 +26,22 @@ const buildPreparePrompt = (timeRangeLabel) =>
     `Time range label: ${timeRangeLabel}.`,
   ].join(" ");
 
-const buildPrepareChunkPrompt = (timeRangeLabel) =>
+const buildPrepareChunkPrompt = (timeRangeLabel, signalContext) =>
   [
     "You are generating a short patient-authored summary for a subset of journal entries.",
     "Use plain language, no medical or diagnostic terms, no DSM labels, no severity scales, no causality claims.",
     "Tone: first-person, experience-first, respectful, concise. Use 'I' statements and patient voice.",
+    "Use the provided 'Detected Signals' as ground truth. Do not introduce themes not present in the signals.",
+    "Translate signals into patient-friendly terms (examples):",
+    "SYMPTOM_MOOD -> Low mood, SYMPTOM_ANHEDONIA -> Loss of interest, SYMPTOM_COGNITIVE -> Foggy thinking or self-critical thoughts,",
+    "SYMPTOM_SOMATIC -> Low energy or appetite changes, SYMPTOM_SLEEP -> Sleep changes, SYMPTOM_ANXIETY -> Anxiety or worry,",
+    "IMPACT_WORK -> Work/School impact, IMPACT_SOCIAL -> Relationship strain or isolation, IMPACT_SELF_CARE -> Self-care struggles,",
+    "CONTEXT_STRESSOR -> Life stressors, CONTEXT_MEDICAL -> Physical health changes, CONTEXT_SUBSTANCE -> Alcohol/substance/medication changes.",
     "For impactAreas, prefer these patient-friendly domains when relevant: Work/School, Relationships, Energy and Self-care, Motivation, Feeling safe or steady, Enjoyment and meaning.",
     "For relatedInfluences, focus on contextual factors (sleep, stress, medication changes, substances, physical health, major events) rather than life domains.",
     "Return strict JSON with keys:",
     "recurringExperiences (array of strings), overTimeSummary (string), intensityLines (array of 2 short strings like 'Week 1 ..'),",
     "impactAreas (array of strings), relatedInfluences (array of strings), unclearAreas (array of strings),",
-    "questionsToExplore (array of strings).",
-    `Time range label: ${timeRangeLabel}.`,
-  ].join(" ");
-
-const buildPrepareMergePrompt = (timeRangeLabel, signalContext) =>
-  [
-    "You are merging multiple chunk summaries into one patient-authored reflection summary for a clinician.",
-    "Use plain language, no medical or diagnostic terms, no DSM labels, no severity scales, no causality claims.",
-    "Tone: first-person, experience-first, respectful, concise. Use 'I' statements and patient voice.",
-    "The whySharing field must be first-person (start with 'I') and should sound like the patient speaking.",
-    "Focus on patterns, questions, and lived impact.",
-    "Use the provided 'Detected Signals' as ground truth. Do not introduce themes not present in the signals.",
-    "If a signal appears 3 or more times, you MUST mention it in recurringExperiences.",
-    "Translate signals into patient-friendly terms (examples):",
-    "SYMPTOM_MOOD -> Low mood, SYMPTOM_ANHEDONIA -> Loss of interest, SYMPTOM_COGNITIVE -> Foggy thinking or self-critical thoughts,",
-    "SYMPTOM_SOMATIC -> Low energy or appetite changes, SYMPTOM_SLEEP -> Sleep changes, SYMPTOM_ANXIETY -> Anxiety or worry,",
-    "IMPACT_WORK -> Work/School impact, IMPACT_SOCIAL -> Relationship strain or isolation, IMPACT_SELF_CARE -> Self-care struggles,",
-    "CONTEXT_STRESSOR -> Life stressors, CONTEXT_MEDICAL -> Physical health changes, CONTEXT_SUBSTANCE -> Alcohol/substance/medication changes,",
-    "SYMPTOM_MANIA -> Wired or unusually high energy, SYMPTOM_PSYCHOSIS -> Unusual perceptions or beliefs,",
-    "SYMPTOM_TRAUMA -> Trauma reminders or flashbacks.",
-    "For impactAreas, prefer these patient-friendly domains when relevant: Work/School, Relationships, Energy and Self-care, Motivation, Feeling safe or steady, Enjoyment and meaning.",
-    "For relatedInfluences, focus on contextual factors (sleep, stress, medication changes, substances, physical health, major events) rather than life domains.",
-    "Return strict JSON with keys:",
-    "timeRangeLabel (string), confidenceNote (string), whySharing (string), recurringExperiences (array of strings),",
-    "overTimeSummary (string), intensityLines (array of 3 short strings like 'Jan ..'), impactAreas (array of strings),",
-    "impactNote (string), relatedInfluences (array of strings), unclearAreas (array of strings),",
     "questionsToExplore (array of strings).",
     `Time range label: ${timeRangeLabel}.`,
     signalContext ? `Detected Signals (PRESENT counts): ${signalContext}` : "Detected Signals: none.",
@@ -401,85 +375,42 @@ const buildSignalContext = (counts) => {
     .join(", ");
 };
 
+const buildEvidenceHighlights = (signals, limit = 6) => {
+  const scored = [];
+  const seen = new Set();
+  const severityScore = (value) => {
+    if (!value) return 0;
+    const normalized = String(value).toUpperCase();
+    if (normalized === "SEVERE") return 2;
+    if (normalized === "MODERATE") return 1;
+    return 0;
+  };
+
+  signals.forEach((signal) => {
+    const units = Array.isArray(signal.evidenceUnits) ? signal.evidenceUnits : [];
+    units.forEach((unit) => {
+      if (!unit?.span) return;
+      if (unit.attributes?.polarity !== "PRESENT") return;
+      if (unit.attributes?.uncertainty && unit.attributes.uncertainty !== "LOW") return;
+      const key = `${signal.dateISO}::${unit.label}::${unit.span}`;
+      if (seen.has(key)) return;
+      seen.add(key);
+      const score = severityScore(unit.attributes?.severity);
+      scored.push({ span: unit.span, score, dateISO: signal.dateISO || "" });
+    });
+  });
+
+  return scored
+    .sort((a, b) => b.score - a.score || a.dateISO.localeCompare(b.dateISO))
+    .slice(0, limit)
+    .map((item) => item.span);
+};
+
 const shouldUseJsonResponseFormat = (baseUrl) => {
   const isLocal = baseUrl.includes("localhost") || baseUrl.includes("127.0.0.1");
   if (process.env.LLM_FORCE_JSON_RESPONSE_FORMAT === "true") return true;
   if (process.env.LLM_DISABLE_JSON_RESPONSE_FORMAT === "true") return false;
   return !isLocal;
-};
-
-const callLlm = async ({ baseUrl, apiKey, model, messages, maxTokens }) => {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 90000);
-
-  try {
-    const responseFormat = shouldUseJsonResponseFormat(baseUrl)
-      ? { response_format: { type: "json_object" } }
-      : {};
-    const response = await fetch(`${baseUrl}/chat/completions`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey || "sk-local"}`,
-      },
-      body: JSON.stringify({
-        model,
-        messages,
-        temperature: 0.2,
-        max_tokens: maxTokens,
-        ...responseFormat,
-      }),
-      signal: controller.signal,
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      return {
-        error: "LLM request failed.",
-        details: { status: response.status, statusText: response.statusText, body: errorText },
-      };
-    }
-
-    const data = await response.json();
-    const content = data.choices?.[0]?.message?.content;
-    if (!content) {
-      return { error: "No response content." };
-    }
-
-    const parsed = extractJson(content);
-    if (!parsed) {
-      const debug = process.env.LLM_DEBUG_PARSE === "true";
-      return {
-        error: "Failed to parse JSON response.",
-        details: debug ? { contentSnippet: content.slice(0, 800) } : undefined,
-      };
-    }
-
-    return { data: parsed };
-  } catch (err) {
-    if (err?.name === "AbortError") {
-      return { error: "LLM request timed out." };
-    }
-    return { error: "LLM request failed.", details: { message: err?.message || String(err) } };
-  } finally {
-    clearTimeout(timeout);
-  }
-};
-
-const callLlmWithRetry = async (options) => {
-  const initial = await callLlm(options);
-  if (!initial.error || initial.error !== "Failed to parse JSON response.") {
-    return initial;
-  }
-
-  const retry = await callLlm({
-    ...options,
-    messages: [
-      ...options.messages,
-      { role: "user", content: "Your last response was not valid JSON. Return JSON only." },
-    ],
-  });
-  return retry;
 };
 
 const callLlmRaw = async ({ baseUrl, apiKey, model, messages, maxTokens }) => {
@@ -714,6 +645,7 @@ const generateWeeklySummary = async ({ userId, weekStartIso }) => {
   const normalizedWeekStart = getWeekStartIso(weekStartIso);
   const Entry = require("../models/Entry");
   const WeeklySummary = require("../models/WeeklySummary");
+  const EntrySignals = require("../derived/models/EntrySignals");
   const weekEndIso = getWeekEndIso(normalizedWeekStart);
 
   const entries = await Entry.find({
@@ -730,6 +662,13 @@ const generateWeeklySummary = async ({ userId, weekStartIso }) => {
   }
 
   const timeRangeLabel = `Week of ${normalizedWeekStart}`;
+  const weekSignals = await EntrySignals.find({
+    userId,
+    dateISO: { $gte: normalizedWeekStart, $lte: weekEndIso },
+  }).lean();
+  const signalCounts = aggregateEvidenceUnits(weekSignals);
+  const signalContext = buildSignalContext(signalCounts);
+  const evidenceHighlights = buildEvidenceHighlights(weekSignals);
   const entryText = entries
     .map((entry) => {
       const tags = Array.isArray(entry.tags) ? entry.tags.join(", ") : "";
@@ -754,10 +693,20 @@ const generateWeeklySummary = async ({ userId, weekStartIso }) => {
     apiKey,
     model,
     messages: [
-      { role: "system", content: buildPrepareChunkPrompt(timeRangeLabel) },
-      { role: "user", content: `Journal entries:\n${entryText}\nReturn JSON only.` },
+      { role: "system", content: buildPrepareChunkPrompt(timeRangeLabel, signalContext) },
+      {
+        role: "user",
+        content: [
+          evidenceHighlights.length
+            ? `Evidence highlights (verbatim spans): ${evidenceHighlights.join(" | ")}`
+            : null,
+          `Journal entries:\n${entryText}\nReturn JSON only.`,
+        ]
+          .filter(Boolean)
+          .join("\n"),
+      },
     ],
-    maxTokens: 350,
+    maxTokens: 450,
   });
 
   if (response.error) {
@@ -844,124 +793,96 @@ const analyzeEntry = asyncHandler(async (req, res) => {
   });
 });
 
-const buildPrepareSummary = async ({ userId, rangeDays, onProgress }) => {
-  const updateProgress = (stage, percent, detail) => {
-    if (onProgress) onProgress({ stage, percent, detail });
-  };
+const rangeDaysToRangeKey = (rangeDays) => {
+  if (rangeDays <= 7) return "last_7_days";
+  if (rangeDays <= 30) return "last_30_days";
+  if (rangeDays <= 90) return "last_90_days";
+  if (rangeDays <= 365) return "last_365_days";
+  return "all_time";
+};
 
-  console.log("[prepare-summary] request", {
-    userId: userId?.toString?.() || "unknown",
-    rangeDays,
-  });
-  const parsedRangeDays = Number.parseInt(rangeDays, 10) || 56;
+const getRangeStartIsoFromKey = (rangeKey) => {
+  if (!rangeKey || rangeKey === "all_time") return null;
+  const days =
+    rangeKey === "last_365_days"
+      ? 365
+      : rangeKey === "last_90_days"
+        ? 90
+        : rangeKey === "last_7_days"
+          ? 7
+          : 30;
   const end = new Date();
-  const start = new Date(end.getFullYear(), end.getMonth(), end.getDate() - (parsedRangeDays - 1));
-  const startIso = start.toISOString().slice(0, 10);
-  const endIso = end.toISOString().slice(0, 10);
+  const start = new Date(end.getFullYear(), end.getMonth(), end.getDate() - (days - 1));
+  return start.toISOString().slice(0, 10);
+};
 
-  updateProgress("fetching_entries", 5);
+const buildTimeRangeLabel = (rangeKey) => {
+  switch (rangeKey) {
+    case "last_7_days":
+      return "Last 7 days";
+    case "last_30_days":
+      return "Last 30 days";
+    case "last_90_days":
+      return "Last 90 days";
+    case "last_365_days":
+      return "Last 12 months";
+    case "all_time":
+      return "All time";
+    default:
+      return "Last 30 days";
+  }
+};
+
+const prepareSummary = asyncHandler(async (req, res) => {
+  const rangeDays = Number.parseInt(req.body?.rangeDays, 10) || 56;
+  const rangeKey = rangeDaysToRangeKey(rangeDays);
+  const startIso = getRangeStartIsoFromKey(rangeKey);
+  const endIso = new Date().toISOString().slice(0, 10);
+
+  const SnapshotSummary = require("../derived/models/SnapshotSummary");
+  const EntrySignals = require("../derived/models/EntrySignals");
   const Entry = require("../models/Entry");
-  const entries = await Entry.find({
-    userId,
-    dateISO: { $gte: startIso },
-    deletedAt: null,
-  })
+  const { recomputeSnapshotForUser } = require("../derived/services/snapshotRecompute");
+
+  const freshSnapshot = await SnapshotSummary.findOne({
+    userId: req.user._id,
+    rangeKey,
+    stale: false,
+  }).lean();
+
+  let snapshotDoc = freshSnapshot;
+  let stale = false;
+  if (!snapshotDoc) {
+    snapshotDoc = await SnapshotSummary.findOne({ userId: req.user._id, rangeKey }).lean();
+    stale = Boolean(snapshotDoc);
+    setImmediate(async () => {
+      try {
+        await recomputeSnapshotForUser({ userId: req.user._id, rangeKey });
+      } catch (err) {
+        console.warn("[prepare-summary] snapshot recompute failed", err?.message || err);
+      }
+    });
+  }
+
+  if (!snapshotDoc) {
+    return res.status(202).json({
+      summary: null,
+      appendix: generateClinicianAppendix([]),
+      stale: true,
+      generating: true,
+    });
+  }
+
+  const entryQuery = startIso ? { userId: req.user._id, dateISO: { $gte: startIso } } : { userId: req.user._id };
+  const entries = await Entry.find({ ...entryQuery, deletedAt: null })
     .sort({ dateISO: 1 })
     .lean();
 
-  updateProgress("fetching_entries", 10);
-  if (!entries.length) {
-    console.log("[prepare-summary] no entries found for range", { startIso, rangeDays: parsedRangeDays });
-    const emptySummary = {
-      timeRangeLabel: `Last ${parsedRangeDays} days`,
-      confidenceNote: "Not enough entries yet to detect patterns.",
-      whySharing: "",
-      recurringExperiences: [],
-      overTimeSummary: "",
-      intensityLines: [],
-      impactAreas: [],
-      impactNote: "",
-      relatedInfluences: [],
-      unclearAreas: [],
-      questionsToExplore: [],
-      evidenceBySection: {
-        recurringExperiences: [],
-        impactAreas: [],
-        relatedInfluences: [],
-        unclearAreas: [],
-        questionsToExplore: [],
-      },
-      topics: [],
-    };
-    return {
-      summary: emptySummary,
-      appendix: generateClinicianAppendix([]),
-    };
-  }
+  const signalQuery = startIso
+    ? { userId: req.user._id, dateISO: { $gte: startIso, $lte: endIso } }
+    : { userId: req.user._id };
+  const signals = await EntrySignals.find(signalQuery).lean();
 
-  const baseUrl = process.env.OPENAI_API_URL || "https://api.openai.com/v1";
-  const apiKey = process.env.OPENAI_API_KEY || "";
-  const model = process.env.OPENAI_MODEL || "gpt-4o-mini";
-  const isLocal = baseUrl.includes("localhost") || baseUrl.includes("127.0.0.1");
-
-  if (!apiKey && !isLocal) {
-    console.warn("[prepare-summary] missing OPENAI_API_KEY and not local", { baseUrl });
-    throw new Error("OPENAI_API_KEY is not set.");
-  }
-
-  const timeRangeLabel = parsedRangeDays >= 56 ? "Last 8 weeks" : `Last ${parsedRangeDays} days`;
-  const WeeklySummary = require("../models/WeeklySummary");
-  const EntrySignals = require("../derived/models/EntrySignals");
-  const weekKeys = Array.from(new Set(entries.map((entry) => getWeekStartIso(entry.dateISO)))).sort();
-
-  updateProgress("loading_weekly_summaries", 15);
-  const weeklySummaries = await WeeklySummary.find({
-    userId,
-    weekStartISO: { $in: weekKeys },
-  }).lean();
-
-  const summaryMap = new Map(weeklySummaries.map((item) => [item.weekStartISO, item.summary]));
-  const missingKeys = weekKeys.filter((key) => !summaryMap.has(key));
-  const totalWeeks = weekKeys.length;
-  let completedWeeks = totalWeeks - missingKeys.length;
-  if (totalWeeks) {
-    updateProgress("loading_weekly_summaries", 15, { current: completedWeeks, total: totalWeeks });
-  }
-
-  if (missingKeys.length) {
-    console.log("[prepare-summary] backfilling weekly summaries", { missing: missingKeys.length });
-    updateProgress("backfilling_weekly_summaries", 15, { current: completedWeeks, total: totalWeeks });
-    const totalMissing = missingKeys.length;
-    for (let i = 0; i < missingKeys.length; i += 2) {
-      const batch = missingKeys.slice(i, i + 2);
-      const results = await Promise.all(
-        batch.map((weekStartIso) => generateWeeklySummary({ userId, weekStartIso })),
-      );
-      results.forEach((result, index) => {
-        completedWeeks += 1;
-        if (result?.error) {
-          console.warn("[prepare-summary] weekly summary error", { error: result.error });
-          return;
-        }
-        if (result) {
-          summaryMap.set(batch[index], result);
-        }
-        const percent = 15 + Math.round((completedWeeks / Math.max(totalWeeks, 1)) * 40);
-        updateProgress("backfilling_weekly_summaries", percent, {
-          current: Math.min(completedWeeks, totalWeeks),
-          total: totalWeeks,
-        });
-      });
-    }
-  }
-
-  updateProgress("loading_signals", 55);
-  const signals = await EntrySignals.find({
-    userId,
-    dateISO: { $gte: startIso, $lte: endIso },
-  }).lean();
-  const signalCounts = aggregateEvidenceUnits(signals);
-  const signalContext = buildSignalContext(signalCounts);
   const signalEntries = signals.map((signal) => ({
     dateISO: signal.dateISO,
     evidenceUnits: Array.isArray(signal.evidenceUnits) ? signal.evidenceUnits : [],
@@ -981,74 +902,8 @@ const buildPrepareSummary = async ({ userId, rangeDays, onProgress }) => {
     highUncertaintyEvidence,
   };
 
-  const chunkSummaries = weekKeys
-    .map((key) => {
-      const summary = summaryMap.get(key);
-      if (!summary) return null;
-      return { weekStart: key, summary };
-    })
-    .filter(Boolean);
-
-  console.log("[prepare-summary] using weekly summaries", {
-    weeks: chunkSummaries.length,
-    entries: entries.length,
-  });
-
-  const countMergeOps = (count) => {
-    let total = 0;
-    let current = count;
-    while (current > 1) {
-      const merges = Math.ceil(current / 2);
-      total += merges;
-      current = merges;
-    }
-    return total;
-  };
-
-  const mergeSummaries = async (summaries) => {
-    let current = summaries;
-    const totalMerges = countMergeOps(current.length);
-    let mergedCount = 0;
-    updateProgress("merging_summaries", 60, { current: totalWeeks, total: totalWeeks });
-    while (current.length > 1) {
-      const merged = [];
-      for (let i = 0; i < current.length; i += 2) {
-        const batch = current.slice(i, i + 2);
-        const response = await callLlmWithRetry({
-          baseUrl,
-          apiKey,
-          model,
-          messages: [
-            { role: "system", content: buildPrepareMergePrompt(timeRangeLabel, signalContext) },
-            { role: "user", content: `Chunk summaries:\n${JSON.stringify(batch)}\nReturn JSON only.` },
-          ],
-          maxTokens: 550,
-        });
-
-        if (response.error) {
-          return { error: response.error };
-        }
-
-        merged.push(response.data);
-        mergedCount += 1;
-        if (totalMerges) {
-          const percent = 60 + Math.round((mergedCount / totalMerges) * 25);
-          updateProgress("merging_summaries", percent);
-        }
-      }
-      current = merged;
-    }
-    return { data: current[0] };
-  };
-
-  const mergeResponse = await mergeSummaries(chunkSummaries);
-  if (mergeResponse.error) {
-    console.warn("[prepare-summary] merge error", { error: mergeResponse.error });
-    throw new Error(mergeResponse.error);
-  }
-
-  updateProgress("finalizing", 90);
-  const parsed = mergeResponse.data;
+  const narrative = snapshotDoc.snapshot?.narrative || {};
+  const timeRangeLabel = narrative.timeRangeLabel || buildTimeRangeLabel(rangeKey);
 
   const topics = new Set();
   const evidenceUnits = [];
@@ -1115,11 +970,7 @@ const buildPrepareSummary = async ({ userId, rangeDays, onProgress }) => {
     });
   };
 
-  const buildIntensityFallback = () => {
-    if (parsedRangeDays <= 7) return ["Week 1 .."];
-    if (parsedRangeDays <= 30) return ["Week 1 ..", "Week 2 ...", "Week 4 ...."];
-    return ["Week 1 ..", "Week 4 ...", "Week 8 ...."];
-  };
+  const buildIntensityFallback = () => ["Week 1 ..", "Week 4 ...", "Week 8 ...."];
 
   const normalizeOverTimeSummary = (value) => {
     const summaryText = (value || "").trim();
@@ -1129,76 +980,41 @@ const buildPrepareSummary = async ({ userId, rangeDays, onProgress }) => {
     }
     return `Across ${timeRangeLabel.toLowerCase()}, these experiences shift from day to day. Some moments feel lighter, and others feel heavier, especially when stress or sleep changes.`;
   };
+
   const summary = {
-    timeRangeLabel: parsed.timeRangeLabel || timeRangeLabel,
-    confidenceNote: parsed.confidenceNote || "Based on patterns in written reflections",
+    timeRangeLabel,
+    confidenceNote: narrative.confidenceNote || "Based on patterns in written reflections",
     whySharing:
-      parsed.whySharing && parsed.whySharing.trim().toLowerCase().startsWith("i ")
-        ? parsed.whySharing
+      narrative.whySharing && narrative.whySharing.trim().toLowerCase().startsWith("i ")
+        ? narrative.whySharing
         : "I want to share these reflections to make it easier to explain what I've been experiencing and where I could use support.",
-    recurringExperiences: parsed.recurringExperiences || [],
-    overTimeSummary: normalizeOverTimeSummary(parsed.overTimeSummary),
-    intensityLines: parsed.intensityLines?.length ? parsed.intensityLines : buildIntensityFallback(),
-    impactAreas: parsed.impactAreas || [],
-    impactNote: parsed.impactNote || "",
-    relatedInfluences: parsed.relatedInfluences || [],
-    unclearAreas: parsed.unclearAreas || [],
-    questionsToExplore: parsed.questionsToExplore || [],
+    recurringExperiences: narrative.recurringExperiences || [],
+    overTimeSummary: normalizeOverTimeSummary(narrative.overTimeSummary),
+    intensityLines: narrative.intensityLines?.length ? narrative.intensityLines : buildIntensityFallback(),
+    impactAreas: narrative.impactAreas || [],
+    impactNote: narrative.impactNote || "",
+    relatedInfluences: narrative.relatedInfluences || [],
+    unclearAreas: narrative.unclearAreas || [],
+    questionsToExplore: narrative.questionsToExplore || [],
+    highlights: narrative.highlights || [],
+    shiftsOverTime: narrative.shiftsOverTime || [],
+    contextImpactSummary: narrative.contextImpactSummary || "",
     evidenceBySection: {
-      recurringExperiences: buildEvidenceBySection("recurringExperiences", parsed.recurringExperiences || []),
-      impactAreas: buildEvidenceBySection("impactAreas", parsed.impactAreas || []),
-      relatedInfluences: buildEvidenceBySection("relatedInfluences", parsed.relatedInfluences || []),
-      unclearAreas: buildEvidenceBySection("unclearAreas", parsed.unclearAreas || []),
-      questionsToExplore: buildEvidenceBySection("questionsToExplore", parsed.questionsToExplore || []),
+      recurringExperiences: buildEvidenceBySection("recurringExperiences", narrative.recurringExperiences || []),
+      impactAreas: buildEvidenceBySection("impactAreas", narrative.impactAreas || []),
+      relatedInfluences: buildEvidenceBySection("relatedInfluences", narrative.relatedInfluences || []),
+      unclearAreas: buildEvidenceBySection("unclearAreas", narrative.unclearAreas || []),
+      questionsToExplore: buildEvidenceBySection("questionsToExplore", narrative.questionsToExplore || []),
     },
     topics: Array.from(topics),
   };
 
-  updateProgress("completed", 100);
-  return { summary, appendix };
-};
-
-const createPrepareSummaryJob = asyncHandler(async (req, res) => {
-  const rangeDays = Number.parseInt(req.body?.rangeDays, 10) || 56;
-  const job = createJob({ userId: req.user._id, rangeDays });
-  res.status(202).json({ jobId: job.id });
-
-  setImmediate(async () => {
-    updateJob(job.id, { status: "running", stage: "starting", percent: 1 });
-    try {
-      const result = await buildPrepareSummary({
-        userId: req.user._id,
-        rangeDays,
-        onProgress: ({ stage, percent, detail }) =>
-          updateJob(job.id, { status: "running", stage, percent, detail }),
-      });
-      completeJob(job.id, result);
-    } catch (err) {
-      const message = err?.message || "Failed to prepare summary.";
-      failJob(job.id, message);
-    }
-  });
-});
-
-const getPrepareSummaryJob = asyncHandler(async (req, res) => {
-  const job = getJob(req.params.jobId);
-  if (!job || job.userId !== req.user._id.toString()) {
-    return res.status(404).json({ message: "Summary job not found." });
-  }
-  res.json({
-    status: job.status,
-    stage: job.stage,
-    percent: job.percent,
-    detail: job.detail,
-    result: job.status === "completed" ? job.result : undefined,
-    error: job.status === "failed" ? job.error : undefined,
-  });
+  res.json({ summary, appendix, stale });
 });
 
 module.exports = {
   analyzeEntry,
-  createPrepareSummaryJob,
-  getPrepareSummaryJob,
+  prepareSummary,
   generateEntryEvidence,
   generateClinicalEvidenceUnits,
   generateWeeklySummary,
