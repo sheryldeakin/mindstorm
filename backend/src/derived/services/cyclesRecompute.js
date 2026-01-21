@@ -3,6 +3,30 @@ const EntrySignals = require("../models/EntrySignals");
 const { PIPELINE_VERSION } = require("../pipelineVersion");
 const { computeSourceVersionForRange } = require("../versioning");
 
+let cycleIndexesChecked = false;
+
+const ensureCycleIndexes = async () => {
+  if (cycleIndexesChecked) return;
+  cycleIndexesChecked = true;
+  try {
+    const indexes = await Cycle.collection.indexes();
+    const legacyIndex = indexes.find(
+      (index) =>
+        index.unique === true &&
+        index.key &&
+        index.key.userId === 1 &&
+        index.key.rangeKey === 1 &&
+        Object.keys(index.key).length === 2,
+    );
+    if (legacyIndex?.name) {
+      await Cycle.collection.dropIndex(legacyIndex.name);
+      console.log(`[cycles] dropped legacy unique index ${legacyIndex.name}`);
+    }
+  } catch (error) {
+    console.warn("[cycles] index check failed", { message: error?.message || String(error) });
+  }
+};
+
 /**
  * Returns the dateISO lower bound for a range key.
  * @param {string} rangeKey
@@ -126,6 +150,7 @@ const buildCycles = (signals) => {
  * @returns {Promise<void|object>} Writes cycle docs; returns update result if empty.
  */
 const recomputeCyclesForUser = async ({ userId, rangeKey }) => {
+  await ensureCycleIndexes();
   const startIso = getRangeStartIso(rangeKey);
   const signalQuery = startIso ? { userId, dateISO: { $gte: startIso } } : { userId };
   const signals = await EntrySignals.find(signalQuery).sort({ dateISO: 1 }).lean();

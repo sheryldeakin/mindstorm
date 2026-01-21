@@ -18,8 +18,14 @@ type DiagnosisReasoningPanelProps = {
   diagnosis: DifferentialDiagnosis;
   diagnosisKey: DepressiveDiagnosisKey;
   entries: CaseEntry[];
+  patientId?: string;
   nodeOverrides?: Record<string, "MET" | "EXCLUDED" | "UNKNOWN">;
-  onOverrideChange?: (nodeId: string, status: "MET" | "EXCLUDED" | "UNKNOWN" | null) => void;
+  labelOverrides?: Record<string, "MET" | "EXCLUDED" | "UNKNOWN">;
+  onOverrideChange?: (
+    nodeId: string,
+    status: "MET" | "EXCLUDED" | "UNKNOWN" | null,
+    note?: string,
+  ) => void;
   lastAccessISO?: string | null;
 };
 
@@ -27,7 +33,9 @@ const DiagnosisReasoningPanel = ({
   diagnosis,
   diagnosisKey,
   entries,
+  patientId,
   nodeOverrides,
+  labelOverrides,
   onOverrideChange,
   lastAccessISO,
 }: DiagnosisReasoningPanelProps) => {
@@ -53,7 +61,7 @@ const DiagnosisReasoningPanel = ({
           Recent trajectory for key signals.
         </p>
         <div className="mt-4">
-          <SymptomCourse rows={diagnosis.symptomCourse} />
+          <SymptomCourse rows={diagnosis.symptomCourse} onOverrideChange={onOverrideChange} />
         </div>
       </Card>
 
@@ -61,7 +69,7 @@ const DiagnosisReasoningPanel = ({
         <h3 className="text-lg font-semibold">Functional impact</h3>
         <p className="mt-1 text-sm text-slate-500">Evidence of impact across life domains.</p>
         <div className="mt-4">
-          <FunctionalImpact domains={diagnosis.functionalImpact} />
+          <FunctionalImpact domains={diagnosis.functionalImpact} onOverrideChange={onOverrideChange} />
         </div>
       </Card>
 
@@ -71,7 +79,7 @@ const DiagnosisReasoningPanel = ({
           Context factors and exclusionary gates.
         </p>
         <div className="mt-4">
-          <ExclusionChecks checks={diagnosis.exclusionChecks} />
+          <ExclusionChecks checks={diagnosis.exclusionChecks} onOverrideChange={onOverrideChange} />
         </div>
       </Card>
 
@@ -86,7 +94,9 @@ const DiagnosisReasoningPanel = ({
       <ReasoningGraphAccordion
         diagnosisKey={diagnosisKey}
         entries={entries}
+        patientId={patientId}
         nodeOverrides={nodeOverrides}
+        labelOverrides={labelOverrides}
         onOverrideChange={onOverrideChange}
         lastAccessISO={lastAccessISO}
       />

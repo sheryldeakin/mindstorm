@@ -31,20 +31,32 @@ export type CriterionItem = {
 };
 
 export type SymptomCourseRow = {
+  id: string;
   label: string;
+  evidenceLabels: string[];
+  autoStatus?: "MET" | "EXCLUDED" | "UNKNOWN";
+  overrideStatus?: "MET" | "EXCLUDED" | "UNKNOWN" | null;
   buckets: Array<{ weekStartISO: string; level: "none" | "mild" | "moderate" | "high" }>;
 };
 
 export type FunctionalImpactDomain = {
+  id: string;
   domain: "Work/School" | "Social" | "Self-care" | "Safety";
   level: "none" | "mild" | "moderate" | "high";
   note?: string;
+  evidenceLabels?: string[];
+  autoStatus?: "MET" | "EXCLUDED" | "UNKNOWN";
+  overrideStatus?: "MET" | "EXCLUDED" | "UNKNOWN" | null;
 };
 
 export type ExclusionCheck = {
+  id: string;
   label: string;
   state: "confirmed" | "notObserved" | "unknown";
   note?: string;
+  evidenceLabels?: string[];
+  autoStatus?: "MET" | "EXCLUDED" | "UNKNOWN";
+  overrideStatus?: "MET" | "EXCLUDED" | "UNKNOWN" | null;
 };
 
 export type ClarificationPrompt = {
@@ -57,6 +69,10 @@ export type SpecifierTag = {
   startISO: string;
   endISO: string;
   active: boolean;
+  evidenceCount?: number;
+  density?: "Sparse" | "Moderate" | "Dense";
+  timelinePoints?: number[];
+  spanDays?: number;
 };
 
 export type DifferentialDiagnosis = {

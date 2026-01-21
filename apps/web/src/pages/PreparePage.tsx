@@ -49,6 +49,7 @@ const PreparePage = () => {
   const [impactNoteTouched, setImpactNoteTouched] = useState(false);
   const [additionalNotesTouched, setAdditionalNotesTouched] = useState(false);
   const { getPatientLabel } = usePatientTranslation();
+  const selectedRangeLabel = timeRanges.find((range) => range.id === timeRange)?.label || "this range";
 
   const buildRedactionKey = (section: string, text: string) => `${section}::${text}`;
   const isVisible = (section: string, text: string) =>
@@ -189,6 +190,13 @@ const PreparePage = () => {
     return Array.from(items);
   })();
 
+  const rangeNotice =
+    summary?.rangeCoverage &&
+    summary.rangeCoverage.effectiveRangeKey &&
+    summary.rangeCoverage.effectiveRangeKey !== summary.rangeCoverage.requestedRangeKey
+      ? `You don’t have ${selectedRangeLabel.toLowerCase()} of entries yet. This view reflects all available writing so far.`
+      : null;
+
   const renderInlineEvidence = (sectionKey: string, bullet: string) => {
     if (!includeEvidence) return null;
     const quotes = getEvidenceForBullet(sectionKey as keyof PrepareSummary["evidenceBySection"], bullet).filter(
@@ -313,6 +321,11 @@ const PreparePage = () => {
           {summaryError}
         </div>
       )}
+      {rangeNotice ? (
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-xs text-amber-800">
+          {rangeNotice}
+        </div>
+      ) : null}
       <section className="space-y-6">
         <Card className="p-0">
           <div className="border-b border-slate-200/70 p-6">

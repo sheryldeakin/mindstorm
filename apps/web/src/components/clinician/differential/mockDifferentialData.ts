@@ -56,7 +56,9 @@ export const mockDifferentialData: DifferentialDiagnosis[] = [
     criteriaSummary: { current: 5, required: 5, total: 9 },
     symptomCourse: [
       {
+        id: "SYMPTOM_MOOD",
         label: "Low mood",
+        evidenceLabels: ["SYMPTOM_MOOD"],
         buckets: [
           { weekStartISO: "2025-08-18", level: "high" },
           { weekStartISO: "2025-08-25", level: "high" },
@@ -66,7 +68,9 @@ export const mockDifferentialData: DifferentialDiagnosis[] = [
         ],
       },
       {
+        id: "SYMPTOM_SLEEP",
         label: "Sleep",
+        evidenceLabels: ["SYMPTOM_SLEEP"],
         buckets: [
           { weekStartISO: "2025-08-18", level: "moderate" },
           { weekStartISO: "2025-08-25", level: "moderate" },
@@ -76,7 +80,9 @@ export const mockDifferentialData: DifferentialDiagnosis[] = [
         ],
       },
       {
+        id: "SYMPTOM_ANXIETY",
         label: "Anxiety",
+        evidenceLabels: ["SYMPTOM_ANXIETY"],
         buckets: [
           { weekStartISO: "2025-08-18", level: "mild" },
           { weekStartISO: "2025-08-25", level: "mild" },
@@ -87,15 +93,15 @@ export const mockDifferentialData: DifferentialDiagnosis[] = [
       },
     ],
     functionalImpact: [
-      { domain: "Work/School", level: "moderate", note: "Missed deadlines, slowed output." },
-      { domain: "Social", level: "moderate", note: "Declined plans 3 times." },
-      { domain: "Self-care", level: "mild", note: "Hygiene lapses noted twice." },
-      { domain: "Safety", level: "none", note: "No safety incidents noted." },
+      { id: "IMPACT_WORK", domain: "Work/School", level: "moderate", note: "Missed deadlines, slowed output.", evidenceLabels: ["IMPACT_WORK"] },
+      { id: "IMPACT_SOCIAL", domain: "Social", level: "moderate", note: "Declined plans 3 times.", evidenceLabels: ["IMPACT_SOCIAL"] },
+      { id: "IMPACT_SELF_CARE", domain: "Self-care", level: "mild", note: "Hygiene lapses noted twice.", evidenceLabels: ["IMPACT_SELF_CARE"] },
+      { id: "SYMPTOM_RISK", domain: "Safety", level: "none", note: "No safety incidents noted.", evidenceLabels: ["SYMPTOM_RISK"] },
     ],
     exclusionChecks: [
-      { label: "Mania history", state: "notObserved", note: "No mania signals in journal." },
-      { label: "Substance/medication attribution", state: "unknown", note: "Medication change mentioned once." },
-      { label: "Medical condition attribution", state: "unknown", note: "No recent lab data." },
+      { id: "SYMPTOM_MANIA", label: "Mania history", state: "notObserved", note: "No mania signals in journal.", evidenceLabels: ["SYMPTOM_MANIA"] },
+      { id: "CONTEXT_SUBSTANCE", label: "Substance/medication attribution", state: "unknown", note: "Medication change mentioned once.", evidenceLabels: ["CONTEXT_SUBSTANCE"] },
+      { id: "CONTEXT_MEDICAL", label: "Medical condition attribution", state: "unknown", note: "No recent lab data.", evidenceLabels: ["CONTEXT_MEDICAL"] },
     ],
     prompts: [
       { text: "Confirm symptom duration exceeds 2 weeks.", category: "duration" },
@@ -144,7 +150,9 @@ export const mockDifferentialData: DifferentialDiagnosis[] = [
     criteriaSummary: { current: 3, required: 6, total: 6 },
     symptomCourse: [
       {
+        id: "SYMPTOM_ANXIETY",
         label: "Worry",
+        evidenceLabels: ["SYMPTOM_ANXIETY"],
         buckets: [
           { weekStartISO: "2025-08-18", level: "mild" },
           { weekStartISO: "2025-08-25", level: "moderate" },
@@ -155,14 +163,14 @@ export const mockDifferentialData: DifferentialDiagnosis[] = [
       },
     ],
     functionalImpact: [
-      { domain: "Work/School", level: "mild", note: "Focus disrupted during meetings." },
-      { domain: "Social", level: "mild", note: "Avoided two conversations." },
-      { domain: "Self-care", level: "none", note: "No self-care impact noted." },
-      { domain: "Safety", level: "none", note: "No safety concerns noted." },
+      { id: "IMPACT_WORK", domain: "Work/School", level: "mild", note: "Focus disrupted during meetings.", evidenceLabels: ["IMPACT_WORK"] },
+      { id: "IMPACT_SOCIAL", domain: "Social", level: "mild", note: "Avoided two conversations.", evidenceLabels: ["IMPACT_SOCIAL"] },
+      { id: "IMPACT_SELF_CARE", domain: "Self-care", level: "none", note: "No self-care impact noted.", evidenceLabels: ["IMPACT_SELF_CARE"] },
+      { id: "SYMPTOM_RISK", domain: "Safety", level: "none", note: "No safety concerns noted.", evidenceLabels: ["SYMPTOM_RISK"] },
     ],
     exclusionChecks: [
-      { label: "Substance/medication attribution", state: "notObserved", note: "No substance context." },
-      { label: "Medical condition attribution", state: "unknown", note: "Ask about thyroid or pain." },
+      { id: "CONTEXT_SUBSTANCE", label: "Substance/medication attribution", state: "notObserved", note: "No substance context.", evidenceLabels: ["CONTEXT_SUBSTANCE"] },
+      { id: "CONTEXT_MEDICAL", label: "Medical condition attribution", state: "unknown", note: "Ask about thyroid or pain.", evidenceLabels: ["CONTEXT_MEDICAL"] },
     ],
     prompts: [
       { text: "Clarify worry duration (≥ 6 months).", category: "duration" },
@@ -199,7 +207,9 @@ export const mockDifferentialData: DifferentialDiagnosis[] = [
     criteriaSummary: { current: 1, required: 4, total: 7 },
     symptomCourse: [
       {
+        id: "SYMPTOM_TRAUMA",
         label: "Intrusions",
+        evidenceLabels: ["SYMPTOM_TRAUMA"],
         buckets: [
           { weekStartISO: "2025-08-18", level: "none" },
           { weekStartISO: "2025-08-25", level: "none" },
@@ -210,13 +220,13 @@ export const mockDifferentialData: DifferentialDiagnosis[] = [
       },
     ],
     functionalImpact: [
-      { domain: "Work/School", level: "none" },
-      { domain: "Social", level: "none" },
-      { domain: "Self-care", level: "none" },
-      { domain: "Safety", level: "none" },
+      { id: "IMPACT_WORK", domain: "Work/School", level: "none", evidenceLabels: ["IMPACT_WORK"] },
+      { id: "IMPACT_SOCIAL", domain: "Social", level: "none", evidenceLabels: ["IMPACT_SOCIAL"] },
+      { id: "IMPACT_SELF_CARE", domain: "Self-care", level: "none", evidenceLabels: ["IMPACT_SELF_CARE"] },
+      { id: "SYMPTOM_RISK", domain: "Safety", level: "none", evidenceLabels: ["SYMPTOM_RISK"] },
     ],
     exclusionChecks: [
-      { label: "Trauma exposure confirmation", state: "unknown", note: "Needs direct screening." },
+      { id: "SYMPTOM_TRAUMA", label: "Trauma exposure confirmation", state: "unknown", note: "Needs direct screening.", evidenceLabels: ["SYMPTOM_TRAUMA"] },
     ],
     prompts: [{ text: "Clarify trauma exposure timeline.", category: "criteria" }],
     specifiers: [],

@@ -2,6 +2,7 @@ import clsx from "clsx";
 import type { CaseEntry } from "../../types/clinician";
 import useDiagnosticLogic from "../../hooks/useDiagnosticLogic";
 import { DIAGNOSTIC_GRAPH_NODES } from "../../lib/diagnosticGraphConfig";
+import StatusDecisionMenu from "./StatusDecisionMenu";
 
 type GraphNode = {
   id: string;
@@ -16,12 +17,17 @@ type GraphNode = {
  */
 type DiagnosticLogicGraphProps = {
   entries: CaseEntry[];
+  patientId?: string;
   overrides?: Record<string, "MET" | "EXCLUDED" | "UNKNOWN">;
   nodeOverrides?: Record<string, "MET" | "EXCLUDED" | "UNKNOWN">;
   rejectedEvidenceKeys?: Set<string>;
   lastAccessISO?: string | null;
   onNodeSelect: (node: GraphNode) => void;
-  onOverrideChange?: (nodeId: string, status: "MET" | "EXCLUDED" | "UNKNOWN" | null) => void;
+  onOverrideChange?: (
+    nodeId: string,
+    status: "MET" | "EXCLUDED" | "UNKNOWN" | null,
+    note?: string,
+  ) => void;
 };
 
 const NODES: GraphNode[] = DIAGNOSTIC_GRAPH_NODES;
@@ -34,6 +40,7 @@ const statusClass = (status: string) => {
 
 const DiagnosticLogicGraph = ({
   entries,
+  patientId,
   overrides,
   nodeOverrides,
   rejectedEvidenceKeys,
@@ -45,27 +52,18 @@ const DiagnosticLogicGraph = ({
   const symptomNodes = NODES.filter((node) => node.kind === "symptom");
   const gateNodes = NODES.filter((node) => node.kind === "gate");
   const exclusionNodes = NODES.filter((node) => node.kind === "exclusion");
-  const baseLogic = useDiagnosticLogic(entries, { rejectedEvidenceKeys });
+  const baseLogic = useDiagnosticLogic(entries, { rejectedEvidenceKeys, patientId });
   const { getStatusForLabels } = baseLogic;
   const lastAccessDate = lastAccessISO ? new Date(lastAccessISO) : null;
   const priorEntries = lastAccessDate
     ? entries.filter((entry) => new Date(`${entry.dateISO}T00:00:00Z`) <= lastAccessDate)
     : [];
-  const priorLogic = useDiagnosticLogic(priorEntries, { rejectedEvidenceKeys });
+  const priorLogic = useDiagnosticLogic(priorEntries, { rejectedEvidenceKeys, useServer: false });
 
   const impairmentStatus = getStatusForLabels(["IMPAIRMENT"]);
   const symptomMetCount = symptomNodes.filter(
     (node) => getStatusForLabels(node.evidenceLabels) === "MET",
   ).length;
-
-  const getTimelineSpanDays = () => {
-    if (!entries.length) return 0;
-    const sorted = [...entries].sort((a, b) => a.dateISO.localeCompare(b.dateISO));
-    const start = new Date(`${sorted[0].dateISO}T00:00:00Z`);
-    const end = new Date(`${sorted[sorted.length - 1].dateISO}T00:00:00Z`);
-    return Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
-  };
-  const spanDays = getTimelineSpanDays();
 
   const getNodeStatus = (node: GraphNode) => {
     if (node.id === "mdd-root") {
@@ -74,10 +72,7 @@ const DiagnosticLogicGraph = ({
       if (impairmentStatus !== "MET") return "UNKNOWN";
       return symptomMetCount >= 5 ? "MET" : "UNKNOWN";
     }
-    if (node.id === "duration") {
-      if (nodeOverrides?.[node.id]) return nodeOverrides[node.id];
-      return spanDays >= 14 ? "MET" : "UNKNOWN";
-    }
+    if (nodeOverrides?.[node.id]) return nodeOverrides[node.id];
     return getStatusForLabels(node.evidenceLabels);
   };
 
@@ -92,16 +87,7 @@ const DiagnosticLogicGraph = ({
       if (impairmentStatus !== "MET") return "UNKNOWN";
       return symptomMetCount >= 5 ? "MET" : "UNKNOWN";
     }
-    if (node.id === "duration") {
-      const spanDays = (() => {
-        if (!priorEntries.length) return 0;
-        const sorted = [...priorEntries].sort((a, b) => a.dateISO.localeCompare(b.dateISO));
-        const start = new Date(`${sorted[0].dateISO}T00:00:00Z`);
-        const end = new Date(`${sorted[sorted.length - 1].dateISO}T00:00:00Z`);
-        return Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
-      })();
-      return spanDays >= 14 ? "MET" : "UNKNOWN";
-    }
+    if (nodeOverrides?.[node.id]) return nodeOverrides[node.id];
     return priorLogic.getStatusForLabels(node.evidenceLabels);
   };
 
@@ -143,51 +129,11 @@ const DiagnosticLogicGraph = ({
               </span>
             </button>
             <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px]">
-              <button
-                type="button"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  onOverrideChange?.(node.id, null);
-                }}
-                className={clsx(
-                  "rounded-full border px-2 py-1",
-                  !overrideStatus
-                    ? "border-slate-300 bg-slate-900 text-white"
-                    : "border-slate-200 bg-white text-slate-500",
-                )}
-              >
-                Auto
-              </button>
-              <button
-                type="button"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  onOverrideChange?.(node.id, "MET");
-                }}
-                className={clsx(
-                  "rounded-full border px-2 py-1",
-                  overrideStatus === "MET"
-                    ? "border-emerald-400 bg-emerald-100 text-emerald-700"
-                    : "border-slate-200 bg-white text-slate-500",
-                )}
-              >
-                Confirmed
-              </button>
-              <button
-                type="button"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  onOverrideChange?.(node.id, "EXCLUDED");
-                }}
-                className={clsx(
-                  "rounded-full border px-2 py-1",
-                  overrideStatus === "EXCLUDED"
-                    ? "border-rose-400 bg-rose-100 text-rose-700"
-                    : "border-slate-200 bg-white text-slate-500",
-                )}
-              >
-                Rejected
-              </button>
+              <StatusDecisionMenu
+                autoStatus={autoStatus as "MET" | "EXCLUDED" | "UNKNOWN"}
+                overrideStatus={overrideStatus}
+                onUpdate={(status, note) => onOverrideChange?.(node.id, status, note)}
+              />
               {overrideStatus ? (
                 <span className="rounded-full bg-slate-100 px-2 py-1 text-[10px] uppercase tracking-[0.2em] text-slate-500">
                   Auto: {autoStatus} · Override: {overrideStatus}

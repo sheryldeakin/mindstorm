@@ -1,6 +1,7 @@
 import clsx from "clsx";
 import type { CaseEntry } from "../../../types/clinician";
 import useDiagnosticLogic from "../../../hooks/useDiagnosticLogic";
+import StatusDecisionMenu from "../StatusDecisionMenu";
 import {
   getDepressiveDiagnosisByKey,
   getDepressiveConfigByKey,
@@ -25,9 +26,15 @@ type DynamicDiagnosticGraphProps = {
   diagnosisKey: DepressiveDiagnosisKey;
   entries: CaseEntry[];
   mode: GraphMode;
+  patientId?: string;
   onNodeSelect?: (node: GraphNode) => void;
   nodeOverrides?: Record<string, "MET" | "EXCLUDED" | "UNKNOWN">;
-  onOverrideChange?: (nodeId: string, status: "MET" | "EXCLUDED" | "UNKNOWN" | null) => void;
+  labelOverrides?: Record<string, "MET" | "EXCLUDED" | "UNKNOWN">;
+  onOverrideChange?: (
+    nodeId: string,
+    status: "MET" | "EXCLUDED" | "UNKNOWN" | null,
+    note?: string,
+  ) => void;
   lastAccessISO?: string | null;
 };
 
@@ -88,21 +95,31 @@ const DynamicDiagnosticGraph = ({
   diagnosisKey,
   entries,
   mode,
+  patientId,
   onNodeSelect,
   nodeOverrides,
+  labelOverrides,
   onOverrideChange,
   lastAccessISO,
 }: DynamicDiagnosticGraphProps) => {
   const diagnosis = getDepressiveDiagnosisByKey(diagnosisKey);
   const config = getDepressiveConfigByKey(diagnosisKey);
   const nodes = toGraphNodes(diagnosis, mode);
-  const baseLogic = useDiagnosticLogic(entries, { windowDays: 36500 });
+  const baseLogic = useDiagnosticLogic(entries, {
+    windowDays: 36500,
+    patientId,
+    overrides: labelOverrides,
+  });
   const { getStatusForLabels } = baseLogic;
   const lastAccessDate = lastAccessISO ? new Date(lastAccessISO) : null;
   const priorEntries = lastAccessDate
     ? entries.filter((entry) => new Date(`${entry.dateISO}T00:00:00Z`) <= lastAccessDate)
     : [];
-  const priorLogic = useDiagnosticLogic(priorEntries, { windowDays: 36500 });
+  const priorLogic = useDiagnosticLogic(priorEntries, {
+    windowDays: 36500,
+    useServer: false,
+    overrides: labelOverrides,
+  });
 
   const criteriaCount = config
     ? config.criteria.reduce((count, criterion) => {
@@ -111,8 +128,18 @@ const DynamicDiagnosticGraph = ({
       }, 0)
     : 0;
 
+  const resolveOverrideStatus = (node: GraphNode) => {
+    const direct = nodeOverrides?.[node.id];
+    if (direct) return direct;
+    if (!node.evidenceLabels?.length) return null;
+    return node.evidenceLabels
+      .map((label) => labelOverrides?.[label])
+      .find((status) => status);
+  };
+
   const getNodeStatus = (node: GraphNode) => {
-    if (nodeOverrides?.[node.id]) return nodeOverrides[node.id];
+    const resolvedOverride = resolveOverrideStatus(node);
+    if (resolvedOverride) return resolvedOverride;
     if (node.kind === "diagnosis" && config) {
       return criteriaCount >= config.required ? "MET" : "UNKNOWN";
     }
@@ -121,6 +148,8 @@ const DynamicDiagnosticGraph = ({
 
   const getPriorNodeStatus = (node: GraphNode) => {
     if (!lastAccessDate) return "UNKNOWN";
+    const resolvedOverride = resolveOverrideStatus(node);
+    if (resolvedOverride) return resolvedOverride;
     if (node.kind === "diagnosis" && config) {
       const priorCount = config.criteria.reduce((count, criterion) => {
         const status = priorLogic.getStatusForLabels(criterion.evidenceLabels);
@@ -142,7 +171,7 @@ const DynamicDiagnosticGraph = ({
             const status = getNodeStatus(node);
             const priorStatus = getPriorNodeStatus(node);
             const hasChanged = lastAccessDate && priorStatus !== "UNKNOWN" && status !== priorStatus;
-            const overrideStatus = nodeOverrides?.[node.id] || null;
+            const overrideStatus = resolveOverrideStatus(node);
             const autoStatus = node.evidenceLabels?.length
               ? baseLogic.getStatusForLabels(node.evidenceLabels)
               : status;
@@ -169,42 +198,11 @@ const DynamicDiagnosticGraph = ({
                   {hasChanged ? <span className="text-[11px] uppercase text-sky-500">New</span> : null}
                 </button>
                 <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px]">
-                  <button
-                    type="button"
-                    onClick={() => onOverrideChange?.(node.id, null)}
-                    className={clsx(
-                      "rounded-full border px-2 py-1",
-                      !overrideStatus
-                        ? "border-slate-300 bg-slate-900 text-white"
-                        : "border-slate-200 bg-white text-slate-500",
-                    )}
-                  >
-                    Auto
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => onOverrideChange?.(node.id, "MET")}
-                    className={clsx(
-                      "rounded-full border px-2 py-1",
-                      overrideStatus === "MET"
-                        ? "border-emerald-400 bg-emerald-100 text-emerald-700"
-                        : "border-slate-200 bg-white text-slate-500",
-                    )}
-                  >
-                    Confirmed
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => onOverrideChange?.(node.id, "EXCLUDED")}
-                    className={clsx(
-                      "rounded-full border px-2 py-1",
-                      overrideStatus === "EXCLUDED"
-                        ? "border-rose-400 bg-rose-100 text-rose-700"
-                        : "border-slate-200 bg-white text-slate-500",
-                    )}
-                  >
-                    Rejected
-                  </button>
+                  <StatusDecisionMenu
+                    autoStatus={autoStatus as "MET" | "EXCLUDED" | "UNKNOWN"}
+                    overrideStatus={overrideStatus}
+                    onUpdate={(status, note) => onOverrideChange?.(node.id, status, note)}
+                  />
                   {overrideStatus ? (
                     <span className="rounded-full bg-slate-100 px-2 py-1 text-[10px] uppercase tracking-[0.2em] text-slate-500">
                       Auto: {autoStatus} · Override: {overrideStatus}

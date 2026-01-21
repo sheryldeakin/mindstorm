@@ -9,6 +9,7 @@ import {
 } from "react";
 import { apiFetch } from "../lib/apiClient";
 import useDiagnosticLogic, { type DiagnosticStatus } from "../hooks/useDiagnosticLogic";
+import { appendComputedEvidenceToEntries } from "@mindstorm/criteria-graph";
 import useSessionDelta from "../hooks/useSessionDelta";
 import type { CaseEntry, ClinicianNote, ClinicianOverrideRecord } from "../types/clinician";
 
@@ -27,7 +28,7 @@ type ClinicalCaseValue = {
   saveOverride: (
     nodeId: string,
     status: DiagnosticStatus | null,
-    meta?: { originalStatus?: DiagnosticStatus; originalEvidence?: string },
+    meta?: { originalStatus?: DiagnosticStatus; originalEvidence?: string; note?: string },
   ) => Promise<void>;
   saveNote: (payload: { title: string; body: string }) => Promise<void>;
   updateNote: (noteId: string, payload: { title: string; body: string }) => Promise<void>;
@@ -58,7 +59,7 @@ export const ClinicalCaseProvider = ({
   const [error, setError] = useState<string | null>(null);
   const sessionDelta = useSessionDelta(caseId);
 
-  const graphLogic = useDiagnosticLogic(entries, { overrides: nodeOverrides });
+  const graphLogic = useDiagnosticLogic(entries, { overrides: nodeOverrides, patientId: caseId });
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -68,7 +69,7 @@ export const ClinicalCaseProvider = ({
         apiFetch<{ overrides: ClinicianOverrideRecord[] }>(`/clinician/cases/${caseId}/overrides`),
         apiFetch<{ notes: ClinicianNote[] }>(`/clinician/cases/${caseId}/notes`),
       ]);
-      setEntries(entryResponse.entries || []);
+      setEntries(appendComputedEvidenceToEntries(entryResponse.entries || []));
       setUserName(entryResponse.user?.name || "Patient");
       setNotes(notesResponse.notes || []);
       setOverrideRecords(overrideResponse.overrides || []);
@@ -89,7 +90,7 @@ export const ClinicalCaseProvider = ({
     async (
       nodeId: string,
       status: DiagnosticStatus | null,
-      meta?: { originalStatus?: DiagnosticStatus; originalEvidence?: string },
+      meta?: { originalStatus?: DiagnosticStatus; originalEvidence?: string; note?: string },
     ) => {
       if (!status) {
         setNodeOverrides((prev) => {
@@ -111,6 +112,7 @@ export const ClinicalCaseProvider = ({
             status,
             originalStatus,
             originalEvidence: meta?.originalEvidence || "",
+            note: meta?.note || "",
           }),
         },
       );

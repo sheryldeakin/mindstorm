@@ -12,7 +12,12 @@ export const DIAGNOSTIC_GRAPH_NODES: GraphNodeConfig[] = [
   { id: "sleep", label: "Sleep change signal", kind: "symptom", evidenceLabels: ["SYMPTOM_SLEEP"] },
   { id: "fatigue", label: "Energy shift signal", kind: "symptom", evidenceLabels: ["SYMPTOM_SOMATIC"] },
   { id: "risk", label: "Risk thoughts signal", kind: "symptom", evidenceLabels: ["SYMPTOM_RISK"] },
-  { id: "duration", label: "Duration signal ≥ 2 weeks", kind: "gate" },
+  {
+    id: "duration",
+    label: "Duration signal ≥ 2 weeks",
+    kind: "gate",
+    evidenceLabels: ["DURATION_COMPUTED_2W", "DURATION", "TEMPORALITY"],
+  },
   { id: "impairment", label: "Impact gate", kind: "gate", evidenceLabels: ["IMPAIRMENT"] },
   { id: "mania", label: "Mania gate", kind: "exclusion", evidenceLabels: ["SYMPTOM_MANIA"] },
   { id: "substance", label: "Context factor: substance/med", kind: "exclusion", evidenceLabels: ["CONTEXT_SUBSTANCE"] },

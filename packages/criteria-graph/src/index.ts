@@ -1,8 +1,4 @@
 import type { EvidenceUnit } from "@mindstorm/signal-schema";
-import depressiveLike from "../criteria_specs/v1/depressive_like.json";
-import gadLike from "../criteria_specs/v1/gad_like.json";
-import ptsdLike from "../criteria_specs/v1/ptsd_like.json";
-import bipolarGate from "../criteria_specs/v1/bipolar_gate.json";
 
 export type CriteriaSpec = {
   id: string;
@@ -21,7 +17,8 @@ export type CriteriaResult = {
   coverage: number;
 };
 
-const specs: CriteriaSpec[] = [depressiveLike, gadLike, ptsdLike, bipolarGate];
+// TODO: wire CriteriaSpec sources; prior spec files are missing from criteria_specs/v1.
+const specs: CriteriaSpec[] = [];
 
 export const evaluateCriteria = (spec: CriteriaSpec, evidenceUnits: EvidenceUnit[]): CriteriaResult => {
   const evidenceLabels = new Set(evidenceUnits.map((unit) => unit.label.toLowerCase()));
@@ -40,3 +37,13 @@ export const evaluateCriteria = (spec: CriteriaSpec, evidenceUnits: EvidenceUnit
 
 export const evaluateCriteriaSet = (evidenceUnits: EvidenceUnit[]) =>
   specs.map((spec) => evaluateCriteria(spec, evidenceUnits));
+
+export { evaluateDiagnosticLogic, appendComputedEvidenceToEntries } from "./evaluator";
+export type {
+  DiagnosticCaseEntry,
+  DiagnosticEvidenceUnit,
+  DiagnosticJournalEntry,
+  DiagnosticLogicOptions,
+  DiagnosticLogicState,
+  DiagnosticStatus,
+} from "./evaluator";

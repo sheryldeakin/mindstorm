@@ -1,5 +1,6 @@
 import clsx from "clsx";
 import type { SymptomCourseRow } from "./types";
+import StatusDecisionMenu from "../StatusDecisionMenu";
 
 /**
  * Props for SymptomCourse (Clinician-Facing).
@@ -7,6 +8,11 @@ import type { SymptomCourseRow } from "./types";
  */
 type SymptomCourseProps = {
   rows: SymptomCourseRow[];
+  onOverrideChange?: (
+    nodeId: string,
+    status: "MET" | "EXCLUDED" | "UNKNOWN" | null,
+    note?: string,
+  ) => void;
 };
 
 const levelClass = {
@@ -16,14 +22,25 @@ const levelClass = {
   high: "bg-rose-500",
 };
 
-const SymptomCourse = ({ rows }: SymptomCourseProps) => {
+const SymptomCourse = ({ rows, onOverrideChange }: SymptomCourseProps) => {
   return (
     <div className="space-y-4">
       {rows.map((row) => (
-        <div key={row.label} className="space-y-2">
-          <div className="flex items-center justify-between text-xs text-slate-500">
-            <span className="font-semibold text-slate-700">{row.label}</span>
-            <span>{row.buckets[0]?.weekStartISO} → {row.buckets[row.buckets.length - 1]?.weekStartISO}</span>
+        <div key={row.id} className="space-y-2">
+          <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
+            <div className="flex flex-col gap-1">
+              <span className="font-semibold text-slate-700">{row.label}</span>
+              <span>
+                {row.buckets[0]?.weekStartISO} → {row.buckets[row.buckets.length - 1]?.weekStartISO}
+              </span>
+            </div>
+            {onOverrideChange ? (
+              <StatusDecisionMenu
+                autoStatus={row.autoStatus || "UNKNOWN"}
+                overrideStatus={row.overrideStatus ?? null}
+                onUpdate={(status, note) => onOverrideChange(row.id, status, note)}
+              />
+            ) : null}
           </div>
           <div className="flex gap-1">
             {row.buckets.map((bucket) => (

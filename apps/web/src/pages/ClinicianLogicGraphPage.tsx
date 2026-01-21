@@ -5,8 +5,9 @@ import DiagnosticLogicGraph from "../components/clinician/DiagnosticLogicGraph";
 import EvidenceDrawer from "../components/clinician/EvidenceDrawer";
 import { Card } from "../components/ui/Card";
 import { apiFetch } from "../lib/apiClient";
-import type { CaseEntry, ClinicianCase, EvidenceUnit } from "../types/clinician";
+import type { CaseEntry, ClinicianCase, ClinicianOverrideRecord, EvidenceUnit } from "../types/clinician";
 import useDiagnosticLogic, { type DiagnosticStatus } from "../hooks/useDiagnosticLogic";
+import { appendComputedEvidenceToEntries } from "@mindstorm/criteria-graph";
 import { DIAGNOSTIC_GRAPH_NODES } from "../lib/diagnosticGraphConfig";
 import { buildClarificationPrompts } from "../lib/clinicianPrompts";
 import FunctionalImpactCard from "../components/clinician/FunctionalImpactCard";
@@ -23,6 +24,12 @@ const ClinicianLogicGraphPage = () => {
   const [nodeOverrides, setNodeOverrides] = useState<Record<string, DiagnosticStatus>>({});
   const [rejectedEvidenceKeys, setRejectedEvidenceKeys] = useState<Set<string>>(new Set());
   const sessionDelta = useSessionDelta(selectedCase);
+
+  const buildOverrideMap = (records: ClinicianOverrideRecord[]) =>
+    records.reduce<Record<string, DiagnosticStatus>>((acc, item) => {
+      acc[item.nodeId] = item.status;
+      return acc;
+    }, {});
 
   useEffect(() => {
     let active = true;
@@ -52,7 +59,7 @@ const ClinicianLogicGraphPage = () => {
     apiFetch<{ entries: CaseEntry[]; user: { name: string } }>(`/clinician/cases/${selectedCase}/entries`)
       .then((response) => {
         if (!active) return;
-        setEntries(response.entries || []);
+        setEntries(appendComputedEvidenceToEntries(response.entries || []));
       })
       .catch((err) => {
         if (!active) return;
@@ -60,6 +67,23 @@ const ClinicianLogicGraphPage = () => {
       })
       .finally(() => {
         if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [selectedCase]);
+
+  useEffect(() => {
+    if (!selectedCase) return;
+    let active = true;
+    apiFetch<{ overrides: ClinicianOverrideRecord[] }>(`/clinician/cases/${selectedCase}/overrides`)
+      .then((response) => {
+        if (!active) return;
+        setNodeOverrides(buildOverrideMap(response.overrides || []));
+      })
+      .catch((err) => {
+        if (!active) return;
+        setError(err instanceof Error ? err.message : "Unable to load overrides.");
       });
     return () => {
       active = false;
@@ -92,6 +116,7 @@ const ClinicianLogicGraphPage = () => {
   const { getStatusForLabels } = useDiagnosticLogic(entries, {
     overrides: labelOverrides,
     rejectedEvidenceKeys,
+    patientId: selectedCase,
   });
 
   const clarificationPrompts = useMemo(
@@ -104,16 +129,57 @@ const ClinicianLogicGraphPage = () => {
     return evidenceUnits.filter((unit) => selectedNode.labels?.includes(unit.label));
   }, [evidenceUnits, selectedNode]);
 
-  const handleOverrideChange = (status: DiagnosticStatus | null) => {
-    if (!selectedNode) return;
-    setNodeOverrides((prev) => {
-      const next = { ...prev };
-      if (!status) {
-        delete next[selectedNode.id];
+  const saveOverride = async (
+    nodeId: string,
+    status: DiagnosticStatus | null,
+    meta?: { originalStatus?: DiagnosticStatus; originalEvidence?: string; note?: string },
+  ) => {
+    if (!selectedCase) return;
+    if (!status) {
+      setNodeOverrides((prev) => {
+        const next = { ...prev };
+        delete next[nodeId];
         return next;
-      }
-      next[selectedNode.id] = status;
-      return next;
+      });
+      await apiFetch(`/clinician/cases/${selectedCase}/overrides/${nodeId}`, { method: "DELETE" });
+      return;
+    }
+    const originalStatus = meta?.originalStatus || "UNKNOWN";
+    await apiFetch(`/clinician/cases/${selectedCase}/overrides`, {
+      method: "POST",
+      body: JSON.stringify({
+        nodeId,
+        status,
+        originalStatus,
+        originalEvidence: meta?.originalEvidence || "",
+        note: meta?.note || "",
+      }),
+    });
+    setNodeOverrides((prev) => ({ ...prev, [nodeId]: status }));
+  };
+
+  const handleOverrideChange = (status: DiagnosticStatus | null, note?: string) => {
+    if (!selectedNode) return;
+    const graphNode = DIAGNOSTIC_GRAPH_NODES.find((node) => node.id === selectedNode.id);
+    const originalStatus = graphNode?.evidenceLabels?.length
+      ? getStatusForLabels(graphNode.evidenceLabels)
+      : "UNKNOWN";
+    saveOverride(selectedNode.id, status, {
+      originalStatus,
+      originalEvidence: selectedNode.label,
+      note,
+    });
+  };
+
+  const handleNodeOverride = (nodeId: string, status: DiagnosticStatus | null, note?: string) => {
+    const graphNode = DIAGNOSTIC_GRAPH_NODES.find((node) => node.id === nodeId);
+    const originalStatus = graphNode?.evidenceLabels?.length
+      ? getStatusForLabels(graphNode.evidenceLabels)
+      : "UNKNOWN";
+    saveOverride(nodeId, status, {
+      originalStatus,
+      originalEvidence: graphNode?.label || "",
+      note,
     });
   };
 
@@ -185,9 +251,11 @@ const ClinicianLogicGraphPage = () => {
               nodeOverrides={nodeOverrides}
               rejectedEvidenceKeys={rejectedEvidenceKeys}
               lastAccessISO={sessionDelta.lastAccessISO}
+              patientId={selectedCase}
               onNodeSelect={(node) =>
                 setSelectedNode({ id: node.id, label: node.label, labels: node.evidenceLabels })
               }
+              onOverrideChange={handleNodeOverride}
             />
           </div>
         </Card>

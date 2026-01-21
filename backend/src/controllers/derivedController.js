@@ -7,6 +7,8 @@ const EntrySignals = require("../derived/models/EntrySignals");
 const ThemeSeries = require("../derived/models/ThemeSeries");
 const WeeklySummary = require("../models/WeeklySummary");
 const Entry = require("../models/Entry");
+const ClinicianOverride = require("../models/ClinicianOverride");
+const { evaluateDiagnosticLogic } = require("@mindstorm/criteria-graph/evaluator");
 
 /**
  * Returns ISO week start (Monday) for a dateISO string.
@@ -632,6 +634,78 @@ const getConnectionsGraph = asyncHandler(async (req, res) => {
 });
 
 /**
+ * Evaluate diagnostic gating status for a patient using server-side logic.
+ * @param {import("express").Request} req
+ * @param {import("express").Response} res
+ * @returns {Promise<void>} Responds with diagnostic status and counts.
+ */
+const getClinicalStatus = asyncHandler(async (req, res) => {
+  const patientId = req.params.patientId;
+  // TODO: enforce clinician access and patient scope before returning clinical status.
+  const windowDays = req.query.windowDays ? Number(req.query.windowDays) : undefined;
+  const diagnosticWindowDays = req.query.diagnosticWindowDays
+    ? Number(req.query.diagnosticWindowDays)
+    : undefined;
+  const threshold = req.query.threshold ? Number(req.query.threshold) : undefined;
+  const labelsParam = typeof req.query.labels === "string" ? req.query.labels : "";
+  const requestedLabels = labelsParam
+    .split(",")
+    .map((label) => label.trim())
+    .filter(Boolean);
+
+  const [entries, overrides] = await Promise.all([
+    Entry.find({ userId: patientId, deletedAt: null })
+      .select("dateISO summary evidenceUnits risk_signal")
+      .sort({ dateISO: 1 })
+      .lean(),
+    ClinicianOverride.find({ clinicianId: req.user._id, patientId }).lean(),
+  ]);
+
+  const overrideMap = overrides.reduce((acc, item) => {
+    acc[item.nodeId] = item.status;
+    return acc;
+  }, {});
+
+  const logic = evaluateDiagnosticLogic(entries, {
+    windowDays,
+    diagnosticWindowDays,
+    threshold,
+    overrideList: overrides.map((item) => ({ nodeId: item.nodeId, status: item.status })),
+  });
+
+  const labelSet = new Set([
+    ...logic.currentSymptoms,
+    ...logic.currentDenials,
+    ...logic.lifetimeSymptoms,
+    ...logic.lifetimeDenials,
+  ]);
+  const allStatusByLabel = Array.from(labelSet).reduce((acc, label) => {
+    acc[label] = logic.getStatusForLabels([label]);
+    return acc;
+  }, {});
+
+  const statusByLabel = requestedLabels.length
+    ? requestedLabels.reduce((acc, label) => {
+        acc[label] = logic.getStatusForLabels([label]);
+        return acc;
+      }, {})
+    : allStatusByLabel;
+
+  res.json({
+    statusByLabel,
+    overrides: overrideMap,
+    currentCount: logic.currentCount,
+    lifetimeCount: logic.lifetimeCount,
+    lifetimeWindowMax: logic.lifetimeWindowMax,
+    potentialRemission: logic.potentialRemission,
+    currentSymptoms: Array.from(logic.currentSymptoms),
+    currentDenials: Array.from(logic.currentDenials),
+    lifetimeSymptoms: Array.from(logic.lifetimeSymptoms),
+    lifetimeDenials: Array.from(logic.lifetimeDenials),
+  });
+});
+
+/**
  * Build pattern cards for the selected range using signals + theme series.
  * @param {import("express").Request} req
  * @param {import("express").Response} res
@@ -768,4 +842,4 @@ const getCycles = asyncHandler(async (req, res) => {
   });
 });
 
-module.exports = { getSnapshot, getWeeklySummaries, getConnectionsGraph, getCycles, getPatterns };
+module.exports = { getSnapshot, getWeeklySummaries, getConnectionsGraph, getCycles, getPatterns, getClinicalStatus };

@@ -7,6 +7,50 @@ const { PIPELINE_VERSION } = require("../pipelineVersion");
 const { computeSourceVersionForRange } = require("../versioning");
 const { mergeSummaries } = require("../../utils/ai/summaryMerger");
 
+const parseStringList = (value) => {
+  const trimmed = value.trim();
+  if (!trimmed.startsWith("[") || !trimmed.endsWith("]")) return null;
+  try {
+    const parsed = JSON.parse(trimmed);
+    return Array.isArray(parsed) ? parsed : null;
+  } catch (error) {
+    return null;
+  }
+};
+
+const coerceStringList = (value) => {
+  if (Array.isArray(value)) {
+    return value
+      .flat(Infinity)
+      .map((item) => (typeof item === "string" ? item : item == null ? "" : String(item)))
+      .filter(Boolean);
+  }
+  if (typeof value === "string") {
+    const parsed = parseStringList(value);
+    if (parsed) return coerceStringList(parsed);
+    return value ? [value] : [];
+  }
+  return [];
+};
+
+const normalizeNarrativeArrays = (narrative) => {
+  const arrayFields = [
+    "recurringExperiences",
+    "impactAreas",
+    "relatedInfluences",
+    "unclearAreas",
+    "questionsToExplore",
+    "intensityLines",
+    "highlights",
+    "shiftsOverTime",
+  ];
+  const next = { ...narrative };
+  arrayFields.forEach((field) => {
+    next[field] = coerceStringList(next[field]);
+  });
+  return next;
+};
+
 /**
  * Returns the dateISO lower bound for a range key.
  * @param {string} rangeKey
@@ -46,6 +90,21 @@ const buildTimeRangeLabel = (rangeKey) => {
       return "All time";
     default:
       return "Last 30 days";
+  }
+};
+
+const getRangeDays = (rangeKey) => {
+  switch (rangeKey) {
+    case "last_7_days":
+      return 7;
+    case "last_30_days":
+      return 30;
+    case "last_90_days":
+      return 90;
+    case "last_365_days":
+      return 365;
+    default:
+      return null;
   }
 };
 
@@ -501,6 +560,13 @@ const buildSnapshot = ({ entries, rangeKey, weeklySummaries, seriesDocs, signals
   };
 };
 
+const computeHistorySpanDays = (earliestISO, latestISO) => {
+  if (!earliestISO || !latestISO) return 0;
+  const start = new Date(`${earliestISO}T00:00:00Z`);
+  const end = new Date(`${latestISO}T00:00:00Z`);
+  return Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+};
+
 /**
  * Recompute a cached snapshot summary for a user/range key.
  * Heavy work: loads entries, signals, weekly summaries, merges narrative, and stores snapshot.
@@ -509,29 +575,92 @@ const buildSnapshot = ({ entries, rangeKey, weeklySummaries, seriesDocs, signals
  */
 const recomputeSnapshotForUser = async ({ userId, rangeKey }) => {
   console.log(`[snapshot] recompute start user=${userId} range=${rangeKey}`);
-  const startIso = getRangeStartIso(rangeKey);
+  const earliestEntry = await Entry.findOne({ userId, deletedAt: null })
+    .sort({ dateISO: 1 })
+    .select({ dateISO: 1 })
+    .lean();
+  const latestEntry = await Entry.findOne({ userId, deletedAt: null })
+    .sort({ dateISO: -1 })
+    .select({ dateISO: 1 })
+    .lean();
+  const historyStartISO = earliestEntry?.dateISO || null;
+  const historyEndISO = latestEntry?.dateISO || null;
+  const historySpanDays = computeHistorySpanDays(historyStartISO, historyEndISO);
+  const requestedDays = getRangeDays(rangeKey);
+  const effectiveRangeKey =
+    requestedDays && historySpanDays > 0 && historySpanDays < requestedDays
+      ? "all_time"
+      : rangeKey;
+  const rangeCoverage = {
+    requestedRangeKey: rangeKey,
+    effectiveRangeKey,
+    historySpanDays,
+    historyStartISO,
+    historyEndISO,
+    reason: effectiveRangeKey === rangeKey ? null : "insufficient_history",
+  };
+
+  if (effectiveRangeKey !== rangeKey) {
+    const existingEffective = await SnapshotSummary.findOne({
+      userId,
+      rangeKey: effectiveRangeKey,
+      stale: false,
+    }).lean();
+    if (existingEffective?.snapshot) {
+      const clonedSnapshot = { ...existingEffective.snapshot, rangeCoverage };
+      if (clonedSnapshot.narrative) {
+        clonedSnapshot.narrative = {
+          ...clonedSnapshot.narrative,
+          timeRangeLabel: buildTimeRangeLabel(effectiveRangeKey),
+        };
+      }
+      await SnapshotSummary.findOneAndUpdate(
+        { userId, rangeKey },
+        {
+          userId,
+          rangeKey,
+          snapshot: clonedSnapshot,
+          computedAt: new Date(),
+          pipelineVersion: PIPELINE_VERSION.snapshot,
+          sourceVersion: existingEffective.sourceVersion,
+          stale: false,
+        },
+        { upsert: true, new: true },
+      );
+      return;
+    }
+  }
+
+  const startIso = getRangeStartIso(effectiveRangeKey);
   const endIso = new Date().toISOString().slice(0, 10);
   const entryQuery = startIso ? { userId, dateISO: { $gte: startIso } } : { userId };
   const entries = await Entry.find({ ...entryQuery, deletedAt: null })
     .sort({ dateISO: 1 })
     .lean();
-  console.log(`[snapshot] entries=${entries.length} range=${rangeKey}`);
+  console.log(`[snapshot] entries=${entries.length} range=${effectiveRangeKey}`);
 
   const signalQuery = startIso ? { userId, dateISO: { $gte: startIso } } : { userId };
   const signals = await EntrySignals.find(signalQuery).sort({ dateISO: 1 }).lean();
-  console.log(`[snapshot] signals=${signals.length} range=${rangeKey}`);
+  console.log(`[snapshot] signals=${signals.length} range=${effectiveRangeKey}`);
 
   const weeklyQuery = startIso
     ? { userId, weekStartISO: { $gte: startIso, $lte: endIso } }
     : { userId };
   const weeklySummaries = await WeeklySummary.find(weeklyQuery).sort({ weekStartISO: 1 }).lean();
-  console.log(`[snapshot] weeklySummaries=${weeklySummaries.length} range=${rangeKey}`);
+  console.log(`[snapshot] weeklySummaries=${weeklySummaries.length} range=${effectiveRangeKey}`);
 
-  const seriesDocs = await ThemeSeries.find({ userId, rangeKey }).lean();
-  console.log(`[snapshot] themeSeries=${seriesDocs.length} range=${rangeKey}`);
+  const seriesDocs = await ThemeSeries.find({ userId, rangeKey: effectiveRangeKey }).lean();
+  console.log(`[snapshot] themeSeries=${seriesDocs.length} range=${effectiveRangeKey}`);
 
-  const snapshot = buildSnapshot({ entries, rangeKey, weeklySummaries, seriesDocs, signals });
-  const timeRangeLabel = buildTimeRangeLabel(rangeKey);
+  const snapshot = buildSnapshot({
+    entries,
+    rangeKey: effectiveRangeKey,
+    weeklySummaries,
+    seriesDocs,
+    signals,
+  });
+  snapshot.rangeCoverage = rangeCoverage;
+  const timeRangeLabel = buildTimeRangeLabel(effectiveRangeKey);
   const chunkSummaries = weeklySummaries
     .map((item) => {
       if (!item.summary) return null;
@@ -554,7 +683,7 @@ const recomputeSnapshotForUser = async ({ userId, rangeKey }) => {
       const evidenceHighlights = buildEvidenceHighlights(signals);
       const mergeProgress = createProgress(
         Math.max(1, chunkSummaries.length - 1),
-        `[snapshot] merge ${userId}:${rangeKey}`,
+        `[snapshot] merge ${userId}:${effectiveRangeKey}`,
       );
       const mergeResponse = await mergeSummaries({
         summaries: chunkSummaries,
@@ -578,12 +707,13 @@ const recomputeSnapshotForUser = async ({ userId, rangeKey }) => {
       }
     }
   }
+  narrative = normalizeNarrativeArrays(narrative || {});
   if (!narrative.overTimeSummary) {
     narrative.overTimeSummary = snapshot.snapshotOverview || "";
   }
   narrative.timeRangeLabel = narrative.timeRangeLabel || timeRangeLabel;
   snapshot.narrative = narrative || {};
-  const sourceVersion = await computeSourceVersionForRange(userId, rangeKey);
+  const sourceVersion = await computeSourceVersionForRange(userId, effectiveRangeKey);
 
   await SnapshotSummary.findOneAndUpdate(
     { userId, rangeKey },

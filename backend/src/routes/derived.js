@@ -6,6 +6,7 @@ const {
   getConnectionsGraph,
   getCycles,
   getPatterns,
+  getClinicalStatus,
 } = require("../controllers/derivedController");
 
 /** Express router for derived data cache endpoints. */
@@ -17,5 +18,6 @@ router.get("/weekly-summaries", getWeeklySummaries);
 router.get("/connections", getConnectionsGraph);
 router.get("/cycles", getCycles);
 router.get("/patterns", getPatterns);
+router.get("/clinical-status/:patientId", getClinicalStatus);
 
 module.exports = router;

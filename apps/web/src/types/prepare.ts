@@ -11,6 +11,14 @@ export interface AuditLogEntry {
 
 export interface PrepareSummary {
   timeRangeLabel: string;
+  rangeCoverage?: {
+    requestedRangeKey?: string;
+    effectiveRangeKey?: string;
+    historySpanDays?: number;
+    historyStartISO?: string | null;
+    historyEndISO?: string | null;
+    reason?: string | null;
+  } | null;
   confidenceNote: string;
   whySharing: string;
   recurringExperiences: string[];

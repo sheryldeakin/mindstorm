@@ -10,15 +10,23 @@ import type { DepressiveDiagnosisKey } from "../../../lib/depressiveCriteriaConf
 type ReasoningGraphAccordionProps = {
   diagnosisKey: DepressiveDiagnosisKey;
   entries: CaseEntry[];
+  patientId?: string;
   nodeOverrides?: Record<string, "MET" | "EXCLUDED" | "UNKNOWN">;
-  onOverrideChange?: (nodeId: string, status: "MET" | "EXCLUDED" | "UNKNOWN" | null) => void;
+  labelOverrides?: Record<string, "MET" | "EXCLUDED" | "UNKNOWN">;
+  onOverrideChange?: (
+    nodeId: string,
+    status: "MET" | "EXCLUDED" | "UNKNOWN" | null,
+    note?: string,
+  ) => void;
   lastAccessISO?: string | null;
 };
 
 const ReasoningGraphAccordion = ({
   diagnosisKey,
   entries,
+  patientId,
   nodeOverrides,
+  labelOverrides,
   onOverrideChange,
   lastAccessISO,
 }: ReasoningGraphAccordionProps) => {
@@ -50,7 +58,9 @@ const ReasoningGraphAccordion = ({
           diagnosisKey={diagnosisKey}
           entries={entries}
           mode={mode}
+          patientId={patientId}
           nodeOverrides={nodeOverrides}
+          labelOverrides={labelOverrides}
           onOverrideChange={onOverrideChange}
           lastAccessISO={lastAccessISO}
         />

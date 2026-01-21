@@ -146,7 +146,7 @@ const ClinicianCasePageContent = () => {
     });
   };
 
-  const handleOverrideChange = (status: DiagnosticStatus | null) => {
+  const handleOverrideChange = (status: DiagnosticStatus | null, note?: string) => {
     if (!selectedNode) return;
     const graphNode = DIAGNOSTIC_GRAPH_NODES.find((node) => node.id === selectedNode.id);
     const originalStatus = graphNode?.evidenceLabels?.length
@@ -155,10 +155,11 @@ const ClinicianCasePageContent = () => {
     saveOverride(selectedNode.id, status, {
       originalStatus,
       originalEvidence: selectedNode.label,
+      note,
     });
   };
 
-  const handleNodeOverride = (nodeId: string, status: DiagnosticStatus | null) => {
+  const handleNodeOverride = (nodeId: string, status: DiagnosticStatus | null, note?: string) => {
     const graphNode = DIAGNOSTIC_GRAPH_NODES.find((node) => node.id === nodeId);
     const originalStatus = graphNode?.evidenceLabels?.length
       ? graphLogic.getStatusForLabels(graphNode.evidenceLabels)
@@ -166,6 +167,7 @@ const ClinicianCasePageContent = () => {
     saveOverride(nodeId, status, {
       originalStatus,
       originalEvidence: graphNode?.label || "",
+      note,
     });
   };
 
@@ -252,6 +254,7 @@ const ClinicianCasePageContent = () => {
             <div className="mt-4">
               <DiagnosticLogicGraph
                 entries={entries}
+                patientId={caseId}
                 nodeOverrides={nodeOverrides}
                 rejectedEvidenceKeys={rejectedEvidenceKeys}
                 lastAccessISO={sessionDelta.lastAccessISO}
@@ -305,7 +308,7 @@ const ClinicianCasePageContent = () => {
                 notes={notes}
                 auditItems={overrideRecords.map((record) => ({
                   label: `${record.nodeId} → ${record.status} (Auto: ${record.originalStatus})`,
-                  detail: record.originalEvidence || "",
+                  detail: record.note || record.originalEvidence || "",
                   dateISO: record.updatedAt ? record.updatedAt.slice(0, 10) : "",
                 }))}
                 onCreate={saveNote}

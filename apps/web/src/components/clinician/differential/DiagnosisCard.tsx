@@ -16,9 +16,16 @@ type DiagnosisCardProps = {
 
 const DiagnosisCard = ({ data, selected, pinned, onSelect, onTogglePin }: DiagnosisCardProps) => {
   return (
-    <button
-      type="button"
+    <div
+      role="button"
+      tabIndex={0}
       onClick={() => onSelect(data.key)}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onSelect(data.key);
+        }
+      }}
       aria-pressed={selected}
       className={clsx(
         "relative w-full overflow-hidden rounded-2xl border p-4 text-left transition focus:outline-none focus:ring-2 focus:ring-brand/40",
@@ -138,7 +145,7 @@ const DiagnosisCard = ({ data, selected, pinned, onSelect, onTogglePin }: Diagno
           Rule-Out Active{data.blockedReason ? ` · ${data.blockedReason}` : ""}
         </div>
       ) : null}
-    </button>
+    </div>
   );
 };
 

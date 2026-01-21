@@ -226,7 +226,10 @@
             "min_days": 14,
             "needs_cooccurrence_window": true
           },
-          "evidence_binding": { "signal_types": ["DURATION", "TEMPORALITY"], "aliases": ["two_weeks", "since", "for"] }
+          "evidence_binding": {
+            "signal_types": ["DURATION", "TEMPORALITY"],
+            "aliases": ["two_weeks", "since", "for", "computed_duration_2w", "DURATION_COMPUTED_2W"]
+          }
         },
         {
           "id": "MDD_D2_RECURRENCE_INTERVAL",
@@ -272,10 +275,14 @@
           "type": "RULE_OUT",
           "labels": { "clinician": "Rule-out: manic/hypomanic history", "self": "Periods of unusually high energy" },
           "description": {
-            "clinician": "Exclude if there is evidence of manic/hypomanic episodes.",
+            "clinician": "Exclude if there is clear evidence of manic/hypomanic episodes.",
             "self": "Some people also have periods of unusually high energy or racing thoughts—worth discussing."
           },
-          "rule": { "kind": "exclusion_if_present" },
+          "rule": {
+            "kind": "exclusion_if_present",
+            "min_confidence": "HIGH",
+            "attributes_required": { "polarity": "PRESENT" }
+          },
           "evidence_binding": { "signal_types": ["RULE_OUT"], "aliases": ["mania", "hypomania"] },
           "policy": { "priority": "highest" }
         },

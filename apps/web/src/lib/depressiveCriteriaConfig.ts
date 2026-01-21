@@ -10,6 +10,10 @@ export type EvidenceLabel =
   | "SYMPTOM_MANIA"
   | "SYMPTOM_PSYCHOSIS"
   | "SYMPTOM_TRAUMA"
+  | "DURATION"
+  | "TEMPORALITY"
+  | "DURATION_COMPUTED_2W"
+  | "DURATION_COMPUTED_1_MONTH"
   | "IMPAIRMENT"
   | "CONTEXT_SUBSTANCE"
   | "CONTEXT_MEDICAL"
@@ -129,6 +133,12 @@ export const mapNodeToEvidence = (nodeId: string): EvidenceLabel[] => {
   }
   if (id.includes("TRAUMA")) {
     return ["SYMPTOM_TRAUMA"];
+  }
+  if (id.includes("DURATION") || id.includes("TIME") || id.includes("EPISODE")) {
+    if (id.includes("PTSD")) {
+      return ["DURATION", "TEMPORALITY", "DURATION_COMPUTED_1_MONTH"];
+    }
+    return ["DURATION", "TEMPORALITY", "DURATION_COMPUTED_2W"];
   }
   return [];
 };

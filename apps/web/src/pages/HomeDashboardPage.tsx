@@ -194,6 +194,14 @@ const HomeDashboardPage = () => {
       shiftsOverTime?: string[];
       contextImpactSummary?: string;
     };
+    rangeCoverage?: {
+      requestedRangeKey?: string;
+      effectiveRangeKey?: string;
+      historySpanDays?: number;
+      historyStartISO?: string | null;
+      historyEndISO?: string | null;
+      reason?: string | null;
+    };
   } | null>(null);
   const [stale, setStale] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -272,14 +280,20 @@ const HomeDashboardPage = () => {
   const timeRangeSummary = snapshot?.timeRangeSummary || null;
   const helpedHighlights = snapshot?.whatHelped?.length ? snapshot.whatHelped : emptyHelpedHighlights;
   const gentlePrompts = snapshot?.prompts?.length ? snapshot.prompts : emptyPrompts;
+  const rangeCoverage = snapshot?.rangeCoverage;
+  const effectiveRangeKey = rangeCoverage?.effectiveRangeKey || rangeKey;
   const rangeLabel =
-    range === "week"
+    effectiveRangeKey === "last_7_days"
       ? "this week"
-      : range === "month"
+      : effectiveRangeKey === "last_30_days"
         ? "this month"
-        : range === "year"
+        : effectiveRangeKey === "last_365_days"
           ? "this year"
           : "all time";
+  const rangeNotice =
+    rangeCoverage && rangeCoverage.effectiveRangeKey && rangeCoverage.effectiveRangeKey !== rangeKey
+      ? `You don’t have ${range === "week" ? "7 days" : range === "month" ? "30 days" : "365 days"} of entries yet. This view reflects all available writing so far.`
+      : null;
   const narrative = snapshot?.narrative || {};
   const snapshotImpactAreas =
     narrative.impactAreas?.length ? narrative.impactAreas : snapshot?.impactAreas || [];
@@ -315,6 +329,11 @@ const HomeDashboardPage = () => {
           {(loading || stale) && <span className="small-label text-slate-400">Updating your snapshot...</span>}
         </div>
       </section>
+      {rangeNotice ? (
+        <Card className="border border-amber-100 bg-amber-50/60 px-4 py-3 text-sm text-amber-900">
+          {rangeNotice}
+        </Card>
+      ) : null}
 
       <Card className="ms-elev-3 p-8">
         <div className="flex flex-wrap items-center justify-between gap-4">

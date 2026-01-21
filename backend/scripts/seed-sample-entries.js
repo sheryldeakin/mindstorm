@@ -442,6 +442,7 @@ const clinicalProfiles = {
       SPEC_PSYCHOTIC_FEATURES: 0.05,
     },
     baseIntensity: { min: 0.8, max: 1.0 },
+    confounderProbability: 0.0,
     emotions: [
       { label: "empty", intensity: 90, tone: "negative" },
       { label: "exhausted", intensity: 85, tone: "negative" },

@@ -3,6 +3,33 @@ const EntrySignals = require("../models/EntrySignals");
 const { PIPELINE_VERSION } = require("../pipelineVersion");
 const { computeSourceVersionForRange } = require("../versioning");
 
+const mapEvidenceLabelToTheme = (label) => {
+  const map = {
+    SYMPTOM_MOOD: "Low mood",
+    SYMPTOM_ANHEDONIA: "Loss of interest",
+    SYMPTOM_COGNITIVE: "Foggy thinking",
+    SYMPTOM_SOMATIC: "Low energy",
+    SYMPTOM_SLEEP: "Sleep changes",
+    SYMPTOM_ANXIETY: "Anxiety or worry",
+    SYMPTOM_RISK: "Risk thoughts",
+    SYMPTOM_MANIA: "High energy shifts",
+    SYMPTOM_PSYCHOSIS: "Unusual perceptions",
+    SYMPTOM_TRAUMA: "Trauma reminders",
+    IMPACT_WORK: "Work/school impact",
+    IMPACT_SOCIAL: "Relationship strain",
+    IMPACT_SELF_CARE: "Self-care struggles",
+    IMPACT: "Life impact",
+    CONTEXT_STRESSOR: "Life stressors",
+    CONTEXT_MEDICAL: "Physical health changes",
+    CONTEXT_SUBSTANCE: "Substance or medication changes",
+  };
+  if (map[label]) return map[label];
+  return String(label || "")
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (char) => char.toUpperCase())
+    .trim();
+};
+
 /**
  * Returns the dateISO lower bound for a range key.
  * @param {string} rangeKey
@@ -40,6 +67,13 @@ const buildConnectionsGraph = (signals) => {
 
   signals.forEach((signal) => {
     const themes = Array.from(new Set((signal.themes || []).map((theme) => theme.trim()).filter(Boolean)));
+    const units = Array.isArray(signal.evidenceUnits) ? signal.evidenceUnits : [];
+    units.forEach((unit) => {
+      if (unit?.attributes?.polarity !== "PRESENT") return;
+      if (!unit?.label) return;
+      const formatted = mapEvidenceLabelToTheme(unit.label);
+      if (formatted) themes.push(formatted);
+    });
     themes.forEach((theme) => {
       const key = theme.toLowerCase();
       themeCounts.set(key, (themeCounts.get(key) || 0) + 1);

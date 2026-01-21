@@ -39,6 +39,27 @@ const parseArgs = (argv) => {
 };
 
 /**
+ * Runs async work with a fixed concurrency.
+ * @param {Array<unknown>} items
+ * @param {number} limit
+ * @param {(item: any) => Promise<void>} handler
+ * @returns {Promise<void>}
+ */
+const runWithConcurrency = async (items, limit, handler) => {
+  if (!items.length) return;
+  const safeLimit = Math.max(1, Math.min(limit, items.length));
+  let index = 0;
+  const workers = Array.from({ length: safeLimit }, async () => {
+    while (index < items.length) {
+      const current = items[index];
+      index += 1;
+      await handler(current);
+    }
+  });
+  await Promise.all(workers);
+};
+
+/**
  * Creates a console progress bar renderer.
  * @param {number} total
  * @param {string} label
@@ -47,14 +68,32 @@ const parseArgs = (argv) => {
 const createProgress = (total, label) => {
   const start = Date.now();
   const safeTotal = total > 0 ? total : 1;
+  const samples = [];
+  const maxSamples = 10;
+  const formatEta = (seconds) => {
+    const rounded = Math.max(0, Math.round(seconds));
+    const hours = Math.floor(rounded / 3600);
+    const minutes = Math.floor((rounded % 3600) / 60);
+    const secs = rounded % 60;
+    const pad = (value) => String(value).padStart(2, "0");
+    return `${hours}:${pad(minutes)}:${pad(secs)}`;
+  };
   const render = (current) => {
     const percent = Math.min(current / safeTotal, 1);
     const width = 24;
     const filled = Math.round(width * percent);
     const bar = `${"█".repeat(filled)}${"░".repeat(width - filled)}`;
     const elapsed = (Date.now() - start) / 1000;
-    const eta = current > 0 ? ((elapsed / current) * (safeTotal - current)) : 0;
-    const line = `${label} [${bar}] ${(percent * 100).toFixed(1)}% (${current}/${safeTotal}) ETA ${eta.toFixed(0)}s`;
+    if (current > 0) {
+      samples.push(elapsed / current);
+      if (samples.length > maxSamples) samples.shift();
+    }
+    const avgSecondsPerItem = samples.length
+      ? samples.reduce((sum, value) => sum + value, 0) / samples.length
+      : 0;
+    const remaining = Math.max(0, safeTotal - current);
+    const eta = avgSecondsPerItem * remaining;
+    const line = `${label} [${bar}] ${(percent * 100).toFixed(1)}% (${current}/${safeTotal}) ETA ${formatEta(eta)}`;
     process.stdout.write(`\r${line}`);
   };
   const done = () => {
@@ -86,11 +125,14 @@ const run = async () => {
   const args = parseArgs(process.argv.slice(2));
   const onlyMissing = Boolean(args["only-missing"]);
   const targetUserId = args.user || null;
+  const concurrency = Number.isFinite(Number(args.concurrency))
+    ? Math.max(1, Number(args.concurrency))
+    : 2;
   if (!uri) {
     throw new Error("MONGODB_URI is not set.");
   }
 
-  await mongoose.connect(uri);
+  await mongoose.connect(uri, { socketTimeoutMS: 45000 });
 
   const entryFilter = targetUserId ? { userId: targetUserId } : {};
   const entries = await Entry.find(entryFilter).lean();
@@ -116,7 +158,7 @@ const run = async () => {
 
     const entryProgress = createProgress(data.entries.length, `Entries ${userId}`);
     let entryCount = 0;
-    for (const entry of data.entries) {
+    await runWithConcurrency(data.entries, concurrency, async (entry) => {
       const entryText = `Title: ${entry.title}\nSummary: ${entry.summary}`;
       if (!onlyMissing || !entry.evidenceBySection) {
         const evidence = await generateEntryEvidence(entryText);
@@ -160,44 +202,33 @@ const run = async () => {
       });
       entryCount += 1;
       entryProgress.render(entryCount);
-    }
+    });
     entryProgress.done();
 
     const weeks = Array.from(data.weeks).filter(Boolean).sort();
     const weekProgress = createProgress(weeks.length, `Summaries ${userId}`);
     let weekCount = 0;
-    for (let i = 0; i < weeks.length; i += 2) {
-      const batch = weeks.slice(i, i + 2);
-      const weekTasks = onlyMissing
-        ? await Promise.all(
-            batch.map(async (weekStartIso) => {
-              const existing = await WeeklySummary.findOne({ userId, weekStartISO: weekStartIso }).lean();
-              return existing ? null : weekStartIso;
-            }),
-          )
-        : batch;
-      const batchToRun = weekTasks.filter(Boolean);
-      if (!batchToRun.length) {
-        weekCount += batch.length;
-        weekProgress.render(weekCount);
-        continue;
-      }
-      const results = await Promise.all(
-        batchToRun.map((weekStartIso) => generateWeeklySummary({ userId, weekStartIso })),
-      );
-      results.forEach((result, index) => {
-        if (result?.error) {
-          console.warn(`Weekly summary error for ${batchToRun[index]}: ${result.error}`);
-        } else {
-          console.log(`Weekly summary updated for ${batchToRun[index]}`);
+    await runWithConcurrency(weeks, concurrency, async (weekStartIso) => {
+      if (onlyMissing) {
+        const existing = await WeeklySummary.findOne({ userId, weekStartISO: weekStartIso }).lean();
+        if (existing) {
+          weekCount += 1;
+          weekProgress.render(weekCount);
+          return;
         }
-        weekCount += 1;
-        weekProgress.render(weekCount);
-      });
-    }
+      }
+      const result = await generateWeeklySummary({ userId, weekStartIso });
+      if (result?.error) {
+        console.warn(`Weekly summary error for ${weekStartIso}: ${result.error}`);
+      } else {
+        console.log(`Weekly summary updated for ${weekStartIso}`);
+      }
+      weekCount += 1;
+      weekProgress.render(weekCount);
+    });
     weekProgress.done();
 
-    const rangeKeys = ["last_7_days", "last_30_days", "last_90_days", "last_365_days", "all_time"];
+    const rangeKeys = ["all_time", "last_7_days", "last_30_days", "last_90_days", "last_365_days"];
     for (const rangeKey of rangeKeys) {
       await recomputeThemeSeriesForUser({ userId, rangeKey });
     }

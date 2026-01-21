@@ -95,20 +95,34 @@ const buildClinicalSignalPrompt = () =>
     "provided below to ensure the downstream logic graph can process them.",
     
     "1. Depressive and Anxiety Symptoms",
-    "- SYMPTOM_MOOD: Sadness, emptiness, irritability, tearfulness. *CRITICAL: 'Feeling empty' or 'numb' counts as PRESENT mood pathology.*",
+    "- SYMPTOM_MOOD: Sadness, emptiness, irritability, tearfulness.",
+    " Note if the mood is described as 'worse in the morning' (Melancholic feature).",
+    " *CRITICAL: 'Feeling empty' or 'numb' counts as PRESENT mood pathology.*",
+    " **Also note 'Mood Reactivity': Does the text explicitly say mood 'brightened' or they 'felt better' temporarily due to positive events? (Atypical feature).**",
     "- SYMPTOM_ANHEDONIA: Loss of interest, 'don't care anymore', 'nothing is fun'.", 
-    "- SYMPTOM_COGNITIVE: Diminished concentration, indecisiveness, excessive guilt, feelings of worthlessness, brain fog",
-    "- SYMPTOM_SOMATIC: Weight changes, appetite changes, fatigue, low energy, psychomotor agitation",
-    "(restlessness) or retardation (slowing down).",
-    "- SYMPTOM_SLEEP: Insomnia (can't sleep) or Hypersomnia (sleeping too much).",
-    "- SYMPTOM_RISK: Thoughts of death, suicidal ideation, specific plans, or attempts, self-harm. *Critical Safety Signal.*",
-    "- SYMPTOM_ANXIETY: Feeling keyed up/tense, worry, tension, panic, fear something awful may happen.",
+    "- SYMPTOM_COGNITIVE: Diminished concentration, indecisiveness, brain fog, feelings of worthlessness.",
+    " Include 'guilt' only if excessive or inappropriate (e.g., 'I am a bad person'). Do NOT tag rational guilt. For example, missing work due to illness/fatigue.",
+    " If user says 'I am lazy', check if it implies SYMPTOM_FATIGUE or SYMPTOM_COGNITIVE (self-criticism).",
+    "- SYMPTOM_SOMATIC: Weight changes, appetite changes, fatigue, heavy limbs ('leaden paralysis'), psychomotor retardation (moving/speaking slowly).",
+    " For 'agitation', only tag physical movements (pacing, inability to sit still).",
+    " Tag subjective 'restlessness' or 'feeling on edge' as SYMPTOM_ANXIETY.",
+    "- SYMPTOM_SLEEP: Insomnia (falling asleep difficulty OR waking too early), Hypersomnia (sleeping too much).",
+    " If 'waking up too early' or 'waking up in the middle of the night' is mentioned, capture it explicitly as SYMPTOM_SLEEP.",
+    " Tag 'nightmares' as SYMPTOM_SLEEP and tag as SYMPTOM_TRAUMA if the nightmare is extreme to the point of distress.",
+    "- SYMPTOM_RISK: Thoughts of death, suicidal ideation, specific plans, or attempts, self-harm. **Critical Safety Signal**.",
+    " DO NOT tag idioms (e.g., 'killing me'). DO NOT tag 'fear of dying' or 'fear of doom' (Panic symptoms) as RISK—only tag wanting to die or active self-harm.",
+    "- SYMPTOM_ANXIETY: Feeling keyed up/tense, worry, tension, panic, subjective restlessness, fear something awful may happen.",
+    "**Include 'feeling overwhelmed' or 'feeling out of control' (PMDD signals). Include 'hypervigilance' or 'jumpy/startle response' (PTSD signals).**",
 
     "2. Differential & Rule-Out Signals (Distinguish Diagnosis):",
-    "- SYMPTOM_MANIA: Elevated/expansive mood, inflated self-esteem/grandiosity, decreased need for sleep, racing thoughts/flight",
-    "of ideas, pressured speech, increased goal-directed activity, risk-taking behavior.",
-    "- SYMPTOM_PSYCHOSIS: Hallucinations (auditory/visual), delusions, paranoia, disorganized speech or thought.",
-    "- SYMPTOM_TRAUMA: Flashbacks, intrusive memories of traumatic events, dissociation, derealization, depersonalization.",
+    "- SYMPTOM_MANIA: Elevated/expansive mood, inflated self-esteem/grandiosity, decreased need for sleep, racing thoughts, pressured speech (talking fast/can't stop)", 
+    " DO NOT label 'irritability' or 'social withdrawal' as MANIA unless accompanied by high energy, sleeplessness, or racing thoughts. 'Needing space' is typically SOCIAL_IMPACT or MOOD, not MANIA.",
+    " **CRITICAL:** Do NOT tag 'productive day' or 'cleaning the house' as MANIA unless accompanied by a *decreased need for sleep* (e.g., feeling rested after 3 hours).",
+    " If they are sleeping normal hours, this is likely recovery, not mania.",
+    " DO NOT tag 'mood swings' or 'erratic mood' as MANIA—only sustained high energy/euphoria.",
+    "- SYMPTOM_PSYCHOSIS: Hallucinations (auditory/visual), delusions, disorganization.",
+    " DO NOT tag 'inner critic', 'inner voice' (internal monologue), or colloquial 'paranoia' (social worry) as PSYCHOSIS. Only tag clear breaks from reality.",
+    "- SYMPTOM_TRAUMA: Flashbacks, intrusive memories of traumatic events, dissociation (feeling 'unreal'), derealization, depersonalization.",
 
     "3. Functional Impact (Gate Criteria):",
     "*Split general impairment into these specific domains:*",
@@ -118,8 +132,11 @@ const buildClinicalSignalPrompt = () =>
 
     "4. Context Factors:", 
     "- CONTEXT_SUBSTANCE: Use of alcohol, drugs, or medications (prescribed or recreational).",
-    "- CONTEXT_MEDICAL: Mentions of physical health conditions (e.g., thyroid, pain, pregnancy).",
-    "- CONTEXT_STRESSOR: Grief, job loss, breakup/relationship conflict, specific life events.",  
+    " **CRITICAL:** Do NOT tag transient after-effects (e.g. 'hangover', 'headache') unless linked to a sustained mood pattern. Ignore incidental use.",
+    "- CONTEXT_MEDICAL: Mentions of physical health conditions (e.g., thyroid, pain, pregnancy)",
+    " OR specific reproductive status (pregnancy, postpartum, breastfeeding) to support Peripartum specifier detection.",
+    "- CONTEXT_STRESSOR: Grief, job loss, breakup/relationship conflict, specific life events.",
+    "**Distinguish 'Grief' (emptiness/loss focused on the deceased) from 'Depression' (self-critical/worthlessness). If the focus is missing someone, tag STRESSOR. If the focus is self-loathing, tag SYMPTOM_COGNITIVE.**",  
     
     "Task B: Attribute Extraction (The How)",
     
@@ -1194,6 +1211,7 @@ const prepareSummary = asyncHandler(async (req, res) => {
 
   const summary = {
     timeRangeLabel,
+    rangeCoverage: snapshotDoc.snapshot?.rangeCoverage || null,
     confidenceNote: narrative.confidenceNote || "Based on patterns in written reflections",
     whySharing:
       narrative.whySharing && narrative.whySharing.trim().toLowerCase().startsWith("i ")

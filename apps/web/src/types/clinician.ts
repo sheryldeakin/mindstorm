@@ -15,6 +15,8 @@ export type EvidenceUnit = {
     frequency?: string | null;
     severity?: string | null;
     attribution?: string | null;
+    confidence?: "HIGH" | "LOW" | string | null;
+    type?: "computed" | "extracted" | null;
     uncertainty?: "LOW" | "HIGH" | null;
   };
 };
@@ -47,6 +49,7 @@ export type ClinicianOverrideRecord = {
   status: "MET" | "EXCLUDED" | "UNKNOWN";
   originalStatus: "MET" | "EXCLUDED" | "UNKNOWN";
   originalEvidence?: string;
+  note?: string | null;
   updatedAt?: string;
 };
 

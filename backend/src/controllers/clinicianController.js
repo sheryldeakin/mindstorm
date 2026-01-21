@@ -147,6 +147,7 @@ const getCaseOverrides = asyncHandler(async (req, res) => {
       status: item.status,
       originalStatus: item.originalStatus || "UNKNOWN",
       originalEvidence: item.originalEvidence || "",
+      note: item.note || "",
       updatedAt: item.updatedAt,
     })),
   });
@@ -161,7 +162,7 @@ const getCaseOverrides = asyncHandler(async (req, res) => {
 const upsertCaseOverride = asyncHandler(async (req, res) => {
   const { userId } = req.params;
   const clinicianId = req.user._id;
-  const { nodeId, status, originalStatus, originalEvidence } = req.body || {};
+  const { nodeId, status, originalStatus, originalEvidence, note } = req.body || {};
 
   if (!nodeId || !status) {
     return res.status(400).json({ message: "nodeId and status are required." });
@@ -174,6 +175,7 @@ const upsertCaseOverride = asyncHandler(async (req, res) => {
     status,
     originalStatus: originalStatus || "UNKNOWN",
     originalEvidence: originalEvidence || "",
+    note: note || "",
   };
 
   const override = await ClinicianOverride.findOneAndUpdate(
@@ -189,6 +191,7 @@ const upsertCaseOverride = asyncHandler(async (req, res) => {
       status: override.status,
       originalStatus: override.originalStatus,
       originalEvidence: override.originalEvidence,
+      note: override.note || "",
       updatedAt: override.updatedAt,
     },
   });

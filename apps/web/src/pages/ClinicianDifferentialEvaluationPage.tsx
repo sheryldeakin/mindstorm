@@ -6,7 +6,7 @@ import DifferentialOverview from "../components/clinician/differential/Different
 import DiagnosisReasoningPanel from "../components/clinician/differential/DiagnosisReasoningPanel";
 import ComorbidityView from "../components/clinician/differential/ComorbidityView";
 import ComorbidityWarnings from "../components/clinician/differential/ComorbidityWarnings";
-import type { DifferentialDiagnosis, CriterionItem, SymptomCourseRow } from "../components/clinician/differential/types";
+import type { DifferentialDiagnosis, CriterionItem, SymptomCourseRow, ExclusionCheck } from "../components/clinician/differential/types";
 import type { CaseEntry, ClinicianCase } from "../types/clinician";
 import { apiFetch } from "../lib/apiClient";
 import { buildClarificationPrompts } from "../lib/clinicianPrompts";
@@ -16,7 +16,89 @@ import {
   mapNodeToEvidence,
   type DepressiveDiagnosisConfig,
 } from "../lib/depressiveCriteriaConfig";
+import { DIAGNOSTIC_GRAPH_NODES } from "../lib/diagnosticGraphConfig";
 import { ClinicalCaseProvider, useClinicalCase } from "../contexts/ClinicalCaseContext";
+
+const EVIDENCE_LABEL_PREFIXES = ["SYMPTOM_", "IMPACT_", "CONTEXT_"];
+const DIRECT_EVIDENCE_LABELS = new Set([
+  "IMPAIRMENT",
+  "DURATION",
+  "TEMPORALITY",
+  "DURATION_COMPUTED_2W",
+  "DURATION_COMPUTED_1_MONTH",
+]);
+
+const isEvidenceLabel = (nodeId: string) =>
+  EVIDENCE_LABEL_PREFIXES.some((prefix) => nodeId.startsWith(prefix)) ||
+  nodeId.startsWith("DURATION_COMPUTED") ||
+  DIRECT_EVIDENCE_LABELS.has(nodeId);
+
+const resolveEvidenceLabelsForNode = (nodeId: string) => {
+  if (isEvidenceLabel(nodeId)) return [nodeId];
+  const baseNode = DIAGNOSTIC_GRAPH_NODES.find((node) => node.id === nodeId);
+  if (baseNode?.evidenceLabels?.length) return baseNode.evidenceLabels;
+  return mapNodeToEvidence(nodeId);
+};
+
+const LABEL_DISPLAY_MAP: Record<string, string> = {
+  SYMPTOM_MOOD: "Overall mood signals",
+  SYMPTOM_SLEEP: "Overall sleep signals",
+  SYMPTOM_ANXIETY: "Anxiety signals",
+  SYMPTOM_RISK: "Safety signals",
+  SYMPTOM_MANIA: "Mania/hypomania signals",
+  SYMPTOM_PSYCHOSIS: "Psychosis signals",
+  SYMPTOM_TRAUMA: "Trauma signals",
+  SYMPTOM_COGNITIVE: "Cognitive signals",
+  SYMPTOM_SOMATIC: "Somatic signals",
+  IMPACT_WORK: "Work/School impact",
+  IMPACT_SOCIAL: "Social impact",
+  IMPACT_SELF_CARE: "Self-care impact",
+  IMPAIRMENT: "Functional impairment",
+  CONTEXT_SUBSTANCE: "Substance-related context",
+  CONTEXT_MEDICAL: "Medical context",
+  CONTEXT_STRESSOR: "Life stressors",
+  DURATION: "Duration cues",
+  TEMPORALITY: "Timing cues",
+  DURATION_COMPUTED_2W: "Computed 2-week duration",
+  DURATION_COMPUTED_1_MONTH: "Computed 1-month duration",
+};
+
+const formatEvidenceLabel = (label: string) => {
+  if (LABEL_DISPLAY_MAP[label]) return LABEL_DISPLAY_MAP[label];
+  return label
+    .replace(/_/g, " ")
+    .trim()
+    .toLowerCase()
+    .replace(/\b\w/g, (match) => match.toUpperCase());
+};
+
+const isPromptArtifact = (span: string) => {
+  const normalized = span.toLowerCase();
+  return (
+    normalized.includes("return json") ||
+    normalized.includes("json only") ||
+    normalized.includes("\"evidence_units\"") ||
+    normalized.includes("system prompt") ||
+    normalized.includes("you are a")
+  );
+};
+
+const normalizeStatus = (value: string) =>
+  value === "MET" || value === "EXCLUDED" ? value : "UNKNOWN";
+
+const IMPACT_DOMAIN_DEFS = [
+  { id: "IMPACT_WORK", domain: "Work/School" as const, labels: ["IMPACT_WORK"] },
+  { id: "IMPACT_SOCIAL", domain: "Social" as const, labels: ["IMPACT_SOCIAL"] },
+  { id: "IMPACT_SELF_CARE", domain: "Self-care" as const, labels: ["IMPACT_SELF_CARE"] },
+  { id: "SYMPTOM_RISK", domain: "Safety" as const, labels: ["SYMPTOM_RISK"] },
+];
+
+const SPECIFIER_CONFIGS = [
+  { id: "anxious", label: "With anxious distress", evidenceLabels: ["SYMPTOM_ANXIETY"] },
+  { id: "melancholic", label: "Melancholic features", evidenceLabels: ["SYMPTOM_MOOD", "SYMPTOM_SOMATIC"] },
+  { id: "mixed", label: "Mixed features", evidenceLabels: ["SYMPTOM_MANIA"] },
+  { id: "psychotic", label: "Psychotic features", evidenceLabels: ["SYMPTOM_PSYCHOSIS"] },
+];
 
 const ClinicianDifferentialEvaluationPage = () => {
   const { caseId } = useParams();
@@ -85,7 +167,22 @@ const ClinicianDifferentialEvaluationContent = ({
   const [selectedKey, setSelectedKey] = useState<DifferentialDiagnosis["key"]>("mdd");
   const [pinnedKeys, setPinnedKeys] = useState<DifferentialDiagnosis["key"][]>([]);
   const hasHydratedPins = useRef(false);
-  const baseLogic = useDiagnosticLogic(entries, { windowDays: 36500, overrides: nodeOverrides });
+  const labelOverrides = useMemo(() => {
+    const map: Record<string, "MET" | "EXCLUDED" | "UNKNOWN"> = {};
+    Object.entries(nodeOverrides).forEach(([nodeId, status]) => {
+      const labels = resolveEvidenceLabelsForNode(nodeId);
+      labels.forEach((label) => {
+        map[label] = status;
+      });
+    });
+    return map;
+  }, [nodeOverrides]);
+
+  const baseLogic = useDiagnosticLogic(entries, {
+    windowDays: 36500,
+    overrides: labelOverrides,
+    patientId: caseId,
+  });
   const manicHistory = baseLogic.getStatusForLabels(["SYMPTOM_MANIA"]) === "MET";
 
   useEffect(() => {
@@ -98,9 +195,10 @@ const ClinicianDifferentialEvaluationContent = ({
       entries,
       baseLogic.getStatusForLabels,
       nodeOverrides,
+      labelOverrides,
       sessionDelta.lastAccessISO,
     );
-  }, [entries, baseLogic, nodeOverrides, sessionDelta.lastAccessISO]);
+  }, [entries, baseLogic, nodeOverrides, labelOverrides, sessionDelta.lastAccessISO]);
 
   useEffect(() => {
     setSelectedKey(diagnosesSorted(diagnoses)[0]?.key || "mdd");
@@ -206,10 +304,17 @@ const ClinicianDifferentialEvaluationContent = ({
               diagnosis={selectedDiagnosis}
               diagnosisKey={selectedDiagnosis.key}
               entries={entries}
+              patientId={caseId}
               nodeOverrides={nodeOverrides}
-              onOverrideChange={async (nodeId, status) => {
-                const originalStatus = baseLogic.getStatusForLabels(mapNodeToEvidence(nodeId));
-                await saveOverride(nodeId, status, { originalStatus, originalEvidence: "" });
+              labelOverrides={labelOverrides}
+              onOverrideChange={async (nodeId, status, note) => {
+                const originalLabels = resolveEvidenceLabelsForNode(nodeId);
+                const originalStatus = baseLogic.getStatusForLabels(originalLabels);
+                await saveOverride(nodeId, status, {
+                  originalStatus,
+                  originalEvidence: "",
+                  note,
+                });
               }}
               lastAccessISO={sessionDelta.lastAccessISO}
             />
@@ -232,23 +337,18 @@ const buildDifferentialFromEntries = (
   entries: CaseEntry[],
   getStatusForLabels: (labels?: string[]) => string,
   overrides: Record<string, "MET" | "EXCLUDED" | "UNKNOWN"> = {},
+  labelOverrides: Record<string, "MET" | "EXCLUDED" | "UNKNOWN"> = {},
   lastAccessISO?: string | null,
 ): DifferentialDiagnosis[] => {
   const overrideMap = overrides ?? {};
+  const resolveOverrideStatus = (nodeId: string, labels: string[] = []) => {
+    const direct = overrideMap[nodeId];
+    if (direct) return direct;
+    return labels.map((label) => labelOverrides[label]).find((status) => status);
+  };
   const unitsWithDate = entries.flatMap((entry) =>
     (entry.evidenceUnits ?? []).map((unit) => ({ ...unit, dateISO: entry.dateISO })),
   );
-
-  const isPromptArtifact = (span: string) => {
-    const normalized = span.toLowerCase();
-    return (
-      normalized.includes("return json") ||
-      normalized.includes("json only") ||
-      normalized.includes("\"evidence_units\"") ||
-      normalized.includes("system prompt") ||
-      normalized.includes("you are a")
-    );
-  };
 
   const findEvidence = (labels: string[], polarity: "PRESENT" | "ABSENT") =>
     unitsWithDate.filter(
@@ -269,7 +369,7 @@ const buildDifferentialFromEntries = (
     const unitsWithDate = sourceEntries.flatMap((entry) =>
       (entry.evidenceUnits ?? []).map((unit) => ({ ...unit, dateISO: entry.dateISO })),
     );
-    const overrideStatus = overrideMap[id];
+    const overrideStatus = resolveOverrideStatus(id, labels);
     const present = unitsWithDate.filter(
       (unit) =>
         labels.includes(unit.label) &&
@@ -344,43 +444,67 @@ const buildDifferentialFromEntries = (
   };
 
   const buildRuleOut = (node: { id: string; label: string; evidenceLabels: string[] }) => {
-    const overrideStatus = overrideMap[node.id];
+    const overrideStatus = resolveOverrideStatus(node.id, node.evidenceLabels);
     const present = findEvidence(node.evidenceLabels, "PRESENT");
     const absent = findEvidence(node.evidenceLabels, "ABSENT");
+    const autoStatus = normalizeStatus(getStatusForLabels(node.evidenceLabels));
 
     if (overrideStatus === "MET") {
       return {
+        id: node.id,
         label: node.label,
+        evidenceLabels: node.evidenceLabels,
+        autoStatus,
+        overrideStatus,
         state: "confirmed" as const,
         note: "Clinician override applied.",
       };
     }
     if (overrideStatus === "EXCLUDED") {
       return {
+        id: node.id,
         label: node.label,
+        evidenceLabels: node.evidenceLabels,
+        autoStatus,
+        overrideStatus,
         state: "notObserved" as const,
         note: "Clinician override applied.",
       };
     }
     if (present.length) {
       return {
+        id: node.id,
         label: node.label,
+        evidenceLabels: node.evidenceLabels,
+        autoStatus,
+        overrideStatus,
         state: "confirmed" as const,
         note: present[present.length - 1].span,
       };
     }
     if (absent.length) {
       return {
+        id: node.id,
         label: node.label,
+        evidenceLabels: node.evidenceLabels,
+        autoStatus,
+        overrideStatus,
         state: "notObserved" as const,
         note: absent[absent.length - 1].span,
       };
     }
-    return { label: node.label, state: "unknown" as const };
+    return {
+      id: node.id,
+      label: node.label,
+      evidenceLabels: node.evidenceLabels,
+      autoStatus,
+      overrideStatus,
+      state: "unknown" as const,
+    };
   };
 
   const buildGateStatus = (nodeId: string) => {
-    const overrideStatus = overrideMap[nodeId];
+    const overrideStatus = resolveOverrideStatus(nodeId, mapNodeToEvidence(nodeId));
     if (overrideStatus === "MET") {
       return { state: "met" as const, note: "Clinician override applied." };
     }
@@ -400,9 +524,18 @@ const buildDifferentialFromEntries = (
     return { state: "unknown" as const, note: "No cycle timing evidence found." };
   };
 
-  const buildCourse = (label: string, labels: string[]): SymptomCourseRow => {
+  const buildCourse = (id: string, label: string, labels: string[]): SymptomCourseRow => {
     const buckets = bucketByWeek(entries, labels);
-    return { label, buckets };
+    const autoStatus = normalizeStatus(getStatusForLabels(labels));
+    const overrideStatus = resolveOverrideStatus(id, labels) ?? null;
+    return {
+      id,
+      label,
+      evidenceLabels: labels,
+      autoStatus,
+      overrideStatus,
+      buckets,
+    };
   };
 
   const prompts = buildClarificationPrompts(entries, getStatusForLabels);
@@ -426,12 +559,14 @@ const buildDifferentialFromEntries = (
     buildDiagnosisFromConfig(
       config,
       entries,
+      getStatusForLabels,
       buildCriterion,
       buildCourse,
       buildRuleOut,
       buildGateStatus,
       toPrompts,
       overrideMap,
+      labelOverrides,
       lastAccessISO,
     ),
   );
@@ -450,6 +585,275 @@ const bucketByWeek = (entries: CaseEntry[], labels: string[]) => {
     weekStartISO: `${weekStartISO}-01`,
     level: count === 0 ? "none" : count === 1 ? "mild" : count === 2 ? "moderate" : "high",
   }));
+};
+
+const uniqueLabels = (labels: string[]) => {
+  const seen = new Set<string>();
+  return labels.filter((label) => {
+    if (seen.has(label)) return false;
+    seen.add(label);
+    return true;
+  });
+};
+
+const deriveImpactLevel = (
+  units: Array<{ attributes?: { severity?: string | null } }> = [],
+) => {
+  if (!units.length) return "none";
+  const severities = units
+    .map((unit) => unit.attributes?.severity?.toLowerCase())
+    .filter(Boolean) as string[];
+  if (severities.some((value) => value.includes("severe") || value.includes("high"))) {
+    return "high";
+  }
+  if (severities.some((value) => value.includes("moderate"))) {
+    return "moderate";
+  }
+  if (severities.some((value) => value.includes("mild") || value.includes("low"))) {
+    return "mild";
+  }
+  const count = units.length;
+  return count >= 3 ? "high" : count === 2 ? "moderate" : "mild";
+};
+
+const filterPromptsForDiagnosis = (
+  diagnosisEvidenceLabels: Set<string>,
+  config: DepressiveDiagnosisConfig,
+  prompts: { text: string; category?: string }[],
+) => {
+  const categories = new Set<string>(["criteria"]);
+  if (config.requiredDurationDays !== null) categories.add("duration");
+  if (
+    Array.from(diagnosisEvidenceLabels).some(
+      (label) => label === "IMPAIRMENT" || label.startsWith("IMPACT_"),
+    )
+  ) {
+    categories.add("impact");
+  }
+  if (diagnosisEvidenceLabels.has("CONTEXT_MEDICAL")) categories.add("medical");
+  if (diagnosisEvidenceLabels.has("CONTEXT_SUBSTANCE")) categories.add("substance");
+  return prompts.filter((prompt) => !prompt.category || categories.has(prompt.category));
+};
+
+const SPECIFIER_GAP_THRESHOLD_DAYS = 28;
+
+const getDaysBetween = (startISO: string, endISO: string) => {
+  const start = new Date(`${startISO}T00:00:00Z`);
+  const end = new Date(`${endISO}T00:00:00Z`);
+  return Math.max(0, Math.round((end.getTime() - start.getTime()) / 86400000));
+};
+
+const getDensityLabel = (count: number, spanDays: number) => {
+  if (spanDays <= 14) return count >= 7 ? "Dense" : count >= 3 ? "Moderate" : "Sparse";
+  if (spanDays <= 60) return count >= 12 ? "Dense" : count >= 6 ? "Moderate" : "Sparse";
+  return count >= 20 ? "Dense" : count >= 10 ? "Moderate" : "Sparse";
+};
+
+const buildTimelinePoints = (
+  evidenceDates: string[],
+  startISO: string,
+  endISO: string,
+) => {
+  if (!startISO || !endISO) return [];
+  const spanDays = getDaysBetween(startISO, endISO);
+  if (spanDays === 0) return [50];
+  const hits = new Set<number>();
+  evidenceDates.forEach((dateISO) => {
+    const offset = getDaysBetween(startISO, dateISO);
+    const pct = Math.min(100, Math.max(0, Math.round((offset / (spanDays + 1)) * 100)));
+    hits.add(pct);
+  });
+  return Array.from(hits).sort((a, b) => a - b);
+};
+
+const collectEvidenceDates = (
+  entries: CaseEntry[],
+  evidenceLabels: string[],
+  startISO: string,
+  endISO: string,
+) =>
+  entries
+    .filter((entry) => entry.dateISO >= startISO && entry.dateISO <= endISO)
+    .filter((entry) =>
+      (entry.evidenceUnits || []).some(
+        (unit) =>
+          evidenceLabels.includes(unit.label) &&
+          unit.attributes?.polarity === "PRESENT",
+      ),
+    )
+    .map((entry) => entry.dateISO);
+
+const buildSpecifierRanges = (
+  entries: CaseEntry[],
+  specifier: { id: string; evidenceLabels: string[] },
+) => {
+  if (!entries.length) return [];
+  const sorted = [...entries].sort((a, b) => a.dateISO.localeCompare(b.dateISO));
+  const ranges: Array<{ specifierId: string; start: string; end: string; count: number }> = [];
+  let currentRange: { start: string; end: string; count: number } | null = null;
+
+  sorted.forEach((entry, index) => {
+    const hasEvidence = (entry.evidenceUnits || []).some(
+      (unit) =>
+        specifier.evidenceLabels.includes(unit.label) &&
+        unit.attributes?.polarity === "PRESENT",
+    );
+    const isLast = index === sorted.length - 1;
+    if (!hasEvidence) {
+      if (isLast && currentRange) {
+        ranges.push({
+          specifierId: specifier.id,
+          start: currentRange.start,
+          end: currentRange.end,
+          count: currentRange.count,
+        });
+      }
+      return;
+    }
+
+    if (!currentRange) {
+      currentRange = { start: entry.dateISO, end: entry.dateISO, count: 1 };
+      if (isLast) {
+        ranges.push({
+          specifierId: specifier.id,
+          start: currentRange.start,
+          end: currentRange.end,
+          count: currentRange.count,
+        });
+      }
+      return;
+    }
+
+    const gapDays = getDaysBetween(currentRange.end, entry.dateISO);
+    if (gapDays <= SPECIFIER_GAP_THRESHOLD_DAYS) {
+      currentRange.end = entry.dateISO;
+      currentRange.count += 1;
+    } else {
+      ranges.push({
+        specifierId: specifier.id,
+        start: currentRange.start,
+        end: currentRange.end,
+        count: currentRange.count,
+      });
+      currentRange = { start: entry.dateISO, end: entry.dateISO, count: 1 };
+    }
+
+    if (isLast && currentRange) {
+      ranges.push({
+        specifierId: specifier.id,
+        start: currentRange.start,
+        end: currentRange.end,
+        count: currentRange.count,
+      });
+    }
+  });
+
+  return ranges;
+};
+
+const buildSpecifiersForDiagnosis = (
+  entries: CaseEntry[],
+  diagnosisEvidenceLabels: Set<string>,
+) => {
+  if (!entries.length) return [];
+  const relevantSpecifiers = SPECIFIER_CONFIGS.filter((specifier) =>
+    specifier.evidenceLabels.some((label) => diagnosisEvidenceLabels.has(label)),
+  );
+  if (!relevantSpecifiers.length) return [];
+  const sorted = [...entries].sort((a, b) => a.dateISO.localeCompare(b.dateISO));
+  const latestDate = sorted[sorted.length - 1]?.dateISO;
+  const currentWindowStart = (() => {
+    if (!latestDate) return null;
+    const date = new Date(`${latestDate}T00:00:00Z`);
+    date.setDate(date.getDate() - 13);
+    return date.toISOString().slice(0, 10);
+  })();
+
+  const activeSpecifiers = relevantSpecifiers.filter((specifier) =>
+    sorted.some((entry) => {
+      if (!currentWindowStart) return false;
+      return (
+        entry.dateISO >= currentWindowStart &&
+        (entry.evidenceUnits || []).some(
+          (unit) =>
+            specifier.evidenceLabels.includes(unit.label) &&
+            unit.attributes?.polarity === "PRESENT",
+        )
+      );
+    }),
+  );
+
+  const activeTags = activeSpecifiers.map((specifier) => {
+    const activeEntries = sorted.filter((entry) => {
+      if (!currentWindowStart) return false;
+      return (
+        entry.dateISO >= currentWindowStart &&
+        (entry.evidenceUnits || []).some(
+          (unit) =>
+            specifier.evidenceLabels.includes(unit.label) &&
+            unit.attributes?.polarity === "PRESENT",
+        )
+      );
+    });
+    const startISO = activeEntries[0]?.dateISO || latestDate || "";
+    const endISO = activeEntries[activeEntries.length - 1]?.dateISO || latestDate || "";
+    const spanDays = getDaysBetween(startISO, endISO);
+    const evidenceDates = activeEntries.map((entry) => entry.dateISO);
+    return {
+      label: specifier.label,
+      startISO,
+      endISO,
+      active: true,
+      evidenceCount: activeEntries.length,
+      density: getDensityLabel(activeEntries.length, spanDays),
+      timelinePoints: buildTimelinePoints(evidenceDates, startISO, endISO),
+      spanDays,
+    };
+  });
+
+  const historicalRanges = relevantSpecifiers.flatMap((specifier) =>
+    buildSpecifierRanges(sorted, specifier),
+  ).filter(
+    (range) =>
+      !activeSpecifiers.some(
+        (current) => current.id === range.specifierId && range.end >= (currentWindowStart || ""),
+      ),
+  );
+
+  const historicalTags = historicalRanges
+    .map((range) => {
+      const spec = relevantSpecifiers.find((item) => item.id === range.specifierId);
+      const spanDays = getDaysBetween(range.start, range.end);
+      const evidenceDates = spec
+        ? collectEvidenceDates(sorted, spec.evidenceLabels, range.start, range.end)
+        : [];
+      return spec
+        ? {
+            label: spec.label,
+            startISO: range.start,
+            endISO: range.end,
+            active: false,
+            evidenceCount: range.count,
+            density: getDensityLabel(range.count, spanDays),
+            timelinePoints: buildTimelinePoints(evidenceDates, range.start, range.end),
+            spanDays,
+          }
+        : null;
+    })
+    .filter(
+      (
+        item,
+      ): item is {
+        label: string;
+        startISO: string;
+        endISO: string;
+        active: boolean;
+        evidenceCount: number;
+        density: "Sparse" | "Moderate" | "Dense";
+      } => Boolean(item),
+    );
+
+  return [...activeTags, ...historicalTags];
 };
 
 const getPeakWindowCount = (
@@ -503,6 +907,7 @@ const getBestWindowEntries = (
 const buildDiagnosisFromConfig = (
   config: DepressiveDiagnosisConfig,
   entries: CaseEntry[],
+  getStatusForLabels: (labels?: string[]) => string,
   buildCriterion: (
     id: string,
     label: string,
@@ -511,17 +916,19 @@ const buildDiagnosisFromConfig = (
     sourceEntries: CaseEntry[],
     emptyNote: string,
   ) => { item: CriterionItem; evidencePresent: boolean },
-  buildCourse: (label: string, labels: string[]) => SymptomCourseRow,
-  buildRuleOut: (node: { id: string; label: string; evidenceLabels: string[] }) => {
-    label: string;
-    state: "confirmed" | "notObserved" | "unknown";
-    note?: string;
-  },
+  buildCourse: (id: string, label: string, labels: string[]) => SymptomCourseRow,
+  buildRuleOut: (node: { id: string; label: string; evidenceLabels: string[] }) => ExclusionCheck,
   buildGateStatus: (nodeId: string) => { state: "met" | "mismatch" | "unknown"; note?: string },
   prompts: { text: string; category?: string }[],
   overrideMap: Record<string, "MET" | "EXCLUDED" | "UNKNOWN"> = {},
+  labelOverrides: Record<string, "MET" | "EXCLUDED" | "UNKNOWN"> = {},
   lastAccessISO?: string | null,
 ): DifferentialDiagnosis => {
+  const resolveOverrideStatus = (nodeId: string, labels: string[] = []) => {
+    const direct = overrideMap[nodeId];
+    if (direct) return direct;
+    return labels.map((label) => labelOverrides[label]).find((status) => status);
+  };
   const currentWindowDays = 14;
   const currentWindowEntries = getEntriesWithinWindow(entries, currentWindowDays);
   const lifetimeEntries = entries;
@@ -577,10 +984,14 @@ const buildDiagnosisFromConfig = (
   }, {});
   const baseCount = countPresentCriteria(currentWindowEntries, config.criteria);
   const addedCount = config.criteria.filter(
-    (criterion) => overrideMap[criterion.id] === "MET" && !currentMet[criterion.id],
+    (criterion) =>
+      resolveOverrideStatus(criterion.id, criterion.evidenceLabels) === "MET" &&
+      !currentMet[criterion.id],
   ).length;
   const subtractedCount = config.criteria.filter(
-    (criterion) => overrideMap[criterion.id] === "EXCLUDED" && currentMet[criterion.id],
+    (criterion) =>
+      resolveOverrideStatus(criterion.id, criterion.evidenceLabels) === "EXCLUDED" &&
+      currentMet[criterion.id],
   ).length;
   const currentCount = Math.max(0, baseCount + addedCount - subtractedCount);
   const likelihood = hasCriteria
@@ -634,7 +1045,7 @@ const buildDiagnosisFromConfig = (
   const previousBase = countPresentCriteria(previousEntries, config.criteria);
   const previousAdded = config.criteria.filter(
     (criterion) =>
-      overrideMap[criterion.id] === "MET" &&
+      resolveOverrideStatus(criterion.id, criterion.evidenceLabels) === "MET" &&
       !previousEntries.some((entry) =>
         (entry.evidenceUnits ?? []).some(
           (unit) =>
@@ -645,7 +1056,7 @@ const buildDiagnosisFromConfig = (
   ).length;
   const previousSubtracted = config.criteria.filter(
     (criterion) =>
-      overrideMap[criterion.id] === "EXCLUDED" &&
+      resolveOverrideStatus(criterion.id, criterion.evidenceLabels) === "EXCLUDED" &&
       previousEntries.some((entry) =>
         (entry.evidenceUnits ?? []).some(
           (unit) =>
@@ -694,10 +1105,14 @@ const buildDiagnosisFromConfig = (
     return acc;
   }, {});
   const lifetimeAdded = config.criteria.filter(
-    (criterion) => overrideMap[criterion.id] === "MET" && !lifetimeMet[criterion.id],
+    (criterion) =>
+      resolveOverrideStatus(criterion.id, criterion.evidenceLabels) === "MET" &&
+      !lifetimeMet[criterion.id],
   ).length;
   const lifetimeSubtracted = config.criteria.filter(
-    (criterion) => overrideMap[criterion.id] === "EXCLUDED" && lifetimeMet[criterion.id],
+    (criterion) =>
+      resolveOverrideStatus(criterion.id, criterion.evidenceLabels) === "EXCLUDED" &&
+      lifetimeMet[criterion.id],
   ).length;
   const lifetimeSummary = {
     current: Math.max(0, lifetimeBase + lifetimeAdded - lifetimeSubtracted),
@@ -710,6 +1125,63 @@ const buildDiagnosisFromConfig = (
   };
   const cycleAlignment =
     config.key === "pmdd" ? buildGateStatus("PMDD_D1_TEMPORAL_LUTEAL") : undefined;
+  const criteriaLabels = uniqueLabels(
+    config.criteria.flatMap((criterion) => criterion.evidenceLabels),
+  );
+  const ruleOutLabels = uniqueLabels(
+    (config.ruleOuts || []).flatMap((ruleOut) => ruleOut.evidenceLabels),
+  );
+  const impactLabels = uniqueLabels(
+    IMPACT_DOMAIN_DEFS.flatMap((impact) => impact.labels),
+  );
+  const courseLabels = uniqueLabels([
+    "SYMPTOM_MOOD",
+    "SYMPTOM_SLEEP",
+    ...criteriaLabels,
+    ...impactLabels,
+    ...ruleOutLabels,
+  ]);
+  const symptomCourse = courseLabels.map((label) =>
+    buildCourse(label, formatEvidenceLabel(label), [label]),
+  );
+  const functionalImpact = IMPACT_DOMAIN_DEFS.map((impact) => {
+    const presentUnits = currentWindowEntries.flatMap((entry) =>
+      (entry.evidenceUnits ?? []).filter(
+        (unit) =>
+          impact.labels.includes(unit.label) &&
+          unit.attributes?.polarity === "PRESENT" &&
+          !isPromptArtifact(unit.span),
+      ),
+    );
+    const overrideStatus = resolveOverrideStatus(impact.id, impact.labels) ?? null;
+    const autoStatus = normalizeStatus(getStatusForLabels(impact.labels));
+    const level = deriveImpactLevel(presentUnits);
+    const note = overrideStatus
+      ? "Clinician override applied."
+      : presentUnits.length
+        ? presentUnits[presentUnits.length - 1].span
+        : "No impact evidence in the current window.";
+    return {
+      id: impact.id,
+      domain: impact.domain,
+      level,
+      note,
+      evidenceLabels: impact.labels,
+      autoStatus,
+      overrideStatus,
+    };
+  });
+  const diagnosisEvidenceLabels = new Set([
+    ...criteriaLabels,
+    ...ruleOutLabels,
+    ...impactLabels,
+  ]);
+  const filteredPrompts = filterPromptsForDiagnosis(
+    diagnosisEvidenceLabels,
+    config,
+    prompts,
+  );
+  const specifiers = buildSpecifiersForDiagnosis(entries, diagnosisEvidenceLabels);
 
   return {
     key: config.key,
@@ -738,20 +1210,11 @@ const buildDiagnosisFromConfig = (
         : { label: config.durationWindow?.label || `Diagnostic (${diagnosticWindowDays} days)`, items: diagnosticCriteriaWithEvidence.map((item) => item.item), summary: diagnosticSummary },
       lifetime: { label: "Lifetime", items: lifetimeCriteriaWithEvidence.map((item) => item.item), summary: lifetimeSummary },
     },
-    symptomCourse: [
-      buildCourse("Mood signals", ["SYMPTOM_MOOD"]),
-      buildCourse("Sleep signals", ["SYMPTOM_SLEEP"]),
-      buildCourse("Anxiety signals", ["SYMPTOM_ANXIETY"]),
-    ],
-    functionalImpact: [
-      { domain: "Work/School", level: "moderate", note: "Absences noted in recent entries." },
-      { domain: "Social", level: "moderate", note: "Social withdrawal observed." },
-      { domain: "Self-care", level: "mild", note: "Self-care effort varies." },
-      { domain: "Safety", level: "none", note: "No safety incidents noted." },
-    ],
+    symptomCourse,
+    functionalImpact,
     exclusionChecks,
-    prompts,
-    specifiers: [],
+    prompts: filteredPrompts,
+    specifiers,
   };
 };
 

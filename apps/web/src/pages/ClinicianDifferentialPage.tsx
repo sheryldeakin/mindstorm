@@ -4,6 +4,7 @@ import PageHeader from "../components/layout/PageHeader";
 import { Card } from "../components/ui/Card";
 import DifferentialList from "../components/clinician/DifferentialList";
 import useDiagnosticLogic from "../hooks/useDiagnosticLogic";
+import { appendComputedEvidenceToEntries } from "@mindstorm/criteria-graph";
 import useCompareGateRows from "../hooks/useCompareGateRows";
 import { apiFetch } from "../lib/apiClient";
 import type { CaseEntry, ClinicianCase } from "../types/clinician";
@@ -43,7 +44,7 @@ const ClinicianDifferentialPage = () => {
     apiFetch<{ entries: CaseEntry[] }>(`/clinician/cases/${selectedCase}/entries`)
       .then((response) => {
         if (!active) return;
-        setEntries(response.entries || []);
+        setEntries(appendComputedEvidenceToEntries(response.entries || []));
       })
       .catch((err) => {
         if (!active) return;
@@ -59,7 +60,7 @@ const ClinicianDifferentialPage = () => {
 
   const coverage = useMemo(() => buildCoverageMetrics(entries), [entries]);
   const evidenceSummary = useMemo(() => buildEvidenceSummary(entries), [entries]);
-  const { getStatusForLabels } = useDiagnosticLogic(entries);
+  const { getStatusForLabels } = useDiagnosticLogic(entries, { patientId: selectedCase });
 
   const candidates = useMemo(() => {
     const mdd = coverage.find((item) => item.label.startsWith("MDD"));
@@ -110,7 +111,7 @@ const ClinicianDifferentialPage = () => {
     setCompareLeft(compareCandidates[0]?.id || "");
     setCompareRight(compareCandidates[1]?.id || "");
   }, [compareCandidates]);
-  const compareRows = useCompareGateRows(entries, compareLeft, compareRight);
+  const compareRows = useCompareGateRows(entries, compareLeft, compareRight, selectedCase);
 
   return (
     <div className="space-y-6 text-slate-900">

@@ -18,6 +18,7 @@ const clinicianOverrideSchema = new mongoose.Schema(
     status: { type: String, enum: ["MET", "EXCLUDED", "UNKNOWN"], required: true },
     originalStatus: { type: String, enum: ["MET", "EXCLUDED", "UNKNOWN"], default: "UNKNOWN" },
     originalEvidence: { type: String, default: "" },
+    note: { type: String, default: "" },
   },
   { timestamps: true },
 );
