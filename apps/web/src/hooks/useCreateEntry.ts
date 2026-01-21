@@ -6,6 +6,7 @@ import type { JournalEntry } from "../types/journal";
 interface CreateEntryInput {
   title: string;
   summary: string;
+  body?: string;
   tags: string[];
   emotions?: JournalEntry["emotions"];
   themeIntensities?: JournalEntry["themeIntensities"];
@@ -21,7 +22,7 @@ const useCreateEntry = () => {
   const [success, setSuccess] = useState(false);
 
   const createEntry = useCallback(
-    async ({ title, summary, tags, emotions = [], themeIntensities = [], date, triggers = [], themes = [] }: CreateEntryInput) => {
+    async ({ title, summary, body, tags, emotions = [], themeIntensities = [], date, triggers = [], themes = [] }: CreateEntryInput) => {
       setLoading(true);
       setError(null);
       setSuccess(false);
@@ -35,7 +36,7 @@ const useCreateEntry = () => {
       try {
         const { entry } = await apiFetch<{ entry: JournalEntry }>("/entries", {
           method: "POST",
-          body: JSON.stringify({ title, summary, tags, emotions, themeIntensities, date, triggers, themes }),
+          body: JSON.stringify({ title, summary, body, tags, emotions, themeIntensities, date, triggers, themes }),
         });
 
         await apiFetch("/insights/refresh", { method: "POST" });

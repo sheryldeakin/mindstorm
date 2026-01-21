@@ -35,6 +35,7 @@ export interface JournalEntry {
   dateISO?: string;
   title: string;
   summary: string;
+  body?: string;
   emotions: Emotion[];
   tags: string[];
   triggers?: string[];

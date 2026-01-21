@@ -97,8 +97,14 @@ const ClinicianLogicGraphPage = () => {
           ...unit,
           dateISO: entry.dateISO,
           confidence: entry.risk_signal?.confidence ?? null,
+          entryId: entry.id,
         })),
       ),
+    [entries],
+  );
+
+  const entryLookup = useMemo(
+    () => new Map(entries.map((entry) => [entry.id, entry])),
     [entries],
   );
 
@@ -280,7 +286,8 @@ const ClinicianLogicGraphPage = () => {
       <EvidenceDrawer
         open={Boolean(selectedNode)}
         title={selectedNode?.label || "Evidence"}
-        evidence={drawerEvidence as Array<EvidenceUnit & { dateISO: string }>}
+        evidence={drawerEvidence as Array<EvidenceUnit & { dateISO: string; entryId: string }>}
+        entryLookup={entryLookup}
         overrideStatus={selectedNode ? nodeOverrides[selectedNode.id] : undefined}
         onOverrideChange={handleOverrideChange}
         rejectedKeys={rejectedEvidenceKeys}

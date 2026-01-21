@@ -4,7 +4,11 @@ import clsx from "clsx";
 import type { EvidenceUnit } from "../../types/clinician";
 import { Card } from "../ui/Card";
 
-type EvidenceItem = EvidenceUnit & { dateISO: string; confidence?: number | null };
+type EvidenceItem = EvidenceUnit & {
+  dateISO: string;
+  confidence?: number | null;
+  entryId?: string;
+};
 
 /**
  * Props for EvidenceDrawer (Clinician-Facing).
@@ -14,6 +18,7 @@ type EvidenceDrawerProps = {
   open: boolean;
   title: string;
   evidence: EvidenceItem[];
+  entryLookup?: Map<string, { id: string; dateISO: string; summary: string; body?: string; title?: string }>;
   overrideStatus?: "MET" | "EXCLUDED" | "UNKNOWN";
   onOverrideChange?: (status: "MET" | "EXCLUDED" | "UNKNOWN" | null) => void;
   rejectedKeys?: Set<string>;
@@ -34,10 +39,27 @@ type RangeKey = (typeof RANGE_OPTIONS)[number]["key"];
 
 const buildEvidenceKey = (item: EvidenceItem) => `${item.dateISO}::${item.span}`;
 
+const buildHighlightParts = (text: string, span: string) => {
+  if (!text || !span) return { before: text, match: "", after: "" };
+  let index = text.indexOf(span);
+  if (index === -1) {
+    const lowerText = text.toLowerCase();
+    const lowerSpan = span.toLowerCase();
+    index = lowerText.indexOf(lowerSpan);
+  }
+  if (index === -1) return { before: text, match: "", after: "" };
+  return {
+    before: text.slice(0, index),
+    match: text.slice(index, index + span.length),
+    after: text.slice(index + span.length),
+  };
+};
+
 const EvidenceDrawer = ({
   open,
   title,
   evidence,
+  entryLookup,
   overrideStatus,
   onOverrideChange,
   rejectedKeys,
@@ -47,6 +69,7 @@ const EvidenceDrawer = ({
 }: EvidenceDrawerProps) => {
   const [isVisible, setIsVisible] = useState(false);
   const [rangeKey, setRangeKey] = useState<RangeKey>("all");
+  const [activeEvidence, setActiveEvidence] = useState<EvidenceItem | null>(null);
 
   useEffect(() => {
     if (!open) {
@@ -60,6 +83,7 @@ const EvidenceDrawer = ({
   useEffect(() => {
     if (!open) return;
     setRangeKey("all");
+    setActiveEvidence(null);
   }, [open]);
 
   useEffect(() => {
@@ -89,6 +113,13 @@ const EvidenceDrawer = ({
   const firstAnxiety = anxietyEvidence[0];
   const lastAnxiety = anxietyEvidence[anxietyEvidence.length - 1];
   const displayedEvidence = filteredEvidence;
+  const activeEntry = activeEvidence?.entryId
+    ? entryLookup?.get(activeEvidence.entryId)
+    : null;
+  const activeText = activeEntry ? (activeEntry.body || activeEntry.summary || "") : "";
+  const highlightParts = activeEntry && activeEvidence
+    ? buildHighlightParts(activeText, activeEvidence.span)
+    : null;
 
   if (!open) return null;
 
@@ -100,12 +131,54 @@ const EvidenceDrawer = ({
           isVisible ? "opacity-100" : "opacity-0",
         )}
       />
-      <div
-        className={clsx(
-          "absolute inset-y-0 right-0 w-full max-w-md bg-white p-6 shadow-xl flex flex-col overflow-hidden transition-transform duration-300 ease-out rounded-l-3xl",
-          isVisible ? "translate-x-0" : "translate-x-full",
-        )}
-      >
+      <div className="absolute inset-0 flex justify-end">
+        {activeEntry ? (
+          <div
+            className={clsx(
+              "h-full w-full max-w-lg bg-white p-6 shadow-xl ring-1 ring-white/80 flex flex-col overflow-hidden transition-transform duration-300 ease-out rounded-l-3xl",
+              isVisible ? "translate-x-0" : "translate-x-full",
+            )}
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs uppercase tracking-[0.3em] text-brandLight">Entry</p>
+                <h3 className="mt-2 text-lg font-semibold text-slate-900">
+                  {activeEntry.title || "Journal entry"}
+                </h3>
+                <p className="mt-1 text-xs text-slate-500">{activeEntry.dateISO}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setActiveEvidence(null)}
+                className="rounded-full border border-slate-200 p-2 text-slate-500 hover:text-slate-800"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="mt-4 flex-1 overflow-y-auto pr-2 text-sm text-slate-700">
+              {highlightParts && highlightParts.match ? (
+                <p>
+                  {highlightParts.before}
+                  <mark className="rounded bg-amber-200 px-1">{highlightParts.match}</mark>
+                  {highlightParts.after}
+                </p>
+              ) : (
+                <p>{activeText}</p>
+              )}
+              {!highlightParts?.match && activeEvidence ? (
+                <Card className="mt-4 border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
+                  Evidence span: “{activeEvidence.span}”
+                </Card>
+              ) : null}
+            </div>
+          </div>
+        ) : null}
+        <div
+          className={clsx(
+            "h-full w-full max-w-md bg-white p-6 shadow-xl ring-1 ring-white/80 flex flex-col overflow-hidden transition-transform duration-300 ease-out rounded-l-3xl",
+            isVisible ? "translate-x-0" : "translate-x-full",
+          )}
+        >
         <div className="flex items-center justify-between">
           <div>
             <p className="text-xs uppercase tracking-[0.3em] text-brandLight">Evidence</p>
@@ -195,7 +268,13 @@ const EvidenceDrawer = ({
                     )
                   }
                 >
-                  <p className="text-sm text-slate-700">“{item.span}”</p>
+                  <button
+                    type="button"
+                    onClick={() => setActiveEvidence(item)}
+                    className="text-left text-sm text-slate-700 hover:text-slate-900"
+                  >
+                    “{item.span}”
+                  </button>
                   <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-slate-500">
                     <span>{item.dateISO}</span>
                     <span>{item.attributes?.polarity || "Unknown"}</span>
@@ -260,6 +339,7 @@ const EvidenceDrawer = ({
           )}
         </div>
       </div>
+    </div>
     </div>
   );
 };

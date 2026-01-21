@@ -93,8 +93,14 @@ const ClinicianCasePageContent = () => {
           ...unit,
           dateISO: entry.dateISO,
           confidence: entry.risk_signal?.confidence ?? null,
+          entryId: entry.id,
         })),
       ),
+    [entries],
+  );
+
+  const entryLookup = useMemo(
+    () => new Map(entries.map((entry) => [entry.id, entry])),
     [entries],
   );
 
@@ -324,6 +330,7 @@ const ClinicianCasePageContent = () => {
         open={Boolean(selectedNode)}
         title={selectedNode?.label || "Evidence"}
         evidence={drawerEvidence}
+        entryLookup={entryLookup}
         overrideStatus={selectedNode ? nodeOverrides[selectedNode.id] : undefined}
         onOverrideChange={handleOverrideChange}
         rejectedKeys={rejectedEvidenceKeys}

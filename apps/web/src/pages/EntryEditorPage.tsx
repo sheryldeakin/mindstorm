@@ -107,6 +107,7 @@ const EntryEditorPage = () => {
       const entry = await createEntry({
         title: title || suggestedTitle || "Untitled reflection",
         summary,
+        body: summary,
         tags: Array.from(combinedTags),
         emotions,
         date: entryDate,

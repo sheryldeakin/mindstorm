@@ -53,6 +53,7 @@ const entrySchema = new mongoose.Schema(
     dateISO: { type: String },
     title: { type: String, required: true },
     summary: { type: String, required: true },
+    body: { type: String, default: "" },
     tags: { type: [String], default: [] },
     triggers: { type: [String], default: [] },
     themes: { type: [String], default: [] },

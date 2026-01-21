@@ -109,7 +109,7 @@ const getCaseEntries = asyncHandler(async (req, res) => {
   const { userId } = req.params;
   const entries = await Entry.find({ userId, deletedAt: null })
     .sort({ dateISO: 1 })
-    .select("dateISO summary risk_signal evidenceUnits")
+    .select("dateISO summary body title risk_signal evidenceUnits")
     .lean();
 
   const user = await User.findById(userId).select("name email").lean();
@@ -122,6 +122,8 @@ const getCaseEntries = asyncHandler(async (req, res) => {
       id: entry._id.toString(),
       dateISO: entry.dateISO,
       summary: entry.summary,
+      body: entry.body || entry.summary,
+      title: entry.title || "",
       risk_signal: entry.risk_signal || null,
       evidenceUnits: entry.evidenceUnits || [],
     })),

@@ -76,6 +76,8 @@ export type CaseEntry = {
   id: string;
   dateISO: string;
   summary: string;
+  body?: string;
+  title?: string;
   risk_signal: RiskSignal | null;
   evidenceUnits: EvidenceUnit[];
   symptoms?: string[];

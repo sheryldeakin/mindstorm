@@ -56,6 +56,7 @@ const listEntries = asyncHandler(async (req, res) => {
     dateISO: entry.dateISO,
     title: entry.title,
     summary: entry.summary,
+    body: entry.body || entry.summary,
     tags: entry.tags || [],
     triggers: entry.triggers || [],
     themes: entry.themes || [],
@@ -78,6 +79,7 @@ const createEntry = asyncHandler(async (req, res) => {
   const {
     title,
     summary,
+    body,
     tags = [],
     triggers = [],
     themes = [],
@@ -91,6 +93,7 @@ const createEntry = asyncHandler(async (req, res) => {
   if (!title || !summary) {
     return res.status(400).json({ message: "Title and summary are required." });
   }
+  const entryBody = typeof body === "string" && body.trim() ? body.trim() : summary;
 
   const parsedDate = dateISO ? parseDateInput(dateISO) : parseDateInput(date);
   const normalizedDate = parsedDate && !Number.isNaN(parsedDate.getTime()) ? parsedDate : new Date();
@@ -103,6 +106,7 @@ const createEntry = asyncHandler(async (req, res) => {
     dateISO: entryDateISO,
     title,
     summary,
+    body: entryBody,
     tags,
     triggers,
     themes,
@@ -111,14 +115,14 @@ const createEntry = asyncHandler(async (req, res) => {
     evidenceUnits: Array.isArray(evidenceUnits) ? evidenceUnits : undefined,
   });
 
-  const evidenceResult = await generateEntryEvidence(`Title: ${title}\nSummary: ${summary}`);
+  const evidenceResult = await generateEntryEvidence(`Title: ${title}\nEntry: ${entryBody}`);
   if (!evidenceResult?.error && evidenceResult?.evidenceBySection) {
     entry.evidenceBySection = evidenceResult.evidenceBySection;
     await entry.save();
   }
 
   if (!Array.isArray(evidenceUnits) || evidenceUnits.length === 0) {
-    const clinicalEvidenceResult = await generateClinicalEvidenceUnits(`Title: ${title}\nSummary: ${summary}`);
+    const clinicalEvidenceResult = await generateClinicalEvidenceUnits(`Title: ${title}\nEntry: ${entryBody}`);
     if (!clinicalEvidenceResult?.error && clinicalEvidenceResult?.evidenceUnits) {
       entry.evidenceUnits = clinicalEvidenceResult.evidenceUnits;
       await entry.save();
@@ -154,6 +158,7 @@ const createEntry = asyncHandler(async (req, res) => {
       dateISO: entry.dateISO,
       title: entry.title,
       summary: entry.summary,
+      body: entry.body || entry.summary,
       tags: entry.tags || [],
       triggers: entry.triggers || [],
       themes: entry.themes || [],
@@ -184,6 +189,7 @@ const getEntry = asyncHandler(async (req, res) => {
       dateISO: entry.dateISO,
       title: entry.title,
       summary: entry.summary,
+      body: entry.body || entry.summary,
       tags: entry.tags || [],
       triggers: entry.triggers || [],
       themes: entry.themes || [],
@@ -203,7 +209,7 @@ const getEntry = asyncHandler(async (req, res) => {
  * @returns {Promise<void>} Responds with { entry } or an error status.
  */
 const updateEntry = asyncHandler(async (req, res) => {
-  const { title, summary, tags, triggers, themes, emotions, themeIntensities, date, dateISO } = req.body;
+  const { title, summary, body, tags, triggers, themes, emotions, themeIntensities, date, dateISO } = req.body;
 
   const entry = await Entry.findOne({ _id: req.params.id, userId: req.user._id, deletedAt: null });
   if (!entry) {
@@ -212,11 +218,16 @@ const updateEntry = asyncHandler(async (req, res) => {
 
   if (title !== undefined) entry.title = title;
   if (summary !== undefined) entry.summary = summary;
+  if (body !== undefined) entry.body = body;
   if (tags !== undefined) entry.tags = tags;
   if (triggers !== undefined) entry.triggers = triggers;
   if (themes !== undefined) entry.themes = themes;
   if (emotions !== undefined) entry.emotions = emotions;
   if (themeIntensities !== undefined) entry.themeIntensities = themeIntensities;
+
+  if (summary !== undefined && body === undefined && !entry.body) {
+    entry.body = summary;
+  }
 
   if (dateISO || date) {
     const parsedDate = dateISO ? parseDateInput(dateISO) : parseDateInput(date);
@@ -228,15 +239,16 @@ const updateEntry = asyncHandler(async (req, res) => {
 
   await entry.save();
 
-  if (summary !== undefined || title !== undefined) {
-    const evidenceResult = await generateEntryEvidence(`Title: ${entry.title}\nSummary: ${entry.summary}`);
+  if (summary !== undefined || title !== undefined || body !== undefined) {
+    const entryText = entry.body || entry.summary || "";
+    const evidenceResult = await generateEntryEvidence(`Title: ${entry.title}\nEntry: ${entryText}`);
     if (!evidenceResult?.error && evidenceResult?.evidenceBySection) {
       entry.evidenceBySection = evidenceResult.evidenceBySection;
       await entry.save();
     }
 
     const clinicalEvidenceResult = await generateClinicalEvidenceUnits(
-      `Title: ${entry.title}\nSummary: ${entry.summary}`,
+      `Title: ${entry.title}\nEntry: ${entryText}`,
     );
     if (!clinicalEvidenceResult?.error && clinicalEvidenceResult?.evidenceUnits) {
       entry.evidenceUnits = clinicalEvidenceResult.evidenceUnits;
@@ -275,6 +287,7 @@ const updateEntry = asyncHandler(async (req, res) => {
       dateISO: entry.dateISO,
       title: entry.title,
       summary: entry.summary,
+      body: entry.body || entry.summary,
       tags: entry.tags || [],
       triggers: entry.triggers || [],
       themes: entry.themes || [],
