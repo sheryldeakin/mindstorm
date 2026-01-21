@@ -1,5 +1,6 @@
 import type { CheckInMetric } from "../../types/checkIn";
 
+/** Patient-Facing: slider controls for check-in metrics. */
 interface MetricPickerProps {
   metrics: CheckInMetric[];
   onChange: (id: string, value: number) => void;

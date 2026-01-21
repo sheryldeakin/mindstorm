@@ -75,4 +75,5 @@ const entrySchema = new mongoose.Schema(
   { timestamps: true },
 );
 
+/** Mongoose model for journal entries and extracted evidence units. */
 module.exports = mongoose.model("Entry", entrySchema);

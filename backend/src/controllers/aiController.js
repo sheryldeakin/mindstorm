@@ -2,6 +2,10 @@ const asyncHandler = require("../utils/asyncHandler");
 const { generateClinicianAppendix } = require("../utils/clinicalMetrics");
 const { callLlmWithRetry } = require("../utils/ai/summaryMerger");
 
+/**
+ * Builds the base LLM prompt for entry summarization metadata.
+ * @returns {string}
+ */
 const buildPrompt = () =>
   [
     "You are a therapist assistant that extracts structured data from a journal entry.",
@@ -9,6 +13,11 @@ const buildPrompt = () =>
     "Keep it concise and avoid long text. Use lower-case for themes/triggers. Title should be in title case.",
   ].join(" ");
 
+/**
+ * Builds the LLM prompt for patient-facing prepare summary output.
+ * @param {string} timeRangeLabel
+ * @returns {string}
+ */
 const buildPreparePrompt = (timeRangeLabel) =>
   [
     "You are generating a patient-authored reflection summary for a clinician.",
@@ -26,6 +35,12 @@ const buildPreparePrompt = (timeRangeLabel) =>
     `Time range label: ${timeRangeLabel}.`,
   ].join(" ");
 
+/**
+ * Builds the LLM prompt for partial chunk summaries.
+ * @param {string} timeRangeLabel
+ * @param {string} [signalContext]
+ * @returns {string}
+ */
 const buildPrepareChunkPrompt = (timeRangeLabel, signalContext) =>
   [
     "You are generating a short patient-authored summary for a subset of journal entries.",
@@ -47,6 +62,10 @@ const buildPrepareChunkPrompt = (timeRangeLabel, signalContext) =>
     signalContext ? `Detected Signals (PRESENT counts): ${signalContext}` : "Detected Signals: none.",
   ].join(" ");
 
+/**
+ * Builds the LLM prompt for evidence snippet extraction.
+ * @returns {string}
+ */
 const buildEntryEvidencePrompt = () =>
   [
     "You are extracting short evidence snippets from a single journal entry.",
@@ -56,6 +75,10 @@ const buildEntryEvidencePrompt = () =>
     "unclearAreas (array of short quotes), questionsToExplore (array of short quotes).",
   ].join(" ");
 
+/**
+ * Builds the LLM prompt for clinical Evidence Unit extraction.
+ * @returns {string}
+ */
 const buildClinicalSignalPrompt = () =>
   [
     "System Prompt: Clinical Signal Extraction Engine",
@@ -146,6 +169,13 @@ const buildClinicalSignalPrompt = () =>
     "If nothing is present, return an empty evidence_units array.",
   ].join(" ");
 
+/**
+ * Extracts balanced JSON-like substrings by bracket depth.
+ * @param {string} text
+ * @param {string} openChar
+ * @param {string} closeChar
+ * @returns {string | null}
+ */
 const extractBalancedJson = (text, openChar, closeChar) => {
   const start = text.indexOf(openChar);
   if (start === -1) return null;
@@ -184,8 +214,18 @@ const extractBalancedJson = (text, openChar, closeChar) => {
   return null;
 };
 
+/**
+ * Removes trailing commas before closing braces/brackets.
+ * @param {string} text
+ * @returns {string}
+ */
 const stripTrailingCommas = (text) => text.replace(/,\s*([}\]])/g, "$1");
 
+/**
+ * Sanitizes control characters in JSON strings while preserving content.
+ * @param {string} text
+ * @returns {string}
+ */
 const sanitizeJsonText = (text) => {
   if (!text) return "";
   let out = "";
@@ -238,6 +278,11 @@ const sanitizeJsonText = (text) => {
   return out;
 };
 
+/**
+ * Attempts to parse a partial JSON array by trimming to last complete object.
+ * @param {string} text
+ * @returns {unknown[] | null}
+ */
 const extractPartialArrayObjects = (text) => {
   const arrayStart = text.indexOf("[");
   if (arrayStart === -1) return null;
@@ -285,12 +330,22 @@ const extractPartialArrayObjects = (text) => {
   }
 };
 
+/**
+ * Removes Markdown code fences from LLM output.
+ * @param {string} text
+ * @returns {string}
+ */
 const stripCodeFences = (text) =>
   text
     .replace(/^\s*```(?:json)?\s*/i, "")
     .replace(/\s*```\s*$/i, "")
     .trim();
 
+/**
+ * Parses a JSON candidate string with sanitization.
+ * @param {string} candidate
+ * @returns {unknown | null}
+ */
 const parseJsonCandidate = (candidate) => {
   if (!candidate) return null;
   try {
@@ -300,6 +355,13 @@ const parseJsonCandidate = (candidate) => {
   }
 };
 
+/**
+ * Extracts the first-to-last bracketed region in a text blob.
+ * @param {string} text
+ * @param {string} openChar
+ * @param {string} closeChar
+ * @returns {string | null}
+ */
 const extractFirstLast = (text, openChar, closeChar) => {
   const start = text.indexOf(openChar);
   const end = text.lastIndexOf(closeChar);
@@ -307,6 +369,11 @@ const extractFirstLast = (text, openChar, closeChar) => {
   return text.slice(start, end + 1);
 };
 
+/**
+ * Extracts a JSON object/array from freeform model output.
+ * @param {string} text
+ * @returns {unknown | null}
+ */
 const extractJson = (text) => {
   if (!text) return null;
   const cleaned = stripCodeFences(text);
@@ -333,6 +400,11 @@ const extractJson = (text) => {
   return null;
 };
 
+/**
+ * Returns ISO week start (Monday) for a dateISO string.
+ * @param {string} dateIso
+ * @returns {string}
+ */
 const getWeekStartIso = (dateIso) => {
   const [year, month, day] = dateIso.split("-").map((value) => Number(value));
   const date = new Date(year, month - 1, day);
@@ -342,6 +414,11 @@ const getWeekStartIso = (dateIso) => {
   return monday.toISOString().slice(0, 10);
 };
 
+/**
+ * Returns ISO week end (Sunday) for a week start ISO string.
+ * @param {string} weekStartIso
+ * @returns {string}
+ */
 const getWeekEndIso = (weekStartIso) => {
   const [year, month, day] = weekStartIso.split("-").map((value) => Number(value));
   const start = new Date(year, month - 1, day);
@@ -350,6 +427,11 @@ const getWeekEndIso = (weekStartIso) => {
   return end.toISOString().slice(0, 10);
 };
 
+/**
+ * Aggregates PRESENT evidence unit counts by label.
+ * @param {Array<{ evidenceUnits?: Array<{ label?: string, attributes?: { polarity?: string }, polarity?: string }> }>} signals
+ * @returns {Map<string, number>}
+ */
 const aggregateEvidenceUnits = (signals) => {
   const counts = new Map();
   if (!Array.isArray(signals)) return counts;
@@ -366,6 +448,11 @@ const aggregateEvidenceUnits = (signals) => {
   return counts;
 };
 
+/**
+ * Formats label counts into a prompt-ready signal context string.
+ * @param {Map<string, number>} counts
+ * @returns {string}
+ */
 const buildSignalContext = (counts) => {
   const entries = Array.from(counts.entries());
   if (!entries.length) return "";
@@ -375,6 +462,12 @@ const buildSignalContext = (counts) => {
     .join(", ");
 };
 
+/**
+ * Collects top evidence spans for prompt grounding.
+ * @param {Array<{ evidenceUnits?: Array<{ span?: string, label?: string, attributes?: Record<string, unknown> }> }>} signals
+ * @param {number} [limit=6]
+ * @returns {string[]}
+ */
 const buildEvidenceHighlights = (signals, limit = 6) => {
   const scored = [];
   const seen = new Set();
@@ -406,6 +499,11 @@ const buildEvidenceHighlights = (signals, limit = 6) => {
     .map((item) => item.span);
 };
 
+/**
+ * Determines whether to request JSON response_format for the given base URL.
+ * @param {string} baseUrl
+ * @returns {boolean}
+ */
 const shouldUseJsonResponseFormat = (baseUrl) => {
   const isLocal = baseUrl.includes("localhost") || baseUrl.includes("127.0.0.1");
   if (process.env.LLM_FORCE_JSON_RESPONSE_FORMAT === "true") return true;
@@ -413,6 +511,11 @@ const shouldUseJsonResponseFormat = (baseUrl) => {
   return !isLocal;
 };
 
+/**
+ * Calls the LLM chat completion API without parsing JSON content.
+ * @param {{ baseUrl: string, apiKey: string, model: string, messages: Array<{ role: string, content: string }>, maxTokens: number }} options
+ * @returns {Promise<{ content?: string, error?: string, details?: Record<string, unknown> }>}
+ */
 const callLlmRaw = async ({ baseUrl, apiKey, model, messages, maxTokens }) => {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 90000);
@@ -462,8 +565,18 @@ const callLlmRaw = async ({ baseUrl, apiKey, model, messages, maxTokens }) => {
   }
 };
 
+/**
+ * Resolves after the specified delay in milliseconds.
+ * @param {number} ms
+ * @returns {Promise<void>}
+ */
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+/**
+ * Calls the raw LLM endpoint with retry/backoff for transient failures.
+ * @param {{ baseUrl: string, apiKey: string, model: string, messages: Array<{ role: string, content: string }>, maxTokens: number, retries?: number }} options
+ * @returns {Promise<{ content?: string, error?: string, details?: Record<string, unknown> }>}
+ */
 const callLlmRawWithRetry = async ({ baseUrl, apiKey, model, messages, maxTokens, retries = 2 }) => {
   let attempt = 0;
   let lastResult = null;
@@ -478,6 +591,12 @@ const callLlmRawWithRetry = async ({ baseUrl, apiKey, model, messages, maxTokens
   return lastResult;
 };
 
+/**
+ * Extract patient-authored evidence snippets by section from a single entry.
+ * Prompt strategy: quote-level extraction with no interpretation, strict JSON output.
+ * @param {string} entryText
+ * @returns {Promise<{evidenceBySection?: Record<string, string[]>, error?: string, details?: object}>}
+ */
 const generateEntryEvidence = async (entryText) => {
   const baseUrl = process.env.OPENAI_API_URL || "https://api.openai.com/v1";
   const apiKey = process.env.OPENAI_API_KEY || "";
@@ -514,6 +633,12 @@ const generateEntryEvidence = async (entryText) => {
   };
 };
 
+/**
+ * Extract Evidence Units (clinical signals) from a single entry text.
+ * Prompt strategy: span extraction + attribute labeling with strict schema.
+ * @param {string} entryText
+ * @returns {Promise<{evidenceUnits?: Array<object>, error?: string, details?: object}>}
+ */
 const generateClinicalEvidenceUnits = async (entryText) => {
   const baseUrl = process.env.OPENAI_API_URL || "https://api.openai.com/v1";
   const apiKey = process.env.OPENAI_API_KEY || "";
@@ -524,6 +649,11 @@ const generateClinicalEvidenceUnits = async (entryText) => {
     return { error: "OPENAI_API_KEY is not set." };
   }
 
+  /**
+   * Builds the LLM message array for clinical extraction.
+   * @param {boolean} retry
+   * @returns {Array<{ role: string, content: string }>}
+   */
   const buildMessages = (retry) => [
     { role: "system", content: buildClinicalSignalPrompt() },
     {
@@ -552,6 +682,11 @@ const generateClinicalEvidenceUnits = async (entryText) => {
     return { error: response.error, details: response.details };
   }
 
+  /**
+   * Normalizes code-fenced LLM output before JSON parsing.
+   * @param {string} content
+   * @returns {string}
+   */
   const normalizeJsonText = (content) => {
     if (!content) return "";
     let cleaned = content.trim();
@@ -559,6 +694,11 @@ const generateClinicalEvidenceUnits = async (entryText) => {
     return cleaned.trim();
   };
 
+  /**
+   * Parses the LLM response into the expected evidence_units structure.
+   * @param {string} content
+   * @returns {{ evidence_units?: Array<object> } | null}
+   */
   const parseContent = (content) => {
     const cleaned = normalizeJsonText(content);
     const sanitized = sanitizeJsonText(cleaned);
@@ -618,6 +758,11 @@ const generateClinicalEvidenceUnits = async (entryText) => {
     };
   }
 
+  /**
+   * Normalizes evidence unit payloads from LLM output.
+   * @param {Array<Record<string, unknown>>} units
+   * @returns {Array<{ span: string, label: string, attributes: Record<string, unknown> }>}
+   */
   const normalizeEvidenceUnits = (units) => {
     if (!Array.isArray(units)) return [];
     return units
@@ -641,6 +786,12 @@ const generateClinicalEvidenceUnits = async (entryText) => {
   return { evidenceUnits };
 };
 
+/**
+ * Generate and persist a weekly patient-facing summary for the given user and week.
+ * Prompt strategy: grounded weekly summary using detected signals + entry text.
+ * @param {{ userId: import("mongoose").Types.ObjectId | string, weekStartIso: string }} params
+ * @returns {Promise<object|null|{error: string}>} Weekly summary object or null/error.
+ */
 const generateWeeklySummary = async ({ userId, weekStartIso }) => {
   const normalizedWeekStart = getWeekStartIso(weekStartIso);
   const Entry = require("../models/Entry");
@@ -732,6 +883,13 @@ const generateWeeklySummary = async ({ userId, weekStartIso }) => {
   return summary;
 };
 
+/**
+ * Analyze a journal entry and return structured themes, emotions, and a short summary.
+ * Prompt strategy: single-pass extraction into strict JSON for downstream use.
+ * @param {import("express").Request} req
+ * @param {import("express").Response} res
+ * @returns {Promise<void>} Responds with { analysis } JSON or an error status.
+ */
 const analyzeEntry = asyncHandler(async (req, res) => {
   const { text } = req.body;
   if (!text) {
@@ -793,6 +951,11 @@ const analyzeEntry = asyncHandler(async (req, res) => {
   });
 });
 
+/**
+ * Maps a day range to a canonical range key.
+ * @param {number} rangeDays
+ * @returns {string}
+ */
 const rangeDaysToRangeKey = (rangeDays) => {
   if (rangeDays <= 7) return "last_7_days";
   if (rangeDays <= 30) return "last_30_days";
@@ -801,6 +964,11 @@ const rangeDaysToRangeKey = (rangeDays) => {
   return "all_time";
 };
 
+/**
+ * Returns the dateISO lower bound for a range key.
+ * @param {string} rangeKey
+ * @returns {string | null}
+ */
 const getRangeStartIsoFromKey = (rangeKey) => {
   if (!rangeKey || rangeKey === "all_time") return null;
   const days =
@@ -816,6 +984,11 @@ const getRangeStartIsoFromKey = (rangeKey) => {
   return start.toISOString().slice(0, 10);
 };
 
+/**
+ * Builds a human-friendly label for a range key.
+ * @param {string} rangeKey
+ * @returns {string}
+ */
 const buildTimeRangeLabel = (rangeKey) => {
   switch (rangeKey) {
     case "last_7_days":
@@ -833,6 +1006,14 @@ const buildTimeRangeLabel = (rangeKey) => {
   }
 };
 
+/**
+ * Serve a cached patient summary + clinician appendix for a given range.
+ * Prompt strategy: uses background map-reduce style merge of weekly summaries
+ * into a narrative snapshot; this handler only reads cached results.
+ * @param {import("express").Request} req
+ * @param {import("express").Response} res
+ * @returns {Promise<void>} Responds with { summary, appendix, stale } or 202 if generating.
+ */
 const prepareSummary = asyncHandler(async (req, res) => {
   const rangeDays = Number.parseInt(req.body?.rangeDays, 10) || 56;
   const rangeKey = rangeDaysToRangeKey(rangeDays);
@@ -920,6 +1101,11 @@ const prepareSummary = asyncHandler(async (req, res) => {
     });
   });
 
+  /**
+   * Filters evidence units by summary section.
+   * @param {string} sectionKey
+   * @returns {Array<{ label: string, span: string, attributes?: Record<string, unknown>, dateISO?: string }>}
+   */
   const getSectionEvidence = (sectionKey) => {
     if (sectionKey === "recurringExperiences") {
       return evidenceUnits.filter((unit) => unit.label.startsWith("SYMPTOM_"));
@@ -933,6 +1119,11 @@ const prepareSummary = asyncHandler(async (req, res) => {
     return [];
   };
 
+  /**
+   * Assigns a numeric score for severity ordering.
+   * @param {string} severity
+   * @returns {number}
+   */
   const severityScore = (severity) => {
     if (!severity) return 0;
     const normalized = String(severity).toUpperCase();
@@ -941,6 +1132,11 @@ const prepareSummary = asyncHandler(async (req, res) => {
     return 0;
   };
 
+  /**
+   * Ranks evidence units for a section by polarity/severity.
+   * @param {string} sectionKey
+   * @returns {Array<{ span: string, score: number, dateISO: string }>}
+   */
   const rankEvidence = (sectionKey) => {
     const pool = getSectionEvidence(sectionKey);
     if (!pool.length) return [];
@@ -953,6 +1149,12 @@ const prepareSummary = asyncHandler(async (req, res) => {
       .sort((a, b) => b.score - a.score || a.dateISO.localeCompare(b.dateISO));
   };
 
+  /**
+   * Attaches top evidence quotes to each narrative bullet.
+   * @param {string} sectionKey
+   * @param {string[]} bullets
+   * @returns {Array<{ bullet: string, quotes: string[] }>}
+   */
   const buildEvidenceBySection = (sectionKey, bullets) => {
     const ranked = rankEvidence(sectionKey);
     const used = new Set();
@@ -970,8 +1172,17 @@ const prepareSummary = asyncHandler(async (req, res) => {
     });
   };
 
+  /**
+   * Provides fallback intensity lines when the model omits them.
+   * @returns {string[]}
+   */
   const buildIntensityFallback = () => ["Week 1 ..", "Week 4 ...", "Week 8 ...."];
 
+  /**
+   * Normalizes or backfills the over-time summary language.
+   * @param {string} value
+   * @returns {string}
+   */
   const normalizeOverTimeSummary = (value) => {
     const summaryText = (value || "").trim();
     const lower = summaryText.toLowerCase();

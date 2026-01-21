@@ -17,6 +17,10 @@ type GraphNode = {
   evidenceLabels?: string[];
 };
 
+/**
+ * Props for DynamicDiagnosticGraph (Clinician-Facing).
+ * Clinical precision required; renders diagnostic graph nodes by mode.
+ */
 type DynamicDiagnosticGraphProps = {
   diagnosisKey: DepressiveDiagnosisKey;
   entries: CaseEntry[];

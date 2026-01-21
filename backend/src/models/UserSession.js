@@ -16,4 +16,5 @@ const userSessionSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
+/** Mongoose model for user login sessions. */
 module.exports = mongoose.model("UserSession", userSessionSchema);

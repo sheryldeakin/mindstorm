@@ -22,4 +22,5 @@ const clinicianNoteSchema = new mongoose.Schema(
 
 clinicianNoteSchema.index({ clinicianId: 1, patientId: 1, createdAt: -1 });
 
+/** Mongoose model for clinician notes on a patient case. */
 module.exports = mongoose.model("ClinicianNote", clinicianNoteSchema);

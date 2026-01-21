@@ -1,5 +1,9 @@
 import Button from "../ui/Button";
 
+/**
+ * Props for DataDeletionFlows (Patient-Facing).
+ * Use non-clinical, reflective language in UI copy.
+ */
 interface DataDeletionFlowsProps {
   onRequestDeletion: () => void;
   onConfirmDeletion: () => void;

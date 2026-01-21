@@ -5,6 +5,10 @@ import Button from "../ui/Button";
 import { buildContextImpactTags, buildSignalPreview } from "../../lib/patientSignals";
 import Badge from "../ui/Badge";
 
+/**
+ * Props for EntryCard (Patient-Facing).
+ * Use non-clinical, reflective language in UI copy.
+ */
 interface EntryCardProps {
   entry: JournalEntry;
 }

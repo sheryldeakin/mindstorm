@@ -10,6 +10,7 @@ import {
 } from "../../lib/entryInsights";
 import Badge from "../ui/Badge";
 
+/** Patient-Facing: live insights while drafting a journal entry. */
 interface LiveInsightPanelProps {
   analysis?: LlmAnalysis | null;
   loading?: boolean;

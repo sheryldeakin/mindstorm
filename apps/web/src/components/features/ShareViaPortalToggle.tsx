@@ -1,3 +1,4 @@
+/** Patient-Facing: controls consent and sharing for clinician portal delivery. */
 interface ShareViaPortalToggleProps {
   enabled: boolean;
   consentGiven: boolean;

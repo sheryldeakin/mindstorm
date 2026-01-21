@@ -3,6 +3,10 @@ import type { CaseEntry } from "../../types/clinician";
 import { getMddIcdPreview } from "../../lib/icdCoding";
 import { Card } from "../ui/Card";
 
+/**
+ * Props for ICDCodeGenerator (Clinician-Facing).
+ * Clinical precision required; uses ICD-10 preview logic.
+ */
 type ICDCodeGeneratorProps = {
   entries: CaseEntry[];
 };

@@ -10,6 +10,10 @@ import ClarificationPrompts from "./ClarificationPrompts";
 import ReasoningGraphAccordion from "./ReasoningGraphAccordion";
 import Specifiers from "./Specifiers";
 
+/**
+ * Props for DiagnosisReasoningPanel (Clinician-Facing).
+ * Clinical precision required; shows criteria, gates, and specifiers.
+ */
 type DiagnosisReasoningPanelProps = {
   diagnosis: DifferentialDiagnosis;
   diagnosisKey: DepressiveDiagnosisKey;

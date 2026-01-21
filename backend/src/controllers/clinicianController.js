@@ -5,6 +5,12 @@ const ClinicianOverride = require("../models/ClinicianOverride");
 const ClinicianNote = require("../models/ClinicianNote");
 const EvidenceFeedback = require("../models/EvidenceFeedback");
 
+/**
+ * List clinician-visible cases with summary metrics.
+ * @param {import("express").Request} _req
+ * @param {import("express").Response} res
+ * @returns {Promise<void>} Responds with { cases }.
+ */
 const listCases = asyncHandler(async (_req, res) => {
   const threshold = new Date();
   threshold.setDate(threshold.getDate() - 29);
@@ -93,6 +99,12 @@ const listCases = asyncHandler(async (_req, res) => {
   });
 });
 
+/**
+ * Fetch entries for a clinician-selected patient.
+ * @param {import("express").Request} req
+ * @param {import("express").Response} res
+ * @returns {Promise<void>} Responds with { user, entries }.
+ */
 const getCaseEntries = asyncHandler(async (req, res) => {
   const { userId } = req.params;
   const entries = await Entry.find({ userId, deletedAt: null })
@@ -116,6 +128,12 @@ const getCaseEntries = asyncHandler(async (req, res) => {
   });
 });
 
+/**
+ * Fetch clinician overrides for a patient.
+ * @param {import("express").Request} req
+ * @param {import("express").Response} res
+ * @returns {Promise<void>} Responds with { overrides }.
+ */
 const getCaseOverrides = asyncHandler(async (req, res) => {
   const { userId } = req.params;
   const clinicianId = req.user._id;
@@ -134,6 +152,12 @@ const getCaseOverrides = asyncHandler(async (req, res) => {
   });
 });
 
+/**
+ * Create or update a clinician override for a diagnostic node.
+ * @param {import("express").Request} req
+ * @param {import("express").Response} res
+ * @returns {Promise<void>} Responds with { override }.
+ */
 const upsertCaseOverride = asyncHandler(async (req, res) => {
   const { userId } = req.params;
   const clinicianId = req.user._id;
@@ -170,6 +194,12 @@ const upsertCaseOverride = asyncHandler(async (req, res) => {
   });
 });
 
+/**
+ * Delete a clinician override for a diagnostic node.
+ * @param {import("express").Request} req
+ * @param {import("express").Response} res
+ * @returns {Promise<void>} Responds with { status }.
+ */
 const deleteCaseOverride = asyncHandler(async (req, res) => {
   const { userId, nodeId } = req.params;
   const clinicianId = req.user._id;
@@ -177,6 +207,12 @@ const deleteCaseOverride = asyncHandler(async (req, res) => {
   res.json({ status: "deleted" });
 });
 
+/**
+ * Fetch clinician notes for a patient.
+ * @param {import("express").Request} req
+ * @param {import("express").Response} res
+ * @returns {Promise<void>} Responds with { notes }.
+ */
 const getCaseNotes = asyncHandler(async (req, res) => {
   const { userId } = req.params;
   const clinicianId = req.user._id;
@@ -194,6 +230,12 @@ const getCaseNotes = asyncHandler(async (req, res) => {
   });
 });
 
+/**
+ * Create a clinician note for a patient.
+ * @param {import("express").Request} req
+ * @param {import("express").Response} res
+ * @returns {Promise<void>} Responds with { note }.
+ */
 const createCaseNote = asyncHandler(async (req, res) => {
   const { userId } = req.params;
   const clinicianId = req.user._id;
@@ -218,6 +260,12 @@ const createCaseNote = asyncHandler(async (req, res) => {
   });
 });
 
+/**
+ * Update a clinician note for a patient.
+ * @param {import("express").Request} req
+ * @param {import("express").Response} res
+ * @returns {Promise<void>} Responds with { note }.
+ */
 const updateCaseNote = asyncHandler(async (req, res) => {
   const { userId, noteId } = req.params;
   const clinicianId = req.user._id;
@@ -241,6 +289,12 @@ const updateCaseNote = asyncHandler(async (req, res) => {
   });
 });
 
+/**
+ * Delete a clinician note for a patient.
+ * @param {import("express").Request} req
+ * @param {import("express").Response} res
+ * @returns {Promise<void>} Responds with { status }.
+ */
 const deleteCaseNote = asyncHandler(async (req, res) => {
   const { userId, noteId } = req.params;
   const clinicianId = req.user._id;
@@ -248,6 +302,12 @@ const deleteCaseNote = asyncHandler(async (req, res) => {
   res.json({ status: "deleted" });
 });
 
+/**
+ * Create clinician feedback on an evidence unit.
+ * @param {import("express").Request} req
+ * @param {import("express").Response} res
+ * @returns {Promise<void>} Responds with { feedback }.
+ */
 const createEvidenceFeedback = asyncHandler(async (req, res) => {
   const { userId } = req.params;
   const clinicianId = req.user._id;

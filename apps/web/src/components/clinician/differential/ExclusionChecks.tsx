@@ -1,6 +1,10 @@
 import { CheckCircle2, MinusCircle, HelpCircle } from "lucide-react";
 import type { ExclusionCheck } from "./types";
 
+/**
+ * Props for ExclusionChecks (Clinician-Facing).
+ * Clinical precision required; displays rule-out checks.
+ */
 type ExclusionChecksProps = {
   checks: ExclusionCheck[];
 };

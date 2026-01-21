@@ -47,6 +47,10 @@ const buildRanges = (entries: CaseEntry[], specifier: SpecifierConfig): Specifie
   return ranges;
 };
 
+/**
+ * Props for SpecifierChips (Clinician-Facing).
+ * Clinical precision required; shows DSM specifier patterns.
+ */
 type SpecifierChipsProps = {
   entries: CaseEntry[];
   onHover?: (labels: string[] | null) => void;

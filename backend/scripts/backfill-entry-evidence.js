@@ -5,6 +5,10 @@ const { generateEntryEvidence } = require("../src/controllers/aiController");
 
 dotenv.config();
 
+/**
+ * Backfills missing evidenceBySection for entries.
+ * @returns {Promise<void>}
+ */
 const run = async () => {
   const uri = process.env.MONGODB_URI;
   if (!uri) {

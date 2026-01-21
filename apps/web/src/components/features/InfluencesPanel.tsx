@@ -1,6 +1,10 @@
 import type { PatternInfluence } from "../../types/patterns";
 import { Card } from "../ui/Card";
 
+/**
+ * Props for InfluencesPanel (Patient-Facing).
+ * Use non-clinical, reflective language in UI copy.
+ */
 interface InfluencesPanelProps {
   influences: PatternInfluence[];
 }

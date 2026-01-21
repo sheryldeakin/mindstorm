@@ -1,3 +1,4 @@
+/** Derived data pipeline version constants per subsystem. */
 const PIPELINE_VERSION = {
   entrySignals: "entrySignals_v1",
   themeSeries: "themeSeries_v1",

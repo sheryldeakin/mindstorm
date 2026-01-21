@@ -1,5 +1,9 @@
 import type { FunctionalImpactDomain } from "./types";
 
+/**
+ * Props for FunctionalImpact (Clinician-Facing).
+ * Clinical precision required; shows functional impact domains.
+ */
 type FunctionalImpactProps = {
   domains: FunctionalImpactDomain[];
 };

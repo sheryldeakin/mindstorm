@@ -1,3 +1,7 @@
+/**
+ * Props for MiniTrendSparkLine (Patient-Facing).
+ * Use non-clinical, reflective language in UI copy.
+ */
 interface MiniTrendSparkLineProps {
   values: number[];
 }

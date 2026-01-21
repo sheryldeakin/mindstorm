@@ -1,5 +1,6 @@
 import Textarea from "../ui/Textarea";
 
+/** Patient-Facing: collects a brief reflective note from the patient. */
 interface QuickNoteInputProps {
   value: string;
   onChange: (value: string) => void;

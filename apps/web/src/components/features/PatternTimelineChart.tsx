@@ -1,6 +1,10 @@
 import type { PatternSpanLink, PatternTimelinePoint } from "../../types/patterns";
 import { Card } from "../ui/Card";
 
+/**
+ * Props for PatternTimelineChart (Patient-Facing).
+ * Use non-clinical, reflective language in UI copy.
+ */
 interface PatternTimelineChartProps {
   scaleLabel: string;
   points: PatternTimelinePoint[];

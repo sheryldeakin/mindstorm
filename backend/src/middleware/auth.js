@@ -2,6 +2,13 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const UserSession = require("../models/UserSession");
 
+/**
+ * Auth middleware: validates bearer token, attaches user/session to request.
+ * @param {import("express").Request} req
+ * @param {import("express").Response} res
+ * @param {import("express").NextFunction} next
+ * @returns {Promise<void>}
+ */
 const protect = async (req, res, next) => {
   const authHeader = req.headers.authorization || "";
   const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : null;

@@ -1,3 +1,4 @@
+/** Patient-Facing: highlights supports or coping strategies mentioned. */
 interface WhatHelpedSummaryProps {
   highlights: string[];
 }

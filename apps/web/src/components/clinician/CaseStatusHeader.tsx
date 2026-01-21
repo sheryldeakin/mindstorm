@@ -2,6 +2,10 @@ import RiskBadge from "./RiskBadge";
 import Sparkline from "../charts/Sparkline";
 import type { RiskSignal } from "../../types/clinician";
 
+/**
+ * Props for CaseStatusHeader (Clinician-Facing).
+ * Clinical precision required; summarizes risk and gating status.
+ */
 type CaseStatusHeaderProps = {
   name: string;
   lastEntryDate: string;

@@ -29,4 +29,5 @@ const entrySignalsSchema = new mongoose.Schema(
 
 entrySignalsSchema.index({ userId: 1, entryId: 1 }, { unique: true });
 
+/** Mongoose model for derived evidence signals per entry. */
 module.exports = mongoose.model("EntrySignals", entrySignalsSchema);

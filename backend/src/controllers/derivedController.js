@@ -8,6 +8,11 @@ const ThemeSeries = require("../derived/models/ThemeSeries");
 const WeeklySummary = require("../models/WeeklySummary");
 const Entry = require("../models/Entry");
 
+/**
+ * Returns ISO week start (Monday) for a dateISO string.
+ * @param {string} dateIso
+ * @returns {string}
+ */
 const getWeekStartIso = (dateIso) => {
   const [year, month, day] = dateIso.split("-").map((value) => Number(value));
   const date = new Date(year, month - 1, day);
@@ -17,6 +22,11 @@ const getWeekStartIso = (dateIso) => {
   return monday.toISOString().slice(0, 10);
 };
 
+/**
+ * Returns the dateISO lower bound for a range key.
+ * @param {string} rangeKey
+ * @returns {string | null}
+ */
 const getRangeStartIso = (rangeKey) => {
   if (rangeKey === "all_time") return null;
   const days =
@@ -32,6 +42,11 @@ const getRangeStartIso = (rangeKey) => {
   return start.toISOString().slice(0, 10);
 };
 
+/**
+ * Builds a display label for a range key.
+ * @param {string} rangeKey
+ * @returns {string}
+ */
 const formatRangeLabel = (rangeKey) => {
   if (rangeKey === "last_7_days") return "Last 7 days";
   if (rangeKey === "last_365_days") return "Last 365 days";
@@ -40,6 +55,11 @@ const formatRangeLabel = (rangeKey) => {
   return "Last 30 days";
 };
 
+/**
+ * Converts a string to title case (simple space-delimited).
+ * @param {string} value
+ * @returns {string}
+ */
 const toTitleCase = (value = "") =>
   value
     .split(" ")
@@ -47,13 +67,28 @@ const toTitleCase = (value = "") =>
     .map((part) => part[0].toUpperCase() + part.slice(1))
     .join(" ");
 
+/**
+ * Normalizes dateISO to YYYY-MM-DD.
+ * @param {string} dateIso
+ * @returns {string}
+ */
 const getDateKey = (dateIso) => (dateIso ? dateIso.slice(0, 10) : "");
 
+/**
+ * Formats a Date into a short weekday label.
+ * @param {Date} date
+ * @returns {string}
+ */
 const getDayLabel = (date) =>
   date.toLocaleDateString("en-US", {
     weekday: "short",
   });
 
+/**
+ * Builds 7-day intensity points for a theme.
+ * @param {{ theme: string, signals: Array<{ dateISO: string, themeIntensities?: Array<{ theme: string, intensity: number }>, themes?: string[] }> }} params
+ * @returns {Array<{ id: string, label: string, intensity: number }>}
+ */
 const buildWeekPoints = ({ theme, signals }) => {
   const today = new Date();
   const points = [];
@@ -84,6 +119,12 @@ const buildWeekPoints = ({ theme, signals }) => {
   return points;
 };
 
+/**
+ * Compresses a numeric series into maxPoints buckets.
+ * @param {number[]} points
+ * @param {number} [maxPoints=12]
+ * @returns {number[]}
+ */
 const compressSeries = (points, maxPoints = 12) => {
   if (points.length <= maxPoints) return points;
   const bucketSize = Math.ceil(points.length / maxPoints);
@@ -96,6 +137,11 @@ const compressSeries = (points, maxPoints = 12) => {
   return compressed;
 };
 
+/**
+ * Computes a directional trend for a numeric series.
+ * @param {number[]} series
+ * @returns {"up" | "down" | "steady"}
+ */
 const computeTrend = (series) => {
   if (!series.length) return "steady";
   const chunk = Math.max(1, Math.floor(series.length / 3));
@@ -110,6 +156,11 @@ const computeTrend = (series) => {
   return "steady";
 };
 
+/**
+ * Computes confidence from intensity coverage.
+ * @param {Array<{ intensity: number, confidence?: number }>} points
+ * @returns {"high" | "medium" | "low"}
+ */
 const computeConfidence = (points) => {
   if (!points.length) return "low";
   const active = points.filter((point) => point.intensity > 0);
@@ -123,6 +174,11 @@ const computeConfidence = (points) => {
   return "low";
 };
 
+/**
+ * Builds weekly intensity points for a 6-week window.
+ * @param {{ theme: string, signals: Array<{ dateISO: string, themeIntensities?: Array<{ theme: string, intensity: number }>, themes?: string[] }> }} params
+ * @returns {Array<{ id: string, label: string, intensity: number }>}
+ */
 const buildMonthPoints = ({ theme, signals }) => {
   const today = new Date();
   const points = [];
@@ -153,6 +209,11 @@ const buildMonthPoints = ({ theme, signals }) => {
   return points;
 };
 
+/**
+ * Builds link metadata for entry spans in a timeline.
+ * @param {{ themeEntries: Array<{ _id: import("mongoose").Types.ObjectId, title: string, date?: string, dateISO?: string }>, limit: number, labelPrefix: string }} params
+ * @returns {Array<{ id: string, label: string, dateRange: string }>}
+ */
 const buildSpanLinks = ({ themeEntries, limit, labelPrefix }) =>
   themeEntries.slice(0, limit).map((entry, index) => ({
     id: `${labelPrefix}-${index}-${entry._id.toString()}`,
@@ -160,6 +221,11 @@ const buildSpanLinks = ({ themeEntries, limit, labelPrefix }) =>
     dateRange: entry.date || entry.dateISO || "",
   }));
 
+/**
+ * Builds detailed pattern card content for a theme.
+ * @param {{ theme: string, rangeKey: string, signals: Array<object>, entryMap: Map<string, object>, weeklySummaries: Array<object> }} params
+ * @returns {Record<string, unknown>}
+ */
 const buildPatternDetail = ({ theme, rangeKey, signals, entryMap, weeklySummaries }) => {
   const themeSignals = signals.filter((signal) =>
     (signal.themes || []).some((entryTheme) => entryTheme.toLowerCase() === theme.toLowerCase()),
@@ -322,6 +388,13 @@ const buildPatternDetail = ({ theme, rangeKey, signals, entryMap, weeklySummarie
   };
 };
 
+/**
+ * Fetch a cached snapshot for the requested range key.
+ * Triggers background recompute when snapshot is missing or stale.
+ * @param {import("express").Request} req
+ * @param {import("express").Response} res
+ * @returns {Promise<void>} Responds with { snapshot, stale }.
+ */
 const getSnapshot = asyncHandler(async (req, res) => {
   const rangeKey = req.query.rangeKey || "last_30_days";
   const snapshot = await SnapshotSummary.findOne({
@@ -360,6 +433,12 @@ const getSnapshot = asyncHandler(async (req, res) => {
   res.json({ snapshot: staleSnapshot.snapshot || null, stale: true });
 });
 
+/**
+ * Fetch cached weekly summaries for a range.
+ * @param {import("express").Request} req
+ * @param {import("express").Response} res
+ * @returns {Promise<void>} Responds with { weeklySummaries }.
+ */
 const getWeeklySummaries = asyncHandler(async (req, res) => {
   const rangeKey = req.query.rangeKey;
   const today = new Date();
@@ -397,6 +476,11 @@ const getWeeklySummaries = asyncHandler(async (req, res) => {
   });
 });
 
+/**
+ * Title-cases a label for display.
+ * @param {string} value
+ * @returns {string}
+ */
 const toLabel = (value) =>
   value
     .split(" ")
@@ -404,6 +488,11 @@ const toLabel = (value) =>
     .map((part) => part[0].toUpperCase() + part.slice(1))
     .join(" ");
 
+/**
+ * Picks a representative quote from an entry for evidence display.
+ * @param {{ evidenceBySection?: Record<string, string[]>, summary?: string }} entry
+ * @returns {string}
+ */
 const pickEntryQuote = (entry) => {
   const pools = [
     ...(entry.evidenceBySection?.recurringExperiences || []),
@@ -414,6 +503,12 @@ const pickEntryQuote = (entry) => {
   return quote ? quote.trim() : "";
 };
 
+/**
+ * Fetch a cached connections graph for a range key.
+ * @param {import("express").Request} req
+ * @param {import("express").Response} res
+ * @returns {Promise<void>} Responds with { graph, stale }.
+ */
 const getConnectionsGraph = asyncHandler(async (req, res) => {
   const rangeKey = req.query.rangeKey || "last_30_days";
   const graph = await ConnectionsGraph.findOne({
@@ -447,8 +542,19 @@ const getConnectionsGraph = asyncHandler(async (req, res) => {
   const seriesDocs = await ThemeSeries.find({ userId: req.user._id, rangeKey }).lean();
   const seriesMap = new Map(seriesDocs.map((doc) => [doc.theme, doc.points || []]));
 
+  /**
+   * Converts theme series points to a numeric array.
+   * @param {Array<{ intensity?: number }>} points
+   * @returns {number[]}
+   */
   const toSeriesArray = (points) => (points || []).map((point) => point.intensity || 0);
 
+  /**
+   * Computes Pearson correlation between two numeric series.
+   * @param {number[]} a
+   * @param {number[]} b
+   * @returns {number}
+   */
   const correlation = (a, b) => {
     const length = Math.min(a.length, b.length);
     if (length < 3) return 0;
@@ -464,6 +570,11 @@ const getConnectionsGraph = asyncHandler(async (req, res) => {
     return numerator / (denomX * denomY);
   };
 
+  /**
+   * Builds a narrative summary for signal co-movement.
+   * @param {number} corr
+   * @returns {string}
+   */
   const buildMovementSummary = (corr) => {
     const abs = Math.abs(corr);
     if (abs >= 0.45) {
@@ -520,6 +631,12 @@ const getConnectionsGraph = asyncHandler(async (req, res) => {
   });
 });
 
+/**
+ * Build pattern cards for the selected range using signals + theme series.
+ * @param {import("express").Request} req
+ * @param {import("express").Response} res
+ * @returns {Promise<void>} Responds with { patterns, rangeLabel }.
+ */
 const getPatterns = asyncHandler(async (req, res) => {
   const rangeKey = req.query.rangeKey || "last_30_days";
   const patternId = req.query.patternId;
@@ -623,6 +740,12 @@ const selectedTheme = patternId && topThemes.includes(patternId) ? patternId : t
   res.json({ patterns, detail });
 });
 
+/**
+ * Fetch cycle edges for the selected range key.
+ * @param {import("express").Request} req
+ * @param {import("express").Response} res
+ * @returns {Promise<void>} Responds with { cycles, stale }.
+ */
 const getCycles = asyncHandler(async (req, res) => {
   const rangeKey = req.query.rangeKey || "last_30_days";
   const cycles = await Cycle.find({ userId: req.user._id, rangeKey, stale: false }).lean();

@@ -1,5 +1,9 @@
 import type { DiagnosisKey } from "./types";
 
+/**
+ * Props for ComorbidityView (Clinician-Facing).
+ * Clinical precision required; highlights comorbidity considerations.
+ */
 type ComorbidityViewProps = {
   pinnedKeys: DiagnosisKey[];
 };

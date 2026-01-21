@@ -10,6 +10,7 @@ const clinicianNav = [
   { label: "Logic Graph", to: "/clinician/logic-graph", icon: Network },
 ];
 
+/** Clinician-Facing: navigation sidebar for clinician workspace. */
 type ClinicianSidebarProps = {
   collapsed?: boolean;
 };

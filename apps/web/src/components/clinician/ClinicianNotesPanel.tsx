@@ -1,6 +1,10 @@
 import { useMemo, useState } from "react";
 import type { ClinicianNote } from "../../types/clinician";
 
+/**
+ * Props for ClinicianNotesPanel (Clinician-Facing).
+ * Clinical precision required; handles clinician-authored notes and audits.
+ */
 type ClinicianNotesPanelProps = {
   notes: ClinicianNote[];
   onCreate: (payload: { title: string; body: string }) => Promise<void>;

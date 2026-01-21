@@ -1,5 +1,9 @@
 import Button from "../ui/Button";
 
+/**
+ * Props for PrivacyControls (Patient-Facing).
+ * Use non-clinical, reflective language in UI copy.
+ */
 interface PrivacyControlsProps {
   onExportData: () => void;
   onDeleteData: () => void;

@@ -24,4 +24,5 @@ const clinicianOverrideSchema = new mongoose.Schema(
 
 clinicianOverrideSchema.index({ clinicianId: 1, patientId: 1, nodeId: 1 }, { unique: true });
 
+/** Mongoose model for clinician overrides on diagnostic logic nodes. */
 module.exports = mongoose.model("ClinicianOverride", clinicianOverrideSchema);

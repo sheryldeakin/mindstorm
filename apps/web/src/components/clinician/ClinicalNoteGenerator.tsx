@@ -4,6 +4,10 @@ import type { DiagnosticStatus } from "../../hooks/useDiagnosticLogic";
 import { DIAGNOSTIC_GRAPH_NODES } from "../../lib/diagnosticGraphConfig";
 import ICDCodeGenerator from "./ICDCodeGenerator";
 
+/**
+ * Props for ClinicalNoteGenerator (Clinician-Facing).
+ * Clinical precision required; composes diagnostic-aligned draft notes.
+ */
 type ClinicalNoteGeneratorProps = {
   entries: CaseEntry[];
   getStatusForLabels: (labels?: string[]) => DiagnosticStatus;

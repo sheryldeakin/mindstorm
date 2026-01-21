@@ -1,3 +1,7 @@
+/**
+ * Props for RedactionEditor (Patient-Facing).
+ * Use non-clinical, reflective language in UI copy.
+ */
 interface RedactionEditorProps {
   topics: string[];
   redactedTopics: string[];

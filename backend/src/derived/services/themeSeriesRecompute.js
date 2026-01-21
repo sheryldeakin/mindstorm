@@ -6,6 +6,11 @@ const { computeSourceVersionForRange } = require("../versioning");
 const MAX_ALL_TIME_DAYS = 730;
 const DEFAULT_INTENSITY = 0.4;
 
+/**
+ * Maps severity labels to numeric intensity.
+ * @param {string} severity
+ * @returns {number}
+ */
 const severityToIntensity = (severity) => {
   if (!severity) return DEFAULT_INTENSITY;
   const normalized = String(severity).trim().toUpperCase();
@@ -15,6 +20,11 @@ const severityToIntensity = (severity) => {
   return DEFAULT_INTENSITY;
 };
 
+/**
+ * Maps evidence labels to patient-facing theme labels.
+ * @param {string} label
+ * @returns {string}
+ */
 const mapLabelToTheme = (label) => {
   const map = {
     SYMPTOM_MOOD: "Low mood",
@@ -34,6 +44,11 @@ const mapLabelToTheme = (label) => {
     .toLowerCase();
 };
 
+/**
+ * Filters evidence units eligible for theme series.
+ * @param {{ label?: string, attributes?: { polarity?: string }, polarity?: string }} unit
+ * @returns {boolean}
+ */
 const shouldIncludeUnit = (unit) => {
   const label = unit?.label;
   if (!label) return false;
@@ -42,6 +57,11 @@ const shouldIncludeUnit = (unit) => {
   return polarity === "PRESENT";
 };
 
+/**
+ * Returns the dateISO lower bound for a range key.
+ * @param {string} rangeKey
+ * @returns {string | null}
+ */
 const getRangeStartIso = (rangeKey) => {
   if (rangeKey === "all_time") return null;
   const days =
@@ -57,6 +77,12 @@ const getRangeStartIso = (rangeKey) => {
   return start.toISOString().slice(0, 10);
 };
 
+/**
+ * Builds an inclusive dateISO list between start and end.
+ * @param {string} startIso
+ * @param {string} endIso
+ * @returns {string[]}
+ */
 const buildDateList = (startIso, endIso) => {
   const dates = [];
   if (!startIso || !endIso) return dates;
@@ -71,6 +97,12 @@ const buildDateList = (startIso, endIso) => {
   return dates;
 };
 
+/**
+ * Resolves the date window for a given range key and signals.
+ * @param {string} rangeKey
+ * @param {Array<{ dateISO?: string }>} signals
+ * @returns {Promise<string[]>}
+ */
 const getRangeDates = async (rangeKey, signals) => {
   const endIso = new Date().toISOString().slice(0, 10);
   if (rangeKey !== "all_time") {
@@ -97,6 +129,11 @@ const getRangeDates = async (rangeKey, signals) => {
   return buildDateList(startIso, endIso);
 };
 
+/**
+ * Recompute per-theme time series for a user and range key.
+ * @param {{ userId: import("mongoose").Types.ObjectId | string, rangeKey: string }} params
+ * @returns {Promise<void>}
+ */
 const recomputeThemeSeriesForUser = async ({ userId, rangeKey }) => {
   const startIso = getRangeStartIso(rangeKey);
   const query = startIso ? { userId, dateISO: { $gte: startIso } } : { userId };
@@ -225,6 +262,10 @@ const recomputeThemeSeriesForUser = async ({ userId, rangeKey }) => {
   }
 };
 
+/**
+ * Recompute all theme series marked stale.
+ * @returns {Promise<void>}
+ */
 const recomputeStaleThemeSeries = async () => {
   const stale = await ThemeSeries.find({ stale: true }).lean();
   const userRangePairs = new Map();

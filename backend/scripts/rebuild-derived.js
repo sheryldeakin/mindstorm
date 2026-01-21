@@ -15,6 +15,11 @@ const { recomputeCyclesForUser } = require("../src/derived/services/cyclesRecomp
 
 dotenv.config();
 
+/**
+ * Parses CLI arguments into a key/value object.
+ * @param {string[]} argv
+ * @returns {Record<string, string | boolean>}
+ */
 const parseArgs = (argv) => {
   const args = {};
   for (let i = 0; i < argv.length; i += 1) {
@@ -33,6 +38,12 @@ const parseArgs = (argv) => {
   return args;
 };
 
+/**
+ * Creates a console progress bar renderer.
+ * @param {number} total
+ * @param {string} label
+ * @returns {{ render: (current: number) => void, done: () => void }}
+ */
 const createProgress = (total, label) => {
   const start = Date.now();
   const safeTotal = total > 0 ? total : 1;
@@ -52,6 +63,11 @@ const createProgress = (total, label) => {
   return { render, done };
 };
 
+/**
+ * Computes ISO week start (Monday) for a given dateISO string.
+ * @param {string} dateIso
+ * @returns {string}
+ */
 const getWeekStartIso = (dateIso) => {
   const [year, month, day] = dateIso.split("-").map((value) => Number(value));
   const date = new Date(year, month - 1, day);
@@ -61,6 +77,10 @@ const getWeekStartIso = (dateIso) => {
   return monday.toISOString().slice(0, 10);
 };
 
+/**
+ * Rebuilds derived data for all users (entries, weekly summaries, and caches).
+ * @returns {Promise<void>}
+ */
 const run = async () => {
   const uri = process.env.MONGODB_URI;
   const args = parseArgs(process.argv.slice(2));

@@ -5,6 +5,11 @@ const SnapshotSummary = require("./models/SnapshotSummary");
 const ThemeSeries = require("./models/ThemeSeries");
 const { PIPELINE_VERSION } = require("./pipelineVersion");
 
+/**
+ * Returns the dateISO lower bound for a range key.
+ * @param {string} rangeKey
+ * @returns {string | null}
+ */
 const getRangeStartIso = (rangeKey) => {
   if (!rangeKey || rangeKey === "all_time") return null;
   const days =
@@ -20,6 +25,12 @@ const getRangeStartIso = (rangeKey) => {
   return start.toISOString().slice(0, 10);
 };
 
+/**
+ * Computes a source version timestamp for a user and time range.
+ * @param {import("mongoose").Types.ObjectId|string} userId
+ * @param {string} rangeKey
+ * @returns {Promise<string>} ISO timestamp for the latest entry update.
+ */
 const computeSourceVersionForRange = async (userId, rangeKey) => {
   const startIso = getRangeStartIso(rangeKey);
   const query = startIso ? { userId, dateISO: { $gte: startIso } } : { userId };
@@ -30,6 +41,13 @@ const computeSourceVersionForRange = async (userId, rangeKey) => {
   return new Date(latestEntry.updatedAt).toISOString();
 };
 
+/**
+ * Marks derived caches as stale for the given user and range keys.
+ * @param {import("mongoose").Types.ObjectId|string} userId
+ * @param {string|string[]} rangeKeys
+ * @param {string} [sourceVersion]
+ * @returns {Promise<void>}
+ */
 const markDerivedStale = async (userId, rangeKeys, sourceVersion) => {
   const keys = Array.isArray(rangeKeys) ? rangeKeys : [rangeKeys];
   const baseUpdate = {

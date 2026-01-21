@@ -1,5 +1,9 @@
 import type { ClarificationPrompt } from "./types";
 
+/**
+ * Props for ClarificationPrompts (Clinician-Facing).
+ * Clinical precision required; lists diagnostic clarification prompts.
+ */
 type ClarificationPromptsProps = {
   prompts: ClarificationPrompt[];
 };

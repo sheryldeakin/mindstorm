@@ -34,6 +34,12 @@ const parseDateInput = (value) => {
   return new Date(year, month - 1, day);
 };
 
+/**
+ * List recent entries for the authenticated user with pagination.
+ * @param {import("express").Request} req
+ * @param {import("express").Response} res
+ * @returns {Promise<void>} Responds with { entries, total }.
+ */
 const listEntries = asyncHandler(async (req, res) => {
   const limit = Number.parseInt(req.query.limit, 10) || 20;
   const offset = Number.parseInt(req.query.offset, 10) || 0;
@@ -62,6 +68,12 @@ const listEntries = asyncHandler(async (req, res) => {
   res.json({ entries: formatted, total });
 });
 
+/**
+ * Create a new journal entry and derive evidence/signals.
+ * @param {import("express").Request} req
+ * @param {import("express").Response} res
+ * @returns {Promise<void>} Responds with { entry } or an error status.
+ */
 const createEntry = asyncHandler(async (req, res) => {
   const {
     title,
@@ -153,6 +165,12 @@ const createEntry = asyncHandler(async (req, res) => {
   });
 });
 
+/**
+ * Fetch a single entry by id for the authenticated user.
+ * @param {import("express").Request} req
+ * @param {import("express").Response} res
+ * @returns {Promise<void>} Responds with { entry } or 404.
+ */
 const getEntry = asyncHandler(async (req, res) => {
   const entry = await Entry.findOne({ _id: req.params.id, userId: req.user._id, deletedAt: null }).lean();
   if (!entry) {
@@ -178,6 +196,12 @@ const getEntry = asyncHandler(async (req, res) => {
   });
 });
 
+/**
+ * Update an existing entry and refresh derived evidence/signals.
+ * @param {import("express").Request} req
+ * @param {import("express").Response} res
+ * @returns {Promise<void>} Responds with { entry } or an error status.
+ */
 const updateEntry = asyncHandler(async (req, res) => {
   const { title, summary, tags, triggers, themes, emotions, themeIntensities, date, dateISO } = req.body;
 
@@ -264,6 +288,12 @@ const updateEntry = asyncHandler(async (req, res) => {
   });
 });
 
+/**
+ * Soft-delete an entry for the authenticated user.
+ * @param {import("express").Request} req
+ * @param {import("express").Response} res
+ * @returns {Promise<void>} Responds with 204 or 404.
+ */
 const deleteEntry = asyncHandler(async (req, res) => {
   const entry = await Entry.findOneAndUpdate(
     { _id: req.params.id, userId: req.user._id, deletedAt: null },

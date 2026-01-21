@@ -1,5 +1,10 @@
 const criteriaSpec = require("../../../packages/criteria-graph/criteria_specs/v1/depressive_disorders.json");
 
+/**
+ * Maps diagnosis ID to internal key string.
+ * @param {string} id
+ * @returns {string | null}
+ */
 const toKey = (id) => {
   switch (id) {
     case "MDD":
@@ -23,6 +28,11 @@ const toKey = (id) => {
   }
 };
 
+/**
+ * Maps diagnostic node IDs to evidence labels.
+ * @param {string} nodeId
+ * @returns {string[]}
+ */
 const mapNodeToEvidence = (nodeId) => {
   const id = nodeId.toUpperCase();
   if (id.includes("IMPAIRMENT") || id.includes("DISTRESS")) return ["IMPAIRMENT"];
@@ -70,6 +80,11 @@ const mapNodeToEvidence = (nodeId) => {
   return [];
 };
 
+/**
+ * Determines the duration gate window for a diagnosis config.
+ * @param {Record<string, unknown>} diagnosis
+ * @returns {{ window?: { label: string, windowDays: number, note?: string }, requiredDurationDays: number | null, durationRuleKind: string | null }}
+ */
 const pickDurationWindow = (diagnosis) => {
   const durationNode = (diagnosis.nodes || []).find((node) => {
     const kind = node?.rule?.kind;
@@ -122,6 +137,11 @@ const pickDurationWindow = (diagnosis) => {
   };
 };
 
+/**
+ * Locates the criteria group for a diagnosis threshold node.
+ * @param {Record<string, unknown>} diagnosis
+ * @returns {{ group: Record<string, unknown>, required: number | null, total: number | null } | null}
+ */
 const findCriteriaGroup = (diagnosis) => {
   const threshold = (diagnosis.nodes || []).find(
     (node) => node?.type === "THRESHOLD" && node?.rule?.kind === "k_of_n",
@@ -138,6 +158,11 @@ const findCriteriaGroup = (diagnosis) => {
   };
 };
 
+/**
+ * Builds a list of symptom criteria nodes from diagnosis spec.
+ * @param {Record<string, unknown>} diagnosis
+ * @returns {Array<{ id: string, label: string, evidenceLabels: string[] }>}
+ */
 const buildCriteriaNodes = (diagnosis) =>
   (diagnosis.nodes || [])
     .filter((node) => node?.type === "SYMPTOM")
@@ -148,6 +173,11 @@ const buildCriteriaNodes = (diagnosis) =>
       evidenceLabels: mapNodeToEvidence(node.id),
     }));
 
+/**
+ * Builds a list of rule-out nodes from diagnosis spec.
+ * @param {Record<string, unknown>} diagnosis
+ * @returns {Array<{ id: string, label: string, evidenceLabels: string[] }>}
+ */
 const buildRuleOutNodes = (diagnosis) =>
   (diagnosis.nodes || [])
     .filter((node) => node?.type === "RULE_OUT")
@@ -182,8 +212,20 @@ const depressiveDiagnosisConfigs = (criteriaSpec.diagnoses || [])
   })
   .filter(Boolean);
 
+/**
+ * Builds a unique key for evidence span per date.
+ * @param {string} dateISO
+ * @param {string} span
+ * @returns {string}
+ */
 const buildEvidenceKey = (dateISO, span) => `${dateISO}::${span}`;
 
+/**
+ * Filters entries to the most recent window.
+ * @param {Array<{ dateISO: string }>} entries
+ * @param {number} windowDays
+ * @returns {Array<{ dateISO: string }>}
+ */
 const getRecentEntries = (entries, windowDays) => {
   if (!entries.length) return [];
   const sorted = [...entries].sort((a, b) => a.dateISO.localeCompare(b.dateISO));
@@ -198,6 +240,13 @@ const getRecentEntries = (entries, windowDays) => {
   });
 };
 
+/**
+ * Scores evidence units by weighted label presence.
+ * @param {Array<{ label: string, attributes?: { polarity?: string } }>} units
+ * @param {Record<string, number>} weights
+ * @param {Record<string, "MET" | "EXCLUDED">} [overrides]
+ * @returns {number}
+ */
 const scoreByLabels = (units, weights, overrides) =>
   Object.entries(weights).reduce((sum, [label, weight]) => {
     const override = overrides?.[label];
@@ -209,6 +258,14 @@ const scoreByLabels = (units, weights, overrides) =>
     return sum + (hasSignal ? weight : 0);
   }, 0);
 
+/**
+ * Builds criteria coverage metrics using evidence units and optional overrides.
+ * @param {Array<{ dateISO: string, evidenceUnits?: Array<{ label: string, span: string, attributes?: Record<string, unknown> }> }>} entries
+ * @param {Record<string, "MET" | "EXCLUDED">} [overrides]
+ * @param {Set<string>} [rejectedEvidenceKeys]
+ * @param {{ windowDays?: number, nodeOverrides?: Record<string, "MET" | "EXCLUDED"> }} [options]
+ * @returns {Array<{ label: string, current: number, lifetime: number, max: number, threshold?: number }>}
+ */
 const buildCoverageMetrics = (entries, overrides, rejectedEvidenceKeys, options) => {
   const filterUnits = (entry) =>
     (entry.evidenceUnits || []).filter(
@@ -287,6 +344,11 @@ const buildCoverageMetrics = (entries, overrides, rejectedEvidenceKeys, options)
   ];
 };
 
+/**
+ * Summarizes evidence unit counts by label.
+ * @param {Array<{ evidenceUnits?: Array<{ label: string }> }>} entries
+ * @returns {Record<string, number>}
+ */
 const buildEvidenceSummary = (entries) => {
   const units = entries.flatMap((entry) => entry.evidenceUnits || []);
   return units.reduce((acc, unit) => {
@@ -295,6 +357,11 @@ const buildEvidenceSummary = (entries) => {
   }, {});
 };
 
+/**
+ * Counts distinct evidence unit spans with PRESENT polarity.
+ * @param {Array<{ dateISO: string, evidenceUnits?: Array<{ label: string, span: string, attributes?: { polarity?: string } }> }>} entries
+ * @returns {number}
+ */
 const buildSignalDensity = (entries) => {
   const distinct = new Set();
   entries.forEach((entry) => {
@@ -307,6 +374,12 @@ const buildSignalDensity = (entries) => {
   return distinct.size;
 };
 
+/**
+ * Collects high-confidence evidence units for clinician review.
+ * @param {Array<{ dateISO: string, evidenceUnits?: Array<{ label: string, span: string, attributes?: { polarity?: string, uncertainty?: string } }> }>} entries
+ * @param {number} [limit=20]
+ * @returns {Array<{ dateISO: string, label: string, span: string, attributes: Record<string, unknown> }>}
+ */
 const buildHighConfidenceEvidence = (entries, limit = 20) => {
   const items = [];
   const seen = new Set();
@@ -328,6 +401,12 @@ const buildHighConfidenceEvidence = (entries, limit = 20) => {
   return items.sort((a, b) => a.dateISO.localeCompare(b.dateISO)).slice(0, limit);
 };
 
+/**
+ * Determines missing duration and impairment gates.
+ * @param {Array<{ dateISO: string, evidenceUnits?: Array<{ label: string, attributes?: { polarity?: string } }> }>} entries
+ * @param {number} [windowDays=14]
+ * @returns {{ duration: boolean, impairment: boolean, missing: string[] }}
+ */
 const buildMissingGates = (entries, windowDays = 14) => {
   const currentEntries = getRecentEntries(entries, windowDays);
   if (!currentEntries.length) {
@@ -351,6 +430,16 @@ const buildMissingGates = (entries, windowDays = 14) => {
   return { duration: durationMissing, impairment: impairmentMissing, missing };
 };
 
+/**
+ * Generates clinician-facing appendix metrics from entries.
+ * @param {Array<{ dateISO: string, evidenceUnits?: Array<{ label: string, span: string, attributes?: Record<string, unknown> }> }>} entries
+ * @returns {{
+ *   coverage: Array<{ label: string, current: number, lifetime: number, max: number, threshold?: number }>,
+ *   signalDensity: number,
+ *   missingGates: { duration: boolean, impairment: boolean, missing: string[] },
+ *   highConfidenceEvidence: Array<{ dateISO: string, label: string, span: string, attributes: Record<string, unknown> }>
+ * }}
+ */
 const generateClinicianAppendix = (entries) => {
   const coverage = buildCoverageMetrics(entries);
   return {

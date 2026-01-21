@@ -1,6 +1,10 @@
 import type { LifeAreaImpact } from "../../types/patterns";
 import { Card } from "../ui/Card";
 
+/**
+ * Props for LifeAreasImpactPanel (Patient-Facing).
+ * Use non-clinical, reflective language in UI copy.
+ */
 interface LifeAreasImpactPanelProps {
   areas: LifeAreaImpact[];
 }

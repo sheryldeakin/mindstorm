@@ -13,6 +13,7 @@ const navItems = [
   { label: "Prepare", to: "/patient/prepare", icon: FileText },
 ];
 
+/** Patient-Facing: sidebar navigation for patient dashboard pages. */
 type SidebarNavProps = {
   collapsed?: boolean;
 };

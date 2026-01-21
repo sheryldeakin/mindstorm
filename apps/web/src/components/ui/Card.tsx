@@ -1,7 +1,10 @@
 import type { HTMLAttributes } from "react";
 import clsx from "clsx";
 
-export const Card = ({ className, ...props }: HTMLAttributes<HTMLDivElement>) => (
+/** Shared UI: card container for patient and clinician layouts. */
+type CardProps = HTMLAttributes<HTMLDivElement>;
+
+export const Card = ({ className, ...props }: CardProps) => (
   <div
     className={clsx(
       "ms-card ms-elev-2 ms-card-hover",
@@ -11,14 +14,17 @@ export const Card = ({ className, ...props }: HTMLAttributes<HTMLDivElement>) =>
   />
 );
 
-export const CardHeader = ({ className, ...props }: HTMLAttributes<HTMLDivElement>) => (
+/** Shared UI: card header wrapper. */
+export const CardHeader = ({ className, ...props }: CardProps) => (
   <div className={clsx("p-6 pb-0", className)} {...props} />
 );
 
-export const CardContent = ({ className, ...props }: HTMLAttributes<HTMLDivElement>) => (
+/** Shared UI: card body wrapper. */
+export const CardContent = ({ className, ...props }: CardProps) => (
   <div className={clsx("p-6 pt-4", className)} {...props} />
 );
 
-export const CardFooter = ({ className, ...props }: HTMLAttributes<HTMLDivElement>) => (
+/** Shared UI: card footer wrapper. */
+export const CardFooter = ({ className, ...props }: CardProps) => (
   <div className={clsx("p-6 pt-0", className)} {...props} />
 );

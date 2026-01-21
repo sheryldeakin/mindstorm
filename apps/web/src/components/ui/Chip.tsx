@@ -1,6 +1,7 @@
 import type { HTMLAttributes } from "react";
 import clsx from "clsx";
 
+/** Shared UI: selectable chip used across patient and clinician screens. */
 interface ChipProps extends HTMLAttributes<HTMLSpanElement> {
   active?: boolean;
 }

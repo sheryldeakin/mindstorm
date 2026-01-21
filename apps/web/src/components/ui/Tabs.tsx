@@ -1,12 +1,14 @@
 import type { HTMLAttributes } from "react";
 import clsx from "clsx";
 
+/** Shared UI: tab selector used in patient and clinician flows. */
 interface TabsProps extends Omit<HTMLAttributes<HTMLDivElement>, "onChange"> {
   options: { id: string; label: string }[];
   activeId: string;
   onValueChange?: (value: string) => void;
 }
 
+/** Shared UI: internal tab button props. */
 interface TabProps {
   label: string;
   isActive: boolean;

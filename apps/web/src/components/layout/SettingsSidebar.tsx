@@ -14,6 +14,7 @@ import {
   Workflow,
 } from "lucide-react";
 
+/** Shared UI: settings navigation used in patient and clinician shells. */
 type SettingsSidebarProps = {
   basePath?: string;
   collapsed?: boolean;

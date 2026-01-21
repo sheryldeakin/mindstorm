@@ -1,5 +1,9 @@
 import type { PatientSummarySection } from "../../types/prepare";
 
+/**
+ * Props for PDFPreview (Patient-Facing).
+ * Use non-clinical, reflective language in UI copy.
+ */
 interface PDFPreviewProps {
   sections: PatientSummarySection[];
   redactedTopics: string[];

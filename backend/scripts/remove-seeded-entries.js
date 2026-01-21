@@ -4,6 +4,10 @@ const Entry = require("../src/models/Entry");
 
 dotenv.config();
 
+/**
+ * Removes seeded sample entries for a given user.
+ * @returns {Promise<void>}
+ */
 const run = async () => {
   const uri = process.env.MONGODB_URI;
   const userId = process.argv[2] || process.env.SEED_USER_ID;

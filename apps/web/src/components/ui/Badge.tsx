@@ -1,6 +1,7 @@
 import type { HTMLAttributes } from "react";
 import clsx from "clsx";
 
+/** Shared UI: badge styling used in patient- and clinician-facing surfaces. */
 interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
   tone?: "neutral" | "positive" | "negative";
 }

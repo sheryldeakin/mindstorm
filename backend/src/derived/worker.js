@@ -3,6 +3,11 @@ const { recomputeStaleConnections } = require("./services/connectionsRecompute")
 const { recomputeStaleThemeSeries } = require("./services/themeSeriesRecompute");
 const { recomputeStaleCycles } = require("./services/cyclesRecompute");
 
+/**
+ * Starts the derived data recompute loop.
+ * @param {{ intervalMs?: number }} [options]
+ * @returns {NodeJS.Timeout}
+ */
 const startDerivedWorker = ({ intervalMs = 60000 } = {}) => {
   const tick = async () => {
     try {

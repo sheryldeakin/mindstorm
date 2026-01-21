@@ -1,6 +1,10 @@
 import type { Insight } from "../../types/journal";
 import { Card } from "../ui/Card";
 
+/**
+ * Props for InsightCard (Patient-Facing).
+ * Use non-clinical, reflective language in UI copy.
+ */
 interface InsightCardProps {
   insight: Insight;
 }

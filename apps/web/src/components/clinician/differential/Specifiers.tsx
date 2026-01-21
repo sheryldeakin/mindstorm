@@ -1,6 +1,10 @@
 import clsx from "clsx";
 import type { SpecifierTag } from "./types";
 
+/**
+ * Props for Specifiers (Clinician-Facing).
+ * Clinical precision required; displays specifier ranges.
+ */
 type SpecifiersProps = {
   specifiers: SpecifierTag[];
 };

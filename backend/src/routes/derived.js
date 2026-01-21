@@ -8,6 +8,7 @@ const {
   getPatterns,
 } = require("../controllers/derivedController");
 
+/** Express router for derived data cache endpoints. */
 const router = express.Router();
 
 router.use(protect);

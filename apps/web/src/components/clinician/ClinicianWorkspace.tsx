@@ -1,6 +1,10 @@
 import { useState } from "react";
 import Tabs from "../ui/Tabs";
 
+/**
+ * Props for ClinicianWorkspace (Clinician-Facing).
+ * Clinical precision required; renders clinician workflow panels.
+ */
 type ClinicianWorkspaceProps = {
   triage: React.ReactNode;
   draft: React.ReactNode;

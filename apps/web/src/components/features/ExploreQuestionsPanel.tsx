@@ -1,5 +1,9 @@
 import { Card } from "../ui/Card";
 
+/**
+ * Props for ExploreQuestionsPanel (Patient-Facing).
+ * Use non-clinical, reflective language in UI copy.
+ */
 interface ExploreQuestionsPanelProps {
   questions: string[];
 }

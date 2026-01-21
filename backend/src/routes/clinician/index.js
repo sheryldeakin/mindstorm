@@ -13,6 +13,7 @@ const {
   createEvidenceFeedback,
 } = require("../../controllers/clinicianController");
 
+/** Express router for clinician-facing API endpoints. */
 const router = express.Router();
 
 const requireClinician = (req, res, next) => {

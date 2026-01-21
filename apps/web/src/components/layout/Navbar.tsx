@@ -6,6 +6,7 @@ import Button from "../ui/Button";
 import logoMark from "/Just Logo.png";
 import { useAuth } from "../../contexts/AuthContext";
 
+/** Shared UI: navigation bar for landing, patient, and clinician surfaces. */
 interface NavbarProps {
   variant?: "landing" | "app" | "clinician";
 }

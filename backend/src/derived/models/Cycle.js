@@ -22,4 +22,5 @@ const cycleSchema = new mongoose.Schema(
 
 cycleSchema.index({ userId: 1, rangeKey: 1, sourceNode: 1, targetNode: 1 }, { unique: true });
 
+/** Mongoose model for derived pattern cycles. */
 module.exports = mongoose.model("Cycle", cycleSchema);

@@ -1,3 +1,10 @@
+/**
+ * Extracts a balanced JSON-ish substring by bracket depth.
+ * @param {string} text
+ * @param {string} openChar
+ * @param {string} closeChar
+ * @returns {string | null}
+ */
 const extractBalancedJson = (text, openChar, closeChar) => {
   const start = text.indexOf(openChar);
   if (start === -1) return null;
@@ -36,8 +43,18 @@ const extractBalancedJson = (text, openChar, closeChar) => {
   return null;
 };
 
+/**
+ * Removes trailing commas before closing brackets/braces.
+ * @param {string} text
+ * @returns {string}
+ */
 const stripTrailingCommas = (text) => text.replace(/,\s*([}\]])/g, "$1");
 
+/**
+ * Sanitizes non-JSON control characters while preserving strings.
+ * @param {string} text
+ * @returns {string}
+ */
 const sanitizeJsonText = (text) => {
   if (!text) return "";
   let out = "";
@@ -90,12 +107,22 @@ const sanitizeJsonText = (text) => {
   return out;
 };
 
+/**
+ * Strips Markdown code fences from the response payload.
+ * @param {string} text
+ * @returns {string}
+ */
 const stripCodeFences = (text) =>
   text
     .replace(/^\s*```(?:json)?\s*/i, "")
     .replace(/\s*```\s*$/i, "")
     .trim();
 
+/**
+ * Attempts to parse a JSON candidate string.
+ * @param {string} candidate
+ * @returns {unknown | null}
+ */
 const parseJsonCandidate = (candidate) => {
   if (!candidate) return null;
   try {
@@ -105,6 +132,13 @@ const parseJsonCandidate = (candidate) => {
   }
 };
 
+/**
+ * Extracts the first-to-last JSON-ish block from a text response.
+ * @param {string} text
+ * @param {string} openChar
+ * @param {string} closeChar
+ * @returns {string | null}
+ */
 const extractFirstLast = (text, openChar, closeChar) => {
   const start = text.indexOf(openChar);
   const end = text.lastIndexOf(closeChar);
@@ -112,6 +146,11 @@ const extractFirstLast = (text, openChar, closeChar) => {
   return text.slice(start, end + 1);
 };
 
+/**
+ * Extracts a JSON object/array from an LLM response.
+ * @param {string} text
+ * @returns {unknown | null}
+ */
 const extractJson = (text) => {
   if (!text) return null;
   const cleaned = stripCodeFences(text);
@@ -138,6 +177,11 @@ const extractJson = (text) => {
   return null;
 };
 
+/**
+ * Determines whether response_format JSON is supported for the base URL.
+ * @param {string} baseUrl
+ * @returns {boolean}
+ */
 const shouldUseJsonResponseFormat = (baseUrl) => {
   const isLocal = baseUrl.includes("localhost") || baseUrl.includes("127.0.0.1");
   if (process.env.LLM_FORCE_JSON_RESPONSE_FORMAT === "true") return true;
@@ -145,6 +189,17 @@ const shouldUseJsonResponseFormat = (baseUrl) => {
   return !isLocal;
 };
 
+/**
+ * Calls the LLM API and attempts to parse JSON output.
+ * @param {{
+ *   baseUrl: string,
+ *   apiKey: string,
+ *   model: string,
+ *   messages: Array<{ role: string, content: string }>,
+ *   maxTokens?: number
+ * }} options
+ * @returns {Promise<{ data?: unknown, error?: string, details?: Record<string, unknown> }>}
+ */
 const callLlm = async ({ baseUrl, apiKey, model, messages, maxTokens }) => {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 90000);
@@ -203,6 +258,18 @@ const callLlm = async ({ baseUrl, apiKey, model, messages, maxTokens }) => {
   }
 };
 
+/**
+ * Calls the LLM and retries once if JSON parsing fails.
+ * @param {{
+ *   baseUrl: string,
+ *   apiKey: string,
+ *   model: string,
+ *   messages: Array<{ role: string, content: string }>,
+ *   maxTokens?: number,
+ *   temperature?: number
+ * }} options
+ * @returns {Promise<{ data?: unknown, error?: string, details?: Record<string, unknown> }>}
+ */
 const callLlmWithRetry = async (options) => {
   const initial = await callLlm(options);
   if (!initial.error || initial.error !== "Failed to parse JSON response.") {
@@ -219,6 +286,12 @@ const callLlmWithRetry = async (options) => {
   return retry;
 };
 
+/**
+ * Builds the system prompt for merging chunk summaries into a patient-facing narrative.
+ * @param {string} timeRangeLabel
+ * @param {string} [signalContext]
+ * @returns {string}
+ */
 const buildPrepareMergePrompt = (timeRangeLabel, signalContext) =>
   [
     "You are merging multiple chunk summaries into one patient-authored reflection summary for a clinician.",
@@ -248,6 +321,11 @@ const buildPrepareMergePrompt = (timeRangeLabel, signalContext) =>
     signalContext ? `Detected Signals (PRESENT counts): ${signalContext}` : "Detected Signals: none.",
   ].join(" ");
 
+/**
+ * Computes total merge operations for a binary reduce merge.
+ * @param {number} count
+ * @returns {number}
+ */
 const countMergeOps = (count) => {
   let total = 0;
   let current = count;
@@ -259,6 +337,20 @@ const countMergeOps = (count) => {
   return total;
 };
 
+/**
+ * Merges multiple weekly summaries into a single narrative using a map-reduce LLM flow.
+ * @param {{
+ *   summaries: Array<Record<string, unknown>>,
+ *   timeRangeLabel?: string,
+ *   signalContext?: string,
+ *   evidenceHighlights?: string[],
+ *   baseUrl: string,
+ *   apiKey: string,
+ *   model: string,
+ *   onProgress?: ({ merged: number, total: number }) => void
+ * }} options
+ * @returns {Promise<{ data?: Record<string, unknown>, error?: string, details?: Record<string, unknown> }>}
+ */
 const mergeSummaries = async ({
   summaries,
   timeRangeLabel,

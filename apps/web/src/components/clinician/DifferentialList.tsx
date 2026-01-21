@@ -10,6 +10,10 @@ type DifferentialItem = {
   blockedReason?: string;
 };
 
+/**
+ * Props for DifferentialList (Clinician-Facing).
+ * Clinical precision required; displays criteria coverage bars.
+ */
 type DifferentialListProps = {
   items: DifferentialItem[];
 };

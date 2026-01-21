@@ -20,6 +20,12 @@ const buildUserPayload = (user) => ({
   username: user.username || "",
 });
 
+/**
+ * Register a new user and start an authenticated session.
+ * @param {import("express").Request} req
+ * @param {import("express").Response} res
+ * @returns {Promise<void>} Responds with { token, user } or an error status.
+ */
 const register = asyncHandler(async (req, res) => {
   const { email, password, name, username } = req.body;
 
@@ -67,6 +73,12 @@ const register = asyncHandler(async (req, res) => {
   res.status(201).json({ token, user: buildUserPayload(user) });
 });
 
+/**
+ * Authenticate a user and start a new session.
+ * @param {import("express").Request} req
+ * @param {import("express").Response} res
+ * @returns {Promise<void>} Responds with { token, user } or an error status.
+ */
 const login = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
 
@@ -99,6 +111,12 @@ const login = asyncHandler(async (req, res) => {
   res.json({ token, user: buildUserPayload(user) });
 });
 
+/**
+ * Change the current user's password.
+ * @param {import("express").Request} req
+ * @param {import("express").Response} res
+ * @returns {Promise<void>} Responds with a status message or an error status.
+ */
 const changePassword = asyncHandler(async (req, res) => {
   const { currentPassword, newPassword } = req.body;
 
@@ -127,6 +145,12 @@ const changePassword = asyncHandler(async (req, res) => {
   res.json({ message: "Password updated." });
 });
 
+/**
+ * List active and revoked sessions for the current user.
+ * @param {import("express").Request} req
+ * @param {import("express").Response} res
+ * @returns {Promise<void>} Responds with session metadata.
+ */
 const listSessions = asyncHandler(async (req, res) => {
   const sessions = await UserSession.find({ userId: req.user._id })
     .sort({ lastSeenAt: -1 })
@@ -145,6 +169,12 @@ const listSessions = asyncHandler(async (req, res) => {
   });
 });
 
+/**
+ * Revoke a specific session for the current user.
+ * @param {import("express").Request} req
+ * @param {import("express").Response} res
+ * @returns {Promise<void>} Responds with a status message or an error status.
+ */
 const revokeSession = asyncHandler(async (req, res) => {
   const session = await UserSession.findOne({
     _id: req.params.id,
@@ -168,6 +198,12 @@ const revokeSession = asyncHandler(async (req, res) => {
   res.json({ message: "Session revoked." });
 });
 
+/**
+ * Revoke all other sessions for the current user.
+ * @param {import("express").Request} req
+ * @param {import("express").Response} res
+ * @returns {Promise<void>} Responds with a status message and count revoked.
+ */
 const revokeOtherSessions = asyncHandler(async (req, res) => {
   if (!req.sessionId) {
     return res.status(400).json({ message: "Current session not found." });
@@ -191,6 +227,12 @@ const revokeOtherSessions = asyncHandler(async (req, res) => {
   res.json({ message: "Other sessions revoked.", count: result.modifiedCount || 0 });
 });
 
+/**
+ * Return the current authenticated user's profile payload.
+ * @param {import("express").Request} req
+ * @param {import("express").Response} res
+ * @returns {Promise<void>} Responds with { user }.
+ */
 const me = asyncHandler(async (req, res) => {
   res.json({ user: buildUserPayload(req.user) });
 });

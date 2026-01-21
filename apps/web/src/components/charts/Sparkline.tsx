@@ -1,5 +1,6 @@
 import { useId } from "react";
 
+/** Shared UI: compact trend chart for patient and clinician summaries. */
 type SparklineProps = {
   data: number[];
   width?: number;

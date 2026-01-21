@@ -1,3 +1,7 @@
+/**
+ * Props for TimeWindowFilter (Clinician-Facing).
+ * Clinical precision required; selects evidence time windows.
+ */
 type TimeWindowFilterProps = {
   value: number;
   onChange: (days: number) => void;

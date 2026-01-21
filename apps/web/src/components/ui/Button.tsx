@@ -5,6 +5,7 @@ import clsx from "clsx";
 type ButtonVariant = "primary" | "secondary" | "ghost";
 type ButtonSize = "sm" | "md" | "lg";
 
+/** Shared UI: button styles used in patient- and clinician-facing flows. */
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
   size?: ButtonSize;

@@ -4,6 +4,10 @@ import Button from "../ui/Button";
 import Badge from "../ui/Badge";
 import { buildContextImpactTags, buildSignalPreview } from "../../lib/patientSignals";
 
+/**
+ * Props for JournalTimeline (Patient-Facing).
+ * Use non-clinical, reflective language in UI copy.
+ */
 interface JournalTimelineProps {
   entries: JournalEntry[];
   loading?: boolean;

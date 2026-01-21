@@ -1,5 +1,11 @@
 const CheckIn = require("../models/CheckIn");
 
+/**
+ * Create or update a daily check-in for the authenticated user.
+ * @param {import("express").Request} req
+ * @param {import("express").Response} res
+ * @returns {Promise<void>} Responds with { checkIn } or an error status.
+ */
 const upsertCheckIn = async (req, res) => {
   const userId = req.user._id;
   const { dateISO, metrics, note } = req.body || {};
@@ -24,6 +30,12 @@ const upsertCheckIn = async (req, res) => {
   return res.json({ checkIn });
 };
 
+/**
+ * Fetch a daily check-in by date for the authenticated user.
+ * @param {import("express").Request} req
+ * @param {import("express").Response} res
+ * @returns {Promise<void>} Responds with { checkIn }.
+ */
 const getCheckIn = async (req, res) => {
   const userId = req.user._id;
   const { dateISO } = req.params;

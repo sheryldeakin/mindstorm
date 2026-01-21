@@ -1,6 +1,10 @@
 import type { Emotion } from "../../types/journal";
 import Chip from "../ui/Chip";
 
+/**
+ * Props for EmotionChips (Patient-Facing).
+ * Use non-clinical, reflective language in UI copy.
+ */
 interface EmotionChipsProps {
   emotions: Emotion[];
   active?: string;

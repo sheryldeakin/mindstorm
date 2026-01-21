@@ -5,6 +5,10 @@ import { Card } from "../ui/Card";
 
 type EvidenceItem = EvidenceUnit & { dateISO: string; confidence?: number | null };
 
+/**
+ * Props for EvidenceDrawer (Clinician-Facing).
+ * Clinical precision required; displays evidence units and overrides.
+ */
 type EvidenceDrawerProps = {
   open: boolean;
   title: string;

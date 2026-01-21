@@ -6,6 +6,7 @@ import RedactionEditor from "./RedactionEditor";
 import ShareViaPortalToggle from "./ShareViaPortalToggle";
 import TimeRangeSelector from "./TimeRangeSelector";
 
+/** Patient-Facing: orchestrates export controls for a patient summary and sharing. */
 interface ExportWizardProps {
   timeRangeOptions: { id: string; label: string }[];
   activeTimeRange: string;

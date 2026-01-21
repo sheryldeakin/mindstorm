@@ -2,6 +2,10 @@ import clsx from "clsx";
 import { CheckCircle2, HelpCircle, XCircle } from "lucide-react";
 import type { DiagnosisCard as DiagnosisCardType } from "./types";
 
+/**
+ * Props for DiagnosisCard (Clinician-Facing).
+ * Clinical precision required; shows diagnostic candidate details.
+ */
 type DiagnosisCardProps = {
   data: DiagnosisCardType;
   selected: boolean;

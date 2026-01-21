@@ -7,6 +7,11 @@ const { PIPELINE_VERSION } = require("../pipelineVersion");
 const { computeSourceVersionForRange } = require("../versioning");
 const { mergeSummaries } = require("../../utils/ai/summaryMerger");
 
+/**
+ * Returns the dateISO lower bound for a range key.
+ * @param {string} rangeKey
+ * @returns {string | null}
+ */
 const getRangeStartIso = (rangeKey) => {
   if (rangeKey === "all_time") return null;
   const days =
@@ -22,6 +27,11 @@ const getRangeStartIso = (rangeKey) => {
   return start.toISOString().slice(0, 10);
 };
 
+/**
+ * Builds a display label for a range key.
+ * @param {string} rangeKey
+ * @returns {string}
+ */
 const buildTimeRangeLabel = (rangeKey) => {
   switch (rangeKey) {
     case "last_7_days":
@@ -39,6 +49,11 @@ const buildTimeRangeLabel = (rangeKey) => {
   }
 };
 
+/**
+ * Aggregates PRESENT evidence unit counts by label.
+ * @param {Array<{ evidenceUnits?: Array<{ label?: string, attributes?: { polarity?: string }, polarity?: string }> }>} signals
+ * @returns {Map<string, number>}
+ */
 const aggregateEvidenceUnits = (signals) => {
   const counts = new Map();
   if (!Array.isArray(signals)) return counts;
@@ -55,6 +70,11 @@ const aggregateEvidenceUnits = (signals) => {
   return counts;
 };
 
+/**
+ * Formats label counts into a prompt-ready signal context string.
+ * @param {Map<string, number>} counts
+ * @returns {string}
+ */
 const buildSignalContext = (counts) => {
   const entries = Array.from(counts.entries());
   if (!entries.length) return "";
@@ -64,6 +84,12 @@ const buildSignalContext = (counts) => {
     .join(", ");
 };
 
+/**
+ * Collects top evidence spans for prompt grounding.
+ * @param {Array<{ dateISO?: string, evidenceUnits?: Array<{ span?: string, label?: string, attributes?: Record<string, unknown> }> }>} signals
+ * @param {number} [limit=8]
+ * @returns {string[]}
+ */
 const buildEvidenceHighlights = (signals, limit = 8) => {
   const scored = [];
   const seen = new Set();
@@ -95,6 +121,12 @@ const buildEvidenceHighlights = (signals, limit = 8) => {
     .map((item) => item.span);
 };
 
+/**
+ * Builds an inclusive dateISO list between start and end.
+ * @param {string} startIso
+ * @param {string} endIso
+ * @returns {string[]}
+ */
 const buildDateList = (startIso, endIso) => {
   const dates = [];
   if (!startIso || !endIso) return dates;
@@ -109,6 +141,11 @@ const buildDateList = (startIso, endIso) => {
   return dates;
 };
 
+/**
+ * Converts a string to title case (simple space-delimited).
+ * @param {string} value
+ * @returns {string}
+ */
 const toTitleCase = (value) =>
   value
     .split(" ")
@@ -116,6 +153,11 @@ const toTitleCase = (value) =>
     .map((part) => part[0].toUpperCase() + part.slice(1))
     .join(" ");
 
+/**
+ * Formats a short list into a human-readable phrase.
+ * @param {string[]} items
+ * @returns {string}
+ */
 const formatList = (items) => {
   const filtered = items.filter((item) => item && item.trim());
   if (!filtered.length) return "";
@@ -124,6 +166,39 @@ const formatList = (items) => {
   return `${filtered[0]}, ${filtered[1]}, and ${filtered[2]}`;
 };
 
+/**
+ * Creates a console progress bar renderer.
+ * @param {number} total
+ * @param {string} label
+ * @returns {{ render: (current: number) => void, done: () => void }}
+ */
+const createProgress = (total, label) => {
+  const start = Date.now();
+  const safeTotal = total > 0 ? total : 1;
+  const render = (current) => {
+    const percent = Math.min(current / safeTotal, 1);
+    const width = 22;
+    const filled = Math.round(width * percent);
+    const bar = `${"█".repeat(filled)}${"░".repeat(width - filled)}`;
+    const elapsed = (Date.now() - start) / 1000;
+    const eta = current > 0 ? ((elapsed / current) * (safeTotal - current)) : 0;
+    const line = `${label} [${bar}] ${(percent * 100).toFixed(1)}% (${current}/${safeTotal}) ETA ${eta.toFixed(0)}s`;
+    process.stdout.write(`\r${line}`);
+  };
+  const done = () => {
+    process.stdout.write("\n");
+  };
+  return { render, done };
+};
+
+/**
+ * Collects top recurring items from weekly summaries.
+ * @param {Array<{ summary?: Record<string, string[]> }>} weeklySummaries
+ * @param {string} field
+ * @param {number} limit
+ * @param {Set<string>} [exclude]
+ * @returns {string[]}
+ */
 const collectTopItems = (weeklySummaries, field, limit, exclude = new Set()) => {
   const counts = new Map();
   const originals = new Map();
@@ -143,6 +218,14 @@ const collectTopItems = (weeklySummaries, field, limit, exclude = new Set()) => 
     .map(([key]) => originals.get(key));
 };
 
+/**
+ * Collects top recurring items from signal fields.
+ * @param {Array<Record<string, string[]>>} signals
+ * @param {string} field
+ * @param {number} limit
+ * @param {Set<string>} [exclude]
+ * @returns {string[]}
+ */
 const collectTopFromSignals = (signals, field, limit, exclude = new Set()) => {
   const counts = new Map();
   const originals = new Map();
@@ -162,6 +245,12 @@ const collectTopFromSignals = (signals, field, limit, exclude = new Set()) => {
     .map(([key]) => originals.get(key));
 };
 
+/**
+ * Compresses a series of points into a smaller bucketed list.
+ * @param {Array<{ intensity: number, confidence?: number }>} points
+ * @param {number} [maxPoints=12]
+ * @returns {Array<{ intensity: number, confidence: number }>}
+ */
 const compressSeries = (points, maxPoints = 12) => {
   if (points.length <= maxPoints) return points;
   const bucketSize = Math.ceil(points.length / maxPoints);
@@ -175,6 +264,11 @@ const compressSeries = (points, maxPoints = 12) => {
   return compressed;
 };
 
+/**
+ * Computes a directional trend for a numeric series.
+ * @param {number[]} series
+ * @returns {"up" | "down" | "steady"}
+ */
 const computeTrend = (series) => {
   if (!series.length) return "steady";
   const chunk = Math.max(1, Math.floor(series.length / 3));
@@ -189,6 +283,11 @@ const computeTrend = (series) => {
   return "steady";
 };
 
+/**
+ * Computes confidence from intensity coverage.
+ * @param {Array<{ intensity: number, confidence?: number }>} points
+ * @returns {"high" | "medium" | "low"}
+ */
 const computeConfidence = (points) => {
   if (!points.length) return "low";
   const active = points.filter((point) => point.intensity > 0);
@@ -202,6 +301,13 @@ const computeConfidence = (points) => {
   return "low";
 };
 
+/**
+ * Builds a fallback theme series from entry-level data.
+ * @param {Array<{ dateISO?: string, themeIntensities?: Array<{ theme: string, intensity: number }>, themes?: string[] }>} entries
+ * @param {string[]} dates
+ * @param {string[]} topThemes
+ * @returns {Map<string, Array<{ intensity: number, confidence: number }>>}
+ */
 const buildFallbackSeries = (entries, dates, topThemes) => {
   const dayThemeMap = new Map();
   entries.forEach((entry) => {
@@ -247,6 +353,11 @@ const buildFallbackSeries = (entries, dates, topThemes) => {
   return seriesByTheme;
 };
 
+/**
+ * Builds the snapshot summary object from entries, signals, and series docs.
+ * @param {{ entries: Array<object>, rangeKey: string, weeklySummaries: Array<object>, seriesDocs: Array<object>, signals: Array<object> }} params
+ * @returns {Record<string, unknown>}
+ */
 const buildSnapshot = ({ entries, rangeKey, weeklySummaries, seriesDocs, signals }) => {
   const helpHints = new Map();
   const themeTotals = new Map();
@@ -390,23 +501,34 @@ const buildSnapshot = ({ entries, rangeKey, weeklySummaries, seriesDocs, signals
   };
 };
 
+/**
+ * Recompute a cached snapshot summary for a user/range key.
+ * Heavy work: loads entries, signals, weekly summaries, merges narrative, and stores snapshot.
+ * @param {{ userId: import("mongoose").Types.ObjectId | string, rangeKey: string }} params
+ * @returns {Promise<void>}
+ */
 const recomputeSnapshotForUser = async ({ userId, rangeKey }) => {
+  console.log(`[snapshot] recompute start user=${userId} range=${rangeKey}`);
   const startIso = getRangeStartIso(rangeKey);
   const endIso = new Date().toISOString().slice(0, 10);
   const entryQuery = startIso ? { userId, dateISO: { $gte: startIso } } : { userId };
   const entries = await Entry.find({ ...entryQuery, deletedAt: null })
     .sort({ dateISO: 1 })
     .lean();
+  console.log(`[snapshot] entries=${entries.length} range=${rangeKey}`);
 
   const signalQuery = startIso ? { userId, dateISO: { $gte: startIso } } : { userId };
   const signals = await EntrySignals.find(signalQuery).sort({ dateISO: 1 }).lean();
+  console.log(`[snapshot] signals=${signals.length} range=${rangeKey}`);
 
   const weeklyQuery = startIso
     ? { userId, weekStartISO: { $gte: startIso, $lte: endIso } }
     : { userId };
   const weeklySummaries = await WeeklySummary.find(weeklyQuery).sort({ weekStartISO: 1 }).lean();
+  console.log(`[snapshot] weeklySummaries=${weeklySummaries.length} range=${rangeKey}`);
 
   const seriesDocs = await ThemeSeries.find({ userId, rangeKey }).lean();
+  console.log(`[snapshot] themeSeries=${seriesDocs.length} range=${rangeKey}`);
 
   const snapshot = buildSnapshot({ entries, rangeKey, weeklySummaries, seriesDocs, signals });
   const timeRangeLabel = buildTimeRangeLabel(rangeKey);
@@ -430,6 +552,10 @@ const recomputeSnapshotForUser = async ({ userId, rangeKey }) => {
       const signalCounts = aggregateEvidenceUnits(signals);
       const signalContext = buildSignalContext(signalCounts);
       const evidenceHighlights = buildEvidenceHighlights(signals);
+      const mergeProgress = createProgress(
+        Math.max(1, chunkSummaries.length - 1),
+        `[snapshot] merge ${userId}:${rangeKey}`,
+      );
       const mergeResponse = await mergeSummaries({
         summaries: chunkSummaries,
         timeRangeLabel,
@@ -438,12 +564,17 @@ const recomputeSnapshotForUser = async ({ userId, rangeKey }) => {
         baseUrl,
         apiKey,
         model,
+        onProgress: ({ merged, total }) => {
+          mergeProgress.render(Math.min(merged, total || merged));
+          if (total && merged >= total) mergeProgress.done();
+        },
       });
 
       if (mergeResponse?.data) {
         narrative = mergeResponse.data;
       } else if (mergeResponse?.error) {
         console.warn("[snapshot] merge error", { error: mergeResponse.error });
+        mergeProgress.done();
       }
     }
   }
@@ -469,6 +600,10 @@ const recomputeSnapshotForUser = async ({ userId, rangeKey }) => {
   );
 };
 
+/**
+ * Recompute all snapshots marked stale across users/ranges.
+ * @returns {Promise<void>}
+ */
 const recomputeStaleSnapshots = async () => {
   const stale = await SnapshotSummary.find({ stale: true }).lean();
   const userRangePairs = new Map();

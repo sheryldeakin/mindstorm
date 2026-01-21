@@ -15,4 +15,5 @@ const llmGenerationSchema = new mongoose.Schema(
 
 llmGenerationSchema.index({ userId: 1, key: 1 }, { unique: true });
 
+/** Mongoose model for cached LLM generations. */
 module.exports = mongoose.model("LLMGeneration", llmGenerationSchema);

@@ -42,4 +42,5 @@ const snapshotSummarySchema = new mongoose.Schema(
 
 snapshotSummarySchema.index({ userId: 1, rangeKey: 1 }, { unique: true });
 
+/** Mongoose model for cached snapshot summaries by time range. */
 module.exports = mongoose.model("SnapshotSummary", snapshotSummarySchema);

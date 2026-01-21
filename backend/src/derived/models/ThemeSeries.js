@@ -25,4 +25,5 @@ const themeSeriesSchema = new mongoose.Schema(
 
 themeSeriesSchema.index({ userId: 1, rangeKey: 1, theme: 1 }, { unique: true });
 
+/** Mongoose model for derived theme intensity time series. */
 module.exports = mongoose.model("ThemeSeries", themeSeriesSchema);

@@ -17,6 +17,7 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 
+/** Express router for patient-facing API endpoints. */
 const router = express.Router();
 
 router.use(protect);

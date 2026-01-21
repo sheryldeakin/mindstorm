@@ -46,6 +46,10 @@ const buildImpactSummary = (entries: CaseEntry[]): ImpactItem[] => {
   });
 };
 
+/**
+ * Props for FunctionalImpactCard (Clinician-Facing).
+ * Clinical precision required; uses IMPACT_* evidence labels.
+ */
 type FunctionalImpactCardProps = {
   entries: CaseEntry[];
 };

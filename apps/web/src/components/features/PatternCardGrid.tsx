@@ -1,6 +1,10 @@
 import type { HomePatternCard } from "../../types/home";
 import PatternCard from "../patterns/PatternCard";
 
+/**
+ * Props for PatternCardGrid (Patient-Facing).
+ * Use non-clinical, reflective language in UI copy.
+ */
 interface PatternCardGridProps {
   patterns: HomePatternCard[];
 }

@@ -1,6 +1,7 @@
 import type { PatternMetric } from "../../types/journal";
 import { Card } from "../ui/Card";
 
+/** Patient-Facing: surfaces high-level pattern metrics in a non-clinical summary. */
 interface PatternHighlightsProps {
   metrics: PatternMetric[];
 }

@@ -11,6 +11,7 @@ import {
 } from "../../lib/entryInsights";
 import Badge from "../ui/Badge";
 
+/** Patient-Facing: summarizes signals from a single journal entry in reflective language. */
 interface EntrySummaryPanelProps {
   entry: JournalEntry;
 }

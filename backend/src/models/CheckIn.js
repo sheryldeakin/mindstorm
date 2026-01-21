@@ -21,4 +21,5 @@ const checkInSchema = new mongoose.Schema(
 
 checkInSchema.index({ userId: 1, dateISO: 1 }, { unique: true });
 
+/** Mongoose model for daily check-in snapshots. */
 module.exports = mongoose.model("CheckIn", checkInSchema);

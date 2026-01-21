@@ -4,6 +4,10 @@ import { Card } from "../ui/Card";
 import MetricPicker from "./MetricPicker";
 import QuickNoteInput from "./QuickNoteInput";
 
+/**
+ * Props for DailyCheckInModal (Patient-Facing).
+ * Use non-clinical, reflective language in UI copy.
+ */
 interface DailyCheckInModalProps {
   isOpen: boolean;
   metrics: CheckInMetric[];

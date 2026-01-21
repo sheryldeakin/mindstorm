@@ -2,6 +2,7 @@ import { forwardRef } from "react";
 import type { TextareaHTMLAttributes } from "react";
 import clsx from "clsx";
 
+/** Shared UI: multiline input used in patient and clinician flows. */
 export interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {}
 
 const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(({ className, ...props }, ref) => (

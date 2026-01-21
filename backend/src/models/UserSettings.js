@@ -56,4 +56,5 @@ const userSettingsSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
+/** Mongoose model for user settings and preferences. */
 module.exports = mongoose.model("UserSettings", userSettingsSchema);

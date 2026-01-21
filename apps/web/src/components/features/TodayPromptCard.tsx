@@ -1,3 +1,7 @@
+/**
+ * Props for TodayPromptCard (Patient-Facing).
+ * Use non-clinical, reflective language in UI copy.
+ */
 interface TodayPromptCardProps {
   prompts: string[];
 }

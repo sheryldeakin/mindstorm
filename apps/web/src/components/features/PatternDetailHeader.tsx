@@ -1,5 +1,6 @@
 import { Card } from "../ui/Card";
 
+/** Patient-Facing: frames a specific pattern in reflective language for the user. */
 interface PatternDetailHeaderProps {
   title: string;
   summary: string;

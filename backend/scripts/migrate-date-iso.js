@@ -4,6 +4,11 @@ const Entry = require("../src/models/Entry");
 
 dotenv.config();
 
+/**
+ * Formats a Date into YYYY-MM-DD.
+ * @param {Date} date
+ * @returns {string}
+ */
 const formatDateIso = (date) => {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -11,6 +16,11 @@ const formatDateIso = (date) => {
   return `${year}-${month}-${day}`;
 };
 
+/**
+ * Formats a Date into a short friendly string.
+ * @param {Date} date
+ * @returns {string}
+ */
 const formatFriendlyDate = (date) =>
   date.toLocaleDateString("en-US", {
     weekday: "short",
@@ -18,6 +28,10 @@ const formatFriendlyDate = (date) =>
     month: "short",
   });
 
+/**
+ * Backfills dateISO and date fields for entries missing them.
+ * @returns {Promise<void>}
+ */
 const run = async () => {
   const uri = process.env.MONGODB_URI;
   if (!uri) {

@@ -10,6 +10,7 @@ const {
 } = require("../controllers/authController");
 const { protect } = require("../middleware/auth");
 
+/** Express router for authentication and session management. */
 const router = express.Router();
 
 router.post("/register", register);

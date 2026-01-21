@@ -91,6 +91,12 @@ const validateUsername = (username) => {
   return { value: normalized };
 };
 
+/**
+ * Fetch user settings and profile metadata.
+ * @param {import("express").Request} req
+ * @param {import("express").Response} res
+ * @returns {Promise<void>} Responds with settings payload.
+ */
 const getSettings = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user._id);
   if (!user) {
@@ -105,6 +111,12 @@ const getSettings = asyncHandler(async (req, res) => {
   res.json(formatSettingsResponse(user, settings));
 });
 
+/**
+ * Update user settings and profile metadata.
+ * @param {import("express").Request} req
+ * @param {import("express").Response} res
+ * @returns {Promise<void>} Responds with updated settings payload.
+ */
 const updateSettings = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user._id);
   if (!user) {
@@ -170,6 +182,12 @@ const updateSettings = asyncHandler(async (req, res) => {
   res.json(formatSettingsResponse(user, settings));
 });
 
+/**
+ * Export a user's journal data with entries and derived signals.
+ * @param {import("express").Request} req
+ * @param {import("express").Response} res
+ * @returns {Promise<void>} Responds with a JSON export payload.
+ */
 const exportJournalData = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user._id).lean();
   if (!user) {
@@ -200,6 +218,12 @@ const exportJournalData = asyncHandler(async (req, res) => {
   });
 });
 
+/**
+ * Request deletion of a user's journal data and derived artifacts.
+ * @param {import("express").Request} req
+ * @param {import("express").Response} res
+ * @returns {Promise<void>} Responds with deletion status.
+ */
 const requestJournalDeletion = asyncHandler(async (req, res) => {
   const { password } = req.body;
   if (!password) {
@@ -253,6 +277,12 @@ const requestJournalDeletion = asyncHandler(async (req, res) => {
   });
 });
 
+/**
+ * Upload and persist a user profile avatar.
+ * @param {import("express").Request} req
+ * @param {import("express").Response} res
+ * @returns {Promise<void>} Responds with updated settings payload.
+ */
 const uploadAvatar = asyncHandler(async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ message: "No avatar uploaded." });
@@ -281,6 +311,12 @@ const uploadAvatar = asyncHandler(async (req, res) => {
   res.json(formatSettingsResponse(user, settings));
 });
 
+/**
+ * Remove a user's profile avatar and clear stored file.
+ * @param {import("express").Request} req
+ * @param {import("express").Response} res
+ * @returns {Promise<void>} Responds with updated settings payload.
+ */
 const removeAvatar = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user._id);
   if (!user) {

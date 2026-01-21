@@ -17,6 +17,7 @@ const { startDerivedWorker } = require("./derived/worker");
 
 dotenv.config();
 
+/** Express application bootstrap and API route registration. */
 const app = express();
 const port = process.env.PORT || 5000;
 const defaultOrigins = ["http://localhost:5173", "http://127.0.0.1:5173"];

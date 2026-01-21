@@ -2,6 +2,7 @@ import clsx from "clsx";
 import type { ReactNode } from "react";
 import { pageHeaders } from "../../config/pageHeaders";
 
+/** Shared UI: page header layout for patient and clinician pages. */
 type PageHeaderProps = {
   pageId?: string;
   eyebrow?: string;

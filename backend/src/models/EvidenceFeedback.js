@@ -16,4 +16,5 @@ const EvidenceFeedbackSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
+/** Mongoose model for clinician feedback on evidence unit labeling. */
 module.exports = mongoose.model("EvidenceFeedback", EvidenceFeedbackSchema);

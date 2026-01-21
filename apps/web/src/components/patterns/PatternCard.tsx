@@ -1,6 +1,7 @@
 import Sparkline from "../charts/Sparkline";
 import { Card } from "../ui/Card";
 
+/** Patient-Facing: summarizes a pattern with trend and confidence cues. */
 export type PatternCardProps = {
   title: string;
   description: string;

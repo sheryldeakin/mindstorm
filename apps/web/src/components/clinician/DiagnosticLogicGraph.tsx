@@ -10,6 +10,10 @@ type GraphNode = {
   evidenceLabels?: string[];
 };
 
+/**
+ * Props for DiagnosticLogicGraph (Clinician-Facing).
+ * Clinical precision required; visualizes DSM logic graph status.
+ */
 type DiagnosticLogicGraphProps = {
   entries: CaseEntry[];
   overrides?: Record<string, "MET" | "EXCLUDED" | "UNKNOWN">;

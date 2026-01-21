@@ -3,6 +3,11 @@ const EntrySignals = require("../models/EntrySignals");
 const { PIPELINE_VERSION } = require("../pipelineVersion");
 const { computeSourceVersionForRange } = require("../versioning");
 
+/**
+ * Returns the dateISO lower bound for a range key.
+ * @param {string} rangeKey
+ * @returns {string | null}
+ */
 const getRangeStartIso = (rangeKey) => {
   if (!rangeKey || rangeKey === "all_time") return null;
   const days =
@@ -18,6 +23,11 @@ const getRangeStartIso = (rangeKey) => {
   return start.toISOString().slice(0, 10);
 };
 
+/**
+ * Extracts present evidence labels for cycle building.
+ * @param {{ evidenceUnits?: Array<{ label?: string, attributes?: { polarity?: string } }> }} signal
+ * @returns {string[]}
+ */
 const getPresentLabels = (signal) => {
   const units = signal.evidenceUnits || [];
   const labels = new Set();
@@ -34,6 +44,12 @@ const getPresentLabels = (signal) => {
   return Array.from(labels);
 };
 
+/**
+ * Computes day difference between two dateISO strings.
+ * @param {string} fromIso
+ * @param {string} toIso
+ * @returns {number | null}
+ */
 const diffDays = (fromIso, toIso) => {
   if (!fromIso || !toIso) return null;
   const from = new Date(`${fromIso}T00:00:00Z`);
@@ -41,6 +57,11 @@ const diffDays = (fromIso, toIso) => {
   return Math.round((to.getTime() - from.getTime()) / (1000 * 60 * 60 * 24));
 };
 
+/**
+ * Builds cycle edges from ordered entry signals.
+ * @param {Array<{ dateISO: string, entryId?: import("mongoose").Types.ObjectId, evidenceUnits?: Array<object> }>} signals
+ * @returns {Array<{ sourceNode: string, targetNode: string, frequency: number, confidence: number, lagDaysMin: number, avgLag: number, evidenceEntryIds: string[] }>}
+ */
 const buildCycles = (signals) => {
   const edgeStats = new Map();
   const edgeEvidence = new Map();
@@ -99,6 +120,11 @@ const buildCycles = (signals) => {
     });
 };
 
+/**
+ * Recompute cycle edges for a user's signals in a given range key.
+ * @param {{ userId: import("mongoose").Types.ObjectId | string, rangeKey: string }} params
+ * @returns {Promise<void|object>} Writes cycle docs; returns update result if empty.
+ */
 const recomputeCyclesForUser = async ({ userId, rangeKey }) => {
   const startIso = getRangeStartIso(rangeKey);
   const signalQuery = startIso ? { userId, dateISO: { $gte: startIso } } : { userId };
@@ -147,6 +173,10 @@ const recomputeCyclesForUser = async ({ userId, rangeKey }) => {
       );
 };
 
+/**
+ * Recompute all cycle docs marked stale.
+ * @returns {Promise<void>}
+ */
 const recomputeStaleCycles = async () => {
   const stale = await Cycle.find({ stale: true }).lean();
   const userRangePairs = new Map();

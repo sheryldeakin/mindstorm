@@ -25,4 +25,5 @@ const weeklySummarySchema = new mongoose.Schema(
 
 weeklySummarySchema.index({ userId: 1, weekStartISO: 1 }, { unique: true });
 
+/** Mongoose model for weekly patient summary snapshots. */
 module.exports = mongoose.model("WeeklySummary", weeklySummarySchema);

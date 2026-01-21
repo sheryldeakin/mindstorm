@@ -1,5 +1,9 @@
 import clsx from "clsx";
 
+/**
+ * Props for CriteriaCoverageBar (Clinician-Facing).
+ * Clinical precision required; renders criteria coverage with thresholds.
+ */
 type CriteriaCoverageBarProps = {
   label: string;
   current: number;

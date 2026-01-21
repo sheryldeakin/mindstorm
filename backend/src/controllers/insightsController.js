@@ -75,6 +75,12 @@ const buildInsights = (entries) => {
   return insights;
 };
 
+/**
+ * List cached insight cards for the authenticated user.
+ * @param {import("express").Request} req
+ * @param {import("express").Response} res
+ * @returns {Promise<void>} Responds with { insights }.
+ */
 const listInsights = asyncHandler(async (req, res) => {
   const limit = Number.parseInt(req.query.limit, 10) || 10;
   const insights = await Insight.find({ userId: req.user._id })
@@ -92,6 +98,12 @@ const listInsights = asyncHandler(async (req, res) => {
   res.json({ insights: formatted });
 });
 
+/**
+ * Recompute and replace insight cards for the authenticated user.
+ * @param {import("express").Request} req
+ * @param {import("express").Response} res
+ * @returns {Promise<void>} Responds with { insights }.
+ */
 const refreshInsights = asyncHandler(async (req, res) => {
   const entries = await Entry.find({ userId: req.user._id, deletedAt: null })
     .sort({ createdAt: -1 })

@@ -14,4 +14,5 @@ const activityLogSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
+/** Mongoose model for patient activity log events. */
 module.exports = mongoose.model("ActivityLog", activityLogSchema);

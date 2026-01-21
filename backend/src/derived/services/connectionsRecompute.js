@@ -3,6 +3,11 @@ const EntrySignals = require("../models/EntrySignals");
 const { PIPELINE_VERSION } = require("../pipelineVersion");
 const { computeSourceVersionForRange } = require("../versioning");
 
+/**
+ * Returns the dateISO lower bound for a range key.
+ * @param {string} rangeKey
+ * @returns {string | null}
+ */
 const getRangeStartIso = (rangeKey) => {
   if (rangeKey === "all_time") return null;
   const days = rangeKey === "last_90_days" ? 90 : rangeKey === "last_7_days" ? 7 : 30;
@@ -11,6 +16,11 @@ const getRangeStartIso = (rangeKey) => {
   return start.toISOString().slice(0, 10);
 };
 
+/**
+ * Title-cases a label for display.
+ * @param {string} value
+ * @returns {string}
+ */
 const toLabel = (value) =>
   value
     .split(" ")
@@ -18,6 +28,11 @@ const toLabel = (value) =>
     .map((part) => part[0].toUpperCase() + part.slice(1))
     .join(" ");
 
+/**
+ * Builds a co-occurrence graph from entry signals.
+ * @param {Array<{ themes?: string[], entryId?: import("mongoose").Types.ObjectId }>} signals
+ * @returns {{ nodes: Array<{ id: string, label: string }>, edges: Array<{ id: string, from: string, to: string, weight: number, evidenceEntryIds: string[] }> }}
+ */
 const buildConnectionsGraph = (signals) => {
   const themeCounts = new Map();
   const edgeCounts = new Map();
@@ -84,6 +99,11 @@ const buildConnectionsGraph = (signals) => {
   };
 };
 
+/**
+ * Recompute the connections graph for a user's themes in a given range.
+ * @param {{ userId: import("mongoose").Types.ObjectId | string, rangeKey: string }} params
+ * @returns {Promise<void>}
+ */
 const recomputeConnectionsForUser = async ({ userId, rangeKey }) => {
   const startIso = getRangeStartIso(rangeKey);
   const signalQuery = startIso ? { userId, dateISO: { $gte: startIso } } : { userId };
@@ -109,6 +129,10 @@ const recomputeConnectionsForUser = async ({ userId, rangeKey }) => {
   );
 };
 
+/**
+ * Recompute all connections graphs marked stale.
+ * @returns {Promise<void>}
+ */
 const recomputeStaleConnections = async () => {
   const stale = await ConnectionsGraph.find({ stale: true }).lean();
   const userRangePairs = new Map();

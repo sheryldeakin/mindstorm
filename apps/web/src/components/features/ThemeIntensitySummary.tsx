@@ -1,5 +1,6 @@
 import type { JournalEntry } from "../../types/journal";
 
+/** Patient-Facing: visualizes theme intensity signals in reflective language. */
 interface ThemeIntensitySummaryProps {
   themes: JournalEntry["themeIntensities"];
 }

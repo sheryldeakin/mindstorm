@@ -3,6 +3,10 @@ import type { CaseEntry } from "../../../types/clinician";
 import DynamicDiagnosticGraph, { type GraphMode } from "./DynamicDiagnosticGraph";
 import type { DepressiveDiagnosisKey } from "../../../lib/depressiveCriteriaConfig";
 
+/**
+ * Props for ReasoningGraphAccordion (Clinician-Facing).
+ * Clinical precision required; expands diagnostic reasoning graphs.
+ */
 type ReasoningGraphAccordionProps = {
   diagnosisKey: DepressiveDiagnosisKey;
   entries: CaseEntry[];

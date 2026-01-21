@@ -1,5 +1,9 @@
 import type { ConnectionEdge, ConnectionNode } from "../../types/connections";
 
+/**
+ * Props for ConnectionsGraph (Patient-Facing).
+ * Use non-clinical, reflective language in UI copy.
+ */
 interface ConnectionsGraphProps {
   nodes: ConnectionNode[];
   edges: ConnectionEdge[];

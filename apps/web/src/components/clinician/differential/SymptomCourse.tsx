@@ -1,6 +1,10 @@
 import clsx from "clsx";
 import type { SymptomCourseRow } from "./types";
 
+/**
+ * Props for SymptomCourse (Clinician-Facing).
+ * Clinical precision required; visualizes symptom severity over time.
+ */
 type SymptomCourseProps = {
   rows: SymptomCourseRow[];
 };

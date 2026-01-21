@@ -15,4 +15,5 @@ const insightSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
+/** Mongoose model for generated patient insights. */
 module.exports = mongoose.model("Insight", insightSchema);

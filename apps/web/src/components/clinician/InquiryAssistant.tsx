@@ -5,6 +5,10 @@ type InquiryItem = {
   text: string;
 };
 
+/**
+ * Props for InquiryAssistant (Clinician-Facing).
+ * Clinical precision required; supports override decisions.
+ */
 type InquiryAssistantProps = {
   items: InquiryItem[];
   onOverride: (nodeId: string, status: DiagnosticStatus) => void;

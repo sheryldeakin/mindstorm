@@ -7,6 +7,10 @@ const { recomputeSnapshotForUser } = require("../src/derived/services/snapshotRe
 
 const RANGE_KEYS = ["last_7_days", "last_30_days", "last_365_days", "all_time"];
 
+/**
+ * Recomputes snapshot summaries for all users with entries.
+ * @returns {Promise<void>}
+ */
 const run = async () => {
   await connectDb();
   const userIds = await Entry.distinct("userId", { deletedAt: null });

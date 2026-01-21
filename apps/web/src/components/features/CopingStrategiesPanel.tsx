@@ -1,6 +1,10 @@
 import type { CopingStrategies } from "../../types/patterns";
 import { Card } from "../ui/Card";
 
+/**
+ * Props for CopingStrategiesPanel (Patient-Facing).
+ * Use non-clinical, reflective language in UI copy.
+ */
 interface CopingStrategiesPanelProps {
   strategies: CopingStrategies;
 }

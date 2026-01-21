@@ -2,6 +2,7 @@ import { forwardRef } from "react";
 import type { InputHTMLAttributes } from "react";
 import clsx from "clsx";
 
+/** Shared UI: input field used in patient and clinician experiences. */
 export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {}
 
 const Input = forwardRef<HTMLInputElement, InputProps>(({ className, ...props }, ref) => (

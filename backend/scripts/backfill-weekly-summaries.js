@@ -5,6 +5,11 @@ const { generateWeeklySummary } = require("../src/controllers/aiController");
 
 dotenv.config();
 
+/**
+ * Computes ISO week start (Monday) for a given dateISO string.
+ * @param {string} dateIso
+ * @returns {string}
+ */
 const getWeekStartIso = (dateIso) => {
   const [year, month, day] = dateIso.split("-").map((value) => Number(value));
   const date = new Date(year, month - 1, day);
@@ -14,6 +19,10 @@ const getWeekStartIso = (dateIso) => {
   return monday.toISOString().slice(0, 10);
 };
 
+/**
+ * Backfills weekly summaries for all users with entries.
+ * @returns {Promise<void>}
+ */
 const run = async () => {
   const uri = process.env.MONGODB_URI;
   if (!uri) {

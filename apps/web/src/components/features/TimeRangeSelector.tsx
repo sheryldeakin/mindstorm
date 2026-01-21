@@ -3,6 +3,10 @@ interface TimeRangeOption {
   label: string;
 }
 
+/**
+ * Props for TimeRangeSelector (Patient-Facing).
+ * Use non-clinical, reflective language in UI copy.
+ */
 interface TimeRangeSelectorProps {
   options: TimeRangeOption[];
   activeId: string;

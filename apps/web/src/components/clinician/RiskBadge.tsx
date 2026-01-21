@@ -1,6 +1,10 @@
 import { AlertTriangle, Eye } from "lucide-react";
 import type { RiskSignal } from "../../types/clinician";
 
+/**
+ * Props for RiskBadge (Clinician-Facing).
+ * Clinical precision required; displays suicide risk status.
+ */
 type RiskBadgeProps = {
   risk: RiskSignal | null;
 };

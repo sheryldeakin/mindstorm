@@ -1,3 +1,7 @@
+/**
+ * Props for InsightToggles (Patient-Facing).
+ * Use non-clinical, reflective language in UI copy.
+ */
 interface InsightTogglesProps {
   insightsEnabled: boolean;
   onToggleInsights: (value: boolean) => void;

@@ -1,6 +1,10 @@
 import { AlertTriangle } from "lucide-react";
 import type { DiagnosisKey } from "./types";
 
+/**
+ * Props for ComorbidityWarnings (Clinician-Facing).
+ * Clinical precision required; shows diagnostic exclusion warnings.
+ */
 type ComorbidityWarningsProps = {
   selectedDiagnoses: DiagnosisKey[];
   manicHistory: boolean;

@@ -25,6 +25,10 @@ const getCellClass = (hasEntry: boolean, intensity: number) => {
   return "bg-red-500";
 };
 
+/**
+ * Props for SymptomHeatmap (Clinician-Facing).
+ * Clinical precision required; visualizes symptom clusters over time.
+ */
 type SymptomHeatmapProps = {
   entries: CaseEntry[];
   groupByWeek?: boolean;

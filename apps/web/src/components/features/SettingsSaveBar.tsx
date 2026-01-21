@@ -1,5 +1,9 @@
 import Button from "../ui/Button";
 
+/**
+ * Props for SettingsSaveBar (Patient-Facing).
+ * Use non-clinical, reflective language in UI copy.
+ */
 interface SettingsSaveBarProps {
   isDirty: boolean;
   isSaving?: boolean;

@@ -5,6 +5,11 @@ const { recomputeCyclesForUser } = require("../src/derived/services/cyclesRecomp
 
 dotenv.config();
 
+/**
+ * Parses CLI arguments into a key/value object.
+ * @param {string[]} argv
+ * @returns {Record<string, string | boolean>}
+ */
 const parseArgs = (argv) => {
   const args = {};
   for (let i = 0; i < argv.length; i += 1) {
@@ -23,6 +28,10 @@ const parseArgs = (argv) => {
   return args;
 };
 
+/**
+ * Recomputes cycle data for users (optionally filtered by user/range).
+ * @returns {Promise<void>}
+ */
 const run = async () => {
   const uri = process.env.MONGODB_URI;
   const args = parseArgs(process.argv.slice(2));

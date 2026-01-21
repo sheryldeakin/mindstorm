@@ -27,4 +27,5 @@ const connectionsGraphSchema = new mongoose.Schema(
 
 connectionsGraphSchema.index({ userId: 1, rangeKey: 1 }, { unique: true });
 
+/** Mongoose model for derived connections graph caches. */
 module.exports = mongoose.model("ConnectionsGraph", connectionsGraphSchema);

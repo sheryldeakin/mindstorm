@@ -3,6 +3,10 @@ import clsx from "clsx";
 import { useEffect, useMemo, useState } from "react";
 import type { CriterionItem, DifferentialDiagnosis } from "./types";
 
+/**
+ * Props for CriteriaChecklist (Clinician-Facing).
+ * Clinical precision required; renders criteria coverage states.
+ */
 type CriteriaChecklistProps = {
   items?: CriterionItem[];
   summary?: DifferentialDiagnosis["criteriaSummary"];

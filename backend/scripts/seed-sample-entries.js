@@ -4,6 +4,11 @@ const Entry = require("../src/models/Entry");
 
 dotenv.config();
 
+/**
+ * Formats a Date into a short friendly string.
+ * @param {Date} date
+ * @returns {string}
+ */
 const formatFriendlyDate = (date) =>
   date.toLocaleDateString("en-US", {
     weekday: "short",
@@ -11,10 +16,21 @@ const formatFriendlyDate = (date) =>
     month: "short",
   });
 
+/**
+ * Formats a Date into YYYY-MM-DD.
+ * @param {Date} date
+ * @returns {string}
+ */
 const formatDateIso = (date) => date.toISOString().slice(0, 10);
 
 const sampleTags = ["walk", "breathing", "journaling", "stretch", "quiet time", "seeded-sample"];
 
+/**
+ * Creates a console progress bar renderer.
+ * @param {number} total
+ * @param {string} label
+ * @returns {{ render: (current: number) => void, done: () => void }}
+ */
 const createProgress = (total, label) => {
   const start = Date.now();
   const safeTotal = total > 0 ? total : 1;
@@ -34,6 +50,11 @@ const createProgress = (total, label) => {
   return { render, done };
 };
 
+/**
+ * Maps symptom spec keys to evidence labels.
+ * @param {string} symptom
+ * @returns {string | null}
+ */
 const labelForSymptom = (symptom) => {
   const key = String(symptom || "").toUpperCase();
   if (key.includes("A9")) return "SYMPTOM_RISK";
@@ -67,6 +88,13 @@ const labelForSymptom = (symptom) => {
   return null;
 };
 
+/**
+ * Builds an EvidenceUnit payload for seeded entries.
+ * @param {string} label
+ * @param {string} span
+ * @param {string} [polarity="PRESENT"]
+ * @returns {{ span: string, label: string, attributes: Record<string, string | null> }}
+ */
 const buildEvidenceUnit = (label, span, polarity = "PRESENT") => ({
   span,
   label,
@@ -493,9 +521,20 @@ const clinicalProfiles = {
   },
 };
 
+/**
+ * Returns a random element from an array.
+ * @param {Array<unknown>} items
+ * @returns {unknown}
+ */
 const pickRandom = (items) => items[Math.floor(Math.random() * items.length)];
+/** Returns a uniform random float in [0, 1). */
 const roll = () => Math.random();
 
+/**
+ * Calls the LLM API for seeding narratives.
+ * @param {{ baseUrl: string, apiKey: string, model: string, messages: Array<{ role: string, content: string }>, maxTokens: number }} options
+ * @returns {Promise<string>}
+ */
 const callLlm = async ({ baseUrl, apiKey, model, messages, maxTokens }) => {
   const response = await fetch(`${baseUrl}/chat/completions`, {
     method: "POST",
@@ -520,6 +559,11 @@ const callLlm = async ({ baseUrl, apiKey, model, messages, maxTokens }) => {
   return data.choices?.[0]?.message?.content?.trim() || "";
 };
 
+/**
+ * Expands a base symptom summary into a fuller journal entry.
+ * @param {{ baseSymptoms: string, context: string, profile: Record<string, unknown>, lengthInstruction: string }} options
+ * @returns {Promise<{ summary: string | null, reason?: string }>}
+ */
 const expandSummaryWithLlm = async ({ baseSymptoms, context, profile, lengthInstruction }) => {
   const baseUrl = process.env.OPENAI_API_URL || "https://api.openai.com/v1";
   const apiKey = process.env.OPENAI_API_KEY || "";
@@ -579,6 +623,11 @@ const expandSummaryWithLlm = async ({ baseSymptoms, context, profile, lengthInst
   return { summary: response || null };
 };
 
+/**
+ * Builds a seeded journal entry with evidence units and metadata.
+ * @param {{ date: Date, profileKey: string, lengthTier: string }} options
+ * @returns {Promise<Record<string, unknown>>}
+ */
 const buildEntry = async ({ date, profileKey, lengthTier }) => {
   const profile = clinicalProfiles[profileKey] || clinicalProfiles.MDD_MODERATE_ANXIOUS;
   let selectedSymptoms = [];
@@ -727,6 +776,11 @@ const buildEntry = async ({ date, profileKey, lengthTier }) => {
   };
 };
 
+/**
+ * Parses CLI arguments into a key/value object.
+ * @param {string[]} argv
+ * @returns {{ positional: string[] } & Record<string, string | boolean>}
+ */
 const parseArgs = (argv) => {
   const args = { positional: [] };
   for (let i = 0; i < argv.length; i += 1) {
@@ -747,6 +801,11 @@ const parseArgs = (argv) => {
   return args;
 };
 
+/**
+ * Parses a YYYY-MM-DD date string.
+ * @param {string} value
+ * @returns {Date | null}
+ */
 const parseDateOnly = (value) => {
   if (!value) return null;
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
@@ -755,6 +814,11 @@ const parseDateOnly = (value) => {
   return new Date(year, month - 1, day);
 };
 
+/**
+ * Parses a trajectory spec string into segments.
+ * @param {string} value
+ * @returns {Array<{ profile: string, days: number }>}
+ */
 const parseTrajectory = (value) => {
   if (!value) return null;
   return value.split(",").map((segment) => {
@@ -764,6 +828,12 @@ const parseTrajectory = (value) => {
   }).filter((segment) => segment.profile && Number.isFinite(segment.days) && segment.days > 0);
 };
 
+/**
+ * Builds a resolver for profile selection over time.
+ * @param {Array<{ profile: string, days: number }>} trajectory
+ * @param {string} fallbackProfile
+ * @returns {(dayIndex: number) => string}
+ */
 const buildTrajectoryResolver = (trajectory, fallbackProfile) => {
   if (!trajectory || !trajectory.length) {
     return () => fallbackProfile;
@@ -785,6 +855,10 @@ const buildTrajectoryResolver = (trajectory, fallbackProfile) => {
   };
 };
 
+/**
+ * Seeds sample entries for a given user with optional trajectory.
+ * @returns {Promise<void>}
+ */
 const run = async () => {
   const uri = process.env.MONGODB_URI;
   const args = parseArgs(process.argv.slice(2));

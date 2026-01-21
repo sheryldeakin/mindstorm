@@ -1,6 +1,10 @@
 import DiagnosisCard from "./DiagnosisCard";
 import type { DifferentialDiagnosis } from "./types";
 
+/**
+ * Props for DifferentialOverview (Clinician-Facing).
+ * Clinical precision required; lists diagnostic candidates.
+ */
 type DifferentialOverviewProps = {
   diagnoses: DifferentialDiagnosis[];
   selectedKey: DifferentialDiagnosis["key"];
