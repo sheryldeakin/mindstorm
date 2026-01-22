@@ -178,12 +178,11 @@ const ClinicianDifferentialEvaluationContent = ({
     return map;
   }, [nodeOverrides]);
 
-  const baseLogic = useDiagnosticLogic(entries, {
+  const autoLogic = useDiagnosticLogic(entries, {
     windowDays: 36500,
-    overrides: labelOverrides,
     patientId: caseId,
   });
-  const manicHistory = baseLogic.getStatusForLabels(["SYMPTOM_MANIA"]) === "MET";
+  const manicHistory = autoLogic.getStatusForLabels(["SYMPTOM_MANIA"]) === "MET";
 
   useEffect(() => {
     onCaseChange(error);
@@ -193,12 +192,12 @@ const ClinicianDifferentialEvaluationContent = ({
     if (!entries.length) return [];
     return buildDifferentialFromEntries(
       entries,
-      baseLogic.getStatusForLabels,
+      autoLogic.getStatusForLabels,
       nodeOverrides,
       labelOverrides,
       sessionDelta.lastAccessISO,
     );
-  }, [entries, baseLogic, nodeOverrides, labelOverrides, sessionDelta.lastAccessISO]);
+  }, [entries, autoLogic, nodeOverrides, labelOverrides, sessionDelta.lastAccessISO]);
 
   useEffect(() => {
     setSelectedKey(diagnosesSorted(diagnoses)[0]?.key || "mdd");
@@ -309,7 +308,7 @@ const ClinicianDifferentialEvaluationContent = ({
               labelOverrides={labelOverrides}
               onOverrideChange={async (nodeId, status, note) => {
                 const originalLabels = resolveEvidenceLabelsForNode(nodeId);
-                const originalStatus = baseLogic.getStatusForLabels(originalLabels);
+                const originalStatus = autoLogic.getStatusForLabels(originalLabels);
                 await saveOverride(nodeId, status, {
                   originalStatus,
                   originalEvidence: "",
@@ -444,7 +443,7 @@ const buildDifferentialFromEntries = (
   };
 
   const buildRuleOut = (node: { id: string; label: string; evidenceLabels: string[] }) => {
-    const overrideStatus = resolveOverrideStatus(node.id, node.evidenceLabels);
+    const overrideStatus = overrideMap[node.id] ?? null;
     const present = findEvidence(node.evidenceLabels, "PRESENT");
     const absent = findEvidence(node.evidenceLabels, "ABSENT");
     const autoStatus = normalizeStatus(getStatusForLabels(node.evidenceLabels));

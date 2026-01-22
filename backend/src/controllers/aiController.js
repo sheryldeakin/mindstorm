@@ -1023,6 +1023,8 @@ const generateLegacyEntryAnalysis = async (text) => {
 
   return {
     data: {
+      title: parsed.title,
+      summary: parsed.summary,
       emotions: parsed.emotions || [],
       themes: parsed.themes || [],
       themeIntensities: parsed.themeIntensities || [],

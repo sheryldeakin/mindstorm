@@ -1,6 +1,8 @@
 const dotenv = require("dotenv");
 const mongoose = require("mongoose");
 const Entry = require("../src/models/Entry");
+const fs = require("fs");
+const path = require("path");
 const {
   generateEntryEvidence,
   generateClinicalEvidenceUnits,
@@ -28,6 +30,37 @@ const formatFriendlyDate = (date) =>
 const formatDateIso = (date) => date.toISOString().slice(0, 10);
 
 const sampleTags = ["walk", "breathing", "journaling", "stretch", "quiet time", "seeded-sample"];
+const truncateSummary = (text) => `${text.slice(0, 150).trim()}...`;
+const logDir = path.resolve(__dirname, "..", "..", "log");
+const failureLogPath = path.join(logDir, "seed-sample-entries_failures.csv");
+
+const ensureLogDir = () => {
+  if (!fs.existsSync(logDir)) {
+    fs.mkdirSync(logDir, { recursive: true });
+  }
+};
+
+const csvValue = (value) => {
+  const text = value === undefined || value === null ? "" : String(value);
+  return `"${text.replace(/"/g, "\"\"")}"`;
+};
+
+const logFailure = ({ entryId, userId, step, error }) => {
+  ensureLogDir();
+  const header = "script,entryId,userId,step,error,timestamp\n";
+  if (!fs.existsSync(failureLogPath)) {
+    fs.writeFileSync(failureLogPath, header, "utf8");
+  }
+  const row = [
+    csvValue("seed-sample-entries"),
+    csvValue(entryId || ""),
+    csvValue(userId || ""),
+    csvValue(step || ""),
+    csvValue(error || ""),
+    csvValue(new Date().toISOString()),
+  ].join(",");
+  fs.appendFileSync(failureLogPath, `${row}\n`, "utf8");
+};
 
 /**
  * Creates a console progress bar renderer.
@@ -577,6 +610,24 @@ const parseSeedJson = (text) => {
   }
 };
 
+const retryWithBackoff = async (fn, { retries, label }) => {
+  let attempt = 0;
+  let lastError = null;
+  while (attempt <= retries) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error;
+      if (attempt === retries) break;
+      const delayMs = 500 * 2 ** attempt;
+      console.warn(`${label} failed (attempt ${attempt + 1}/${retries + 1}), retrying in ${delayMs}ms`);
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
+    }
+    attempt += 1;
+  }
+  throw lastError;
+};
+
 /**
  * Expands a base symptom summary into a fuller journal entry.
  * @param {{ baseSymptoms: string, context: string, profile: Record<string, unknown>, lengthInstruction: string }} options
@@ -799,14 +850,41 @@ const buildEntry = async ({ date, profileKey, lengthTier }) => {
       : tier === "long"
         ? "6-8 sentences (brain dump)"
         : "4-6 sentences";
-  const expanded = await expandSummaryWithLlm({
-    baseSymptoms: summary,
-    context,
-    profile,
-    lengthInstruction,
-  });
+  const maxRetries = Number.parseInt(process.env.SEED_LLM_RETRIES || "2", 10);
+  let expanded = null;
+  let failure = null;
+  try {
+    expanded = await retryWithBackoff(
+      async () => {
+        const result = await expandSummaryWithLlm({
+          baseSymptoms: summary,
+          context,
+          profile,
+          lengthInstruction,
+        });
+        const hasRequired =
+          result?.reason === "ok" &&
+          result?.body &&
+          result?.summary &&
+          result?.title &&
+          Array.isArray(result?.emotions) &&
+          result.emotions.length > 0;
+        if (!hasRequired) {
+          throw new Error("Seed writer returned incomplete JSON.");
+        }
+        return result;
+      },
+      { retries: maxRetries, label: "Seed writer" },
+    );
+  } catch (error) {
+    console.warn("Seed writer failed after retries.", error?.message || error);
+    failure = { step: "writer", error: error?.message || String(error) };
+  }
+
   if (expanded?.reason === "missing_api_key") {
-    console.warn("OPENAI_API_KEY not set; using base symptom summary.");
+    console.warn("OPENAI_API_KEY not set; cannot generate LLM seed content.");
+    expanded = null;
+    failure = { step: "writer", error: "OPENAI_API_KEY is not set." };
   }
   const bodyText = expanded?.body || baseSummary || "";
   const summaryText =
@@ -825,23 +903,82 @@ const buildEntry = async ({ date, profileKey, lengthTier }) => {
     : resolvedThemes.map((theme) => ({ theme, intensity: themeIntensity() }));
   let extractedUnits = null;
   let extractedEvidence = null;
+  let fallbackSource = "";
 
-  try {
-    const clinicalEvidence = await generateClinicalEvidenceUnits(entryText);
-    if (!clinicalEvidence?.error && Array.isArray(clinicalEvidence?.evidenceUnits)) {
-      extractedUnits = clinicalEvidence.evidenceUnits;
-    }
-  } catch (error) {
-    console.warn("Failed to generate evidence units for seed entry.", error?.message || error);
+  const hasWriterPayload =
+    expanded?.body && expanded?.summary && expanded?.title && expanded?.emotions?.length;
+  if (!hasWriterPayload) {
+    fallbackSource = "fallback";
   }
 
-  try {
-    const evidenceResult = await generateEntryEvidence(entryText);
-    if (!evidenceResult?.error && evidenceResult?.evidenceBySection) {
-      extractedEvidence = evidenceResult.evidenceBySection;
+  if (!fallbackSource) {
+    try {
+      extractedUnits = await retryWithBackoff(
+        async () => {
+          const clinicalEvidence = await generateClinicalEvidenceUnits(entryText);
+          if (clinicalEvidence?.error) {
+            throw new Error(clinicalEvidence.error);
+          }
+          if (!Array.isArray(clinicalEvidence?.evidenceUnits)) {
+            throw new Error("Evidence units missing.");
+          }
+          return clinicalEvidence.evidenceUnits;
+        },
+        { retries: maxRetries, label: "Seed evidence units" },
+      );
+    } catch (error) {
+      fallbackSource = "fallback";
+      if (!failure) {
+        failure = { step: "evidence_units", error: error?.message || String(error) };
+      }
+      console.warn("Failed to generate evidence units for seed entry.", error?.message || error);
     }
-  } catch (error) {
-    console.warn("Failed to generate evidence snippets for seed entry.", error?.message || error);
+  }
+
+  if (!fallbackSource) {
+    try {
+      extractedEvidence = await retryWithBackoff(
+        async () => {
+          const evidenceResult = await generateEntryEvidence(entryText);
+          if (evidenceResult?.error) {
+            throw new Error(evidenceResult.error);
+          }
+          if (!evidenceResult?.evidenceBySection) {
+            throw new Error("Evidence snippets missing.");
+          }
+          return evidenceResult.evidenceBySection;
+        },
+        { retries: maxRetries, label: "Seed evidence snippets" },
+      );
+    } catch (error) {
+      fallbackSource = "fallback";
+      if (!failure) {
+        failure = { step: "evidence_snippets", error: error?.message || String(error) };
+      }
+      console.warn("Failed to generate evidence snippets for seed entry.", error?.message || error);
+    }
+  }
+
+  if (fallbackSource) {
+    return {
+      date: formatFriendlyDate(date),
+      dateISO: formatDateIso(date),
+      title: "[LLM failed]",
+      body: bodyText,
+      summary: truncateSummary(bodyText),
+      risk_signal: riskSignal || undefined,
+      evidenceUnits: evidenceUnits,
+      evidenceBySection: undefined,
+      tags: [pickRandom(sampleTags), "seeded-sample", "llm-fallback"],
+      triggers: [],
+      themes: [],
+      themeIntensities: [],
+      emotions: [],
+      languageReflection: "",
+      timeReflection: "",
+      meta: { source: "fallback" },
+      failure,
+    };
   }
 
   return {
@@ -860,6 +997,8 @@ const buildEntry = async ({ date, profileKey, lengthTier }) => {
     languageReflection: expanded?.languageReflection || "",
     timeReflection: expanded?.timeReflection || "",
     evidenceBySection: extractedEvidence || undefined,
+    meta: { source: "llm" },
+    failure,
   };
 };
 
@@ -985,6 +1124,7 @@ const run = async () => {
   await mongoose.connect(uri);
 
   const entries = [];
+  const failureByDateIso = new Map();
   const today = new Date();
   const existingEntries = await Entry.find({ userId }).select("dateISO").lean();
   const existingDates = new Set(existingEntries.map((entry) => entry.dateISO).filter(Boolean));
@@ -1020,10 +1160,11 @@ const run = async () => {
       const lengthRoll = roll();
       const lengthTier = lengthRoll < 0.3 ? "sparse" : lengthRoll < 0.8 ? "standard" : "long";
       const phaseProfile = resolveProfileForDay(i);
-      entries.push({
-        userId,
-        ...(await buildEntry({ date, profileKey: phaseProfile, lengthTier })),
-      });
+      const built = await buildEntry({ date, profileKey: phaseProfile, lengthTier });
+      if (built.failure) {
+        failureByDateIso.set(built.dateISO, built.failure);
+      }
+      entries.push({ userId, ...built });
       processed += 1;
       progress.render(processed);
     }
@@ -1048,10 +1189,11 @@ const run = async () => {
         const lengthRoll = roll();
         const lengthTier = lengthRoll < 0.3 ? "sparse" : lengthRoll < 0.8 ? "standard" : "long";
         const phaseProfile = resolveProfileForDay(filled);
-        entries.push({
-          userId,
-          ...(await buildEntry({ date, profileKey: phaseProfile, lengthTier })),
-        });
+        const built = await buildEntry({ date, profileKey: phaseProfile, lengthTier });
+        if (built.failure) {
+          failureByDateIso.set(built.dateISO, built.failure);
+        }
+        entries.push({ userId, ...built });
         filled += 1;
         progress.render(filled);
       }
@@ -1064,6 +1206,17 @@ const run = async () => {
     console.log("No new dates available. Skipped insert.");
   } else {
     const result = await Entry.insertMany(entries);
+    result.forEach((entry) => {
+      if (entry?.meta?.source === "fallback") {
+        const failure = failureByDateIso.get(entry.dateISO) || {};
+        logFailure({
+          entryId: entry._id?.toString(),
+          userId: entry.userId?.toString(),
+          step: failure.step || "fallback",
+          error: failure.error || "LLM failure",
+        });
+      }
+    });
     console.log(
       `Inserted ${result.length} sample entries for user ${userId} (${formatDateIso(
         new Date(result[result.length - 1].dateISO),

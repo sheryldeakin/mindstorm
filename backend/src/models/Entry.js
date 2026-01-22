@@ -70,6 +70,9 @@ const entrySchema = new mongoose.Schema(
     },
     languageReflection: { type: String, default: "" },
     timeReflection: { type: String, default: "" },
+    meta: {
+      source: { type: String, default: "" },
+    },
     emotions: { type: [emotionSchema], default: [] },
     evidenceUnits: { type: [evidenceUnitSchema], default: [] },
     risk_signal: { type: riskSignalSchema, default: null },

@@ -131,6 +131,7 @@ const DynamicDiagnosticGraph = ({
   const resolveOverrideStatus = (node: GraphNode) => {
     const direct = nodeOverrides?.[node.id];
     if (direct) return direct;
+    if (node.kind === "exclusion") return null;
     if (!node.evidenceLabels?.length) return null;
     return node.evidenceLabels
       .map((label) => labelOverrides?.[label])

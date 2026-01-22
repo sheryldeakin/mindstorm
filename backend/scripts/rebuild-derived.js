@@ -2,6 +2,8 @@ const dotenv = require("dotenv");
 const mongoose = require("mongoose");
 const Entry = require("../src/models/Entry");
 const WeeklySummary = require("../src/models/WeeklySummary");
+const fs = require("fs");
+const path = require("path");
 const {
   generateClinicalEvidenceUnits,
   generateWeeklySummary,
@@ -101,6 +103,55 @@ const createProgress = (total, label) => {
   return { render, done };
 };
 
+const logDir = path.resolve(__dirname, "..", "..", "log");
+const failureLogPath = path.join(logDir, "rebuild-derived_failures.csv");
+
+const ensureLogDir = () => {
+  if (!fs.existsSync(logDir)) {
+    fs.mkdirSync(logDir, { recursive: true });
+  }
+};
+
+const csvValue = (value) => {
+  const text = value === undefined || value === null ? "" : String(value);
+  return `"${text.replace(/"/g, "\"\"")}"`;
+};
+
+const logFailure = ({ entryId, userId, step, error }) => {
+  ensureLogDir();
+  const header = "script,entryId,userId,step,error,timestamp\n";
+  if (!fs.existsSync(failureLogPath)) {
+    fs.writeFileSync(failureLogPath, header, "utf8");
+  }
+  const row = [
+    csvValue("rebuild-derived"),
+    csvValue(entryId || ""),
+    csvValue(userId || ""),
+    csvValue(step || ""),
+    csvValue(error || ""),
+    csvValue(new Date().toISOString()),
+  ].join(",");
+  fs.appendFileSync(failureLogPath, `${row}\n`, "utf8");
+};
+
+const retryWithBackoff = async (fn, { retries, label }) => {
+  let attempt = 0;
+  let lastError = null;
+  while (attempt <= retries) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error;
+      if (attempt === retries) break;
+      const delayMs = 500 * 2 ** attempt;
+      console.warn(`${label} failed (attempt ${attempt + 1}/${retries + 1}), retrying in ${delayMs}ms`);
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
+    }
+    attempt += 1;
+  }
+  throw lastError;
+};
+
 /**
  * Computes ISO week start (Monday) for a given dateISO string.
  * @param {string} dateIso
@@ -127,6 +178,10 @@ const run = async () => {
   const concurrency = Number.isFinite(Number(args.concurrency))
     ? Math.max(1, Number(args.concurrency))
     : 2;
+  const maxRetries = Number.parseInt(
+    process.env.REBUILD_LLM_RETRIES || process.env.SEED_LLM_RETRIES || "2",
+    10,
+  );
   if (!uri) {
     throw new Error("MONGODB_URI is not set.");
   }
@@ -161,17 +216,44 @@ const run = async () => {
       const entryText = `Title: ${entry.title}\nEntry: ${entry.body || entry.summary || ""}`;
       let updatedEvidenceUnits = entry.evidenceUnits || [];
       if (!onlyMissing || !entry.evidenceUnits) {
-        const clinicalEvidence = await generateClinicalEvidenceUnits(entryText);
-        if (!clinicalEvidence?.error && clinicalEvidence?.evidenceUnits) {
-          updatedEvidenceUnits = clinicalEvidence.evidenceUnits;
+        try {
+          const clinicalEvidence = await retryWithBackoff(
+            () => generateClinicalEvidenceUnits(entryText),
+            { retries: maxRetries, label: "Rebuild evidence units" },
+          );
+          if (!clinicalEvidence?.error && clinicalEvidence?.evidenceUnits) {
+            updatedEvidenceUnits = clinicalEvidence.evidenceUnits;
+            await Entry.updateOne(
+              { _id: entry._id },
+              { $set: { evidenceUnits: updatedEvidenceUnits } },
+            );
+            console.log(`Evidence units updated for entry ${entry._id}`);
+          } else if (clinicalEvidence?.error) {
+            const details = clinicalEvidence?.details ? ` ${JSON.stringify(clinicalEvidence.details)}` : "";
+            logFailure({
+              entryId: entry._id?.toString(),
+              userId: entry.userId?.toString(),
+              step: "evidence_units",
+              error: `${clinicalEvidence?.error}${details}`,
+            });
+            await Entry.updateOne(
+              { _id: entry._id },
+              { $set: { title: "[LLM failed]", meta: { source: "fallback" } } },
+            );
+            return;
+          }
+        } catch (error) {
+          logFailure({
+            entryId: entry._id?.toString(),
+            userId: entry.userId?.toString(),
+            step: "evidence_units",
+            error: error?.message || String(error),
+          });
           await Entry.updateOne(
             { _id: entry._id },
-            { $set: { evidenceUnits: updatedEvidenceUnits } },
+            { $set: { title: "[LLM failed]", meta: { source: "fallback" } } },
           );
-          console.log(`Evidence units updated for entry ${entry._id}`);
-        } else {
-          const details = clinicalEvidence?.details ? ` ${JSON.stringify(clinicalEvidence.details)}` : "";
-          console.warn(`Evidence units skipped for entry ${entry._id}: ${clinicalEvidence?.error}${details}`);
+          return;
         }
       }
 
@@ -203,11 +285,30 @@ const run = async () => {
           return;
         }
       }
-      const result = await generateWeeklySummary({ userId, weekStartIso });
-      if (result?.error) {
-        console.warn(`Weekly summary error for ${weekStartIso}: ${result.error}`);
-      } else {
-        console.log(`Weekly summary updated for ${weekStartIso}`);
+      try {
+        const result = await retryWithBackoff(
+          () => generateWeeklySummary({ userId, weekStartIso }),
+          { retries: maxRetries, label: "Rebuild weekly summary" },
+        );
+        if (result?.error) {
+          logFailure({
+            entryId: "",
+            userId,
+            step: "weekly_summary",
+            error: result.error,
+          });
+          console.warn(`Weekly summary error for ${weekStartIso}: ${result.error}`);
+        } else {
+          console.log(`Weekly summary updated for ${weekStartIso}`);
+        }
+      } catch (error) {
+        logFailure({
+          entryId: "",
+          userId,
+          step: "weekly_summary",
+          error: error?.message || String(error),
+        });
+        console.warn(`Weekly summary error for ${weekStartIso}: ${error?.message || error}`);
       }
       weekCount += 1;
       weekProgress.render(weekCount);

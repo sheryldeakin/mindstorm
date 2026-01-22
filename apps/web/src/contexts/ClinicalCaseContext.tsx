@@ -99,29 +99,60 @@ export const ClinicalCaseProvider = ({
           return next;
         });
         setOverrideRecords((prev) => prev.filter((item) => item.nodeId !== nodeId));
-        await apiFetch(`/clinician/cases/${caseId}/overrides/${nodeId}`, { method: "DELETE" });
+        try {
+          await apiFetch(`/clinician/cases/${caseId}/overrides/${nodeId}`, { method: "DELETE" });
+        } catch {
+          // Revert locally if the delete fails.
+          setNodeOverrides((prev) => ({ ...prev, [nodeId]: meta?.originalStatus || "UNKNOWN" }));
+        }
         return;
       }
       const originalStatus = meta?.originalStatus || "UNKNOWN";
-      const response = await apiFetch<{ override: ClinicianOverrideRecord }>(
-        `/clinician/cases/${caseId}/overrides`,
-        {
-          method: "POST",
-          body: JSON.stringify({
-            nodeId,
-            status,
-            originalStatus,
-            originalEvidence: meta?.originalEvidence || "",
-            note: meta?.note || "",
-          }),
-        },
-      );
+      const optimisticRecord: ClinicianOverrideRecord = {
+        id: `optimistic-${nodeId}`,
+        nodeId,
+        status,
+        originalStatus,
+        originalEvidence: meta?.originalEvidence || "",
+        note: meta?.note || "",
+        updatedAt: new Date().toISOString(),
+      };
       setNodeOverrides((prev) => ({ ...prev, [nodeId]: status }));
-      if (response.override) {
-        setOverrideRecords((prev) => {
-          const next = prev.filter((item) => item.nodeId !== response.override.nodeId);
-          return [response.override, ...next];
+      setOverrideRecords((prev) => {
+        const next = prev.filter((item) => item.nodeId !== nodeId);
+        return [optimisticRecord, ...next];
+      });
+      try {
+        const response = await apiFetch<{ override: ClinicianOverrideRecord }>(
+          `/clinician/cases/${caseId}/overrides`,
+          {
+            method: "POST",
+            body: JSON.stringify({
+              nodeId,
+              status,
+              originalStatus,
+              originalEvidence: meta?.originalEvidence || "",
+              note: meta?.note || "",
+            }),
+          },
+        );
+        if (response.override) {
+          setOverrideRecords((prev) => {
+            const next = prev.filter((item) => item.nodeId !== response.override.nodeId);
+            return [response.override, ...next];
+          });
+        }
+      } catch {
+        setNodeOverrides((prev) => {
+          const next = { ...prev };
+          if (originalStatus) {
+            next[nodeId] = originalStatus;
+          } else {
+            delete next[nodeId];
+          }
+          return next;
         });
+        setOverrideRecords((prev) => prev.filter((item) => item.nodeId !== nodeId));
       }
     },
     [caseId],

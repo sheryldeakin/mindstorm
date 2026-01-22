@@ -1,6 +1,8 @@
 const dotenv = require("dotenv");
 const mongoose = require("mongoose");
 const Entry = require("../src/models/Entry");
+const fs = require("fs");
+const path = require("path");
 const {
   generateEntryEvidence,
   generateClinicalEvidenceUnits,
@@ -12,6 +14,36 @@ const { upsertEntrySignals, markDerivedStale } = require("../src/derived/service
 dotenv.config();
 
 const truncateSummary = (text) => `${text.slice(0, 150).trim()}...`;
+const logDir = path.resolve(__dirname, "..", "..", "log");
+const failureLogPath = path.join(logDir, "migrate-entry-bodies_failures.csv");
+
+const ensureLogDir = () => {
+  if (!fs.existsSync(logDir)) {
+    fs.mkdirSync(logDir, { recursive: true });
+  }
+};
+
+const csvValue = (value) => {
+  const text = value === undefined || value === null ? "" : String(value);
+  return `"${text.replace(/"/g, "\"\"")}"`;
+};
+
+const logFailure = ({ entryId, userId, step, error }) => {
+  ensureLogDir();
+  const header = "script,entryId,userId,step,error,timestamp\n";
+  if (!fs.existsSync(failureLogPath)) {
+    fs.writeFileSync(failureLogPath, header, "utf8");
+  }
+  const row = [
+    csvValue("migrate-entry-bodies"),
+    csvValue(entryId || ""),
+    csvValue(userId || ""),
+    csvValue(step || ""),
+    csvValue(error || ""),
+    csvValue(new Date().toISOString()),
+  ].join(",");
+  fs.appendFileSync(failureLogPath, `${row}\n`, "utf8");
+};
 
 const stripCodeFences = (text) =>
   text
@@ -34,6 +66,24 @@ const extractJson = (text) => {
       return null;
     }
   }
+};
+
+const retryWithBackoff = async (fn, { retries, label }) => {
+  let attempt = 0;
+  let lastError = null;
+  while (attempt <= retries) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error;
+      if (attempt === retries) break;
+      const delayMs = 500 * 2 ** attempt;
+      console.warn(`${label} failed (attempt ${attempt + 1}/${retries + 1}), retrying in ${delayMs}ms`);
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
+    }
+    attempt += 1;
+  }
+  throw lastError;
 };
 
 const createProgress = (total, label) => {
@@ -137,6 +187,10 @@ const run = async () => {
     concurrencyArgIndex !== -1 && args[concurrencyArgIndex + 1]
       ? Math.max(1, Number.parseInt(args[concurrencyArgIndex + 1], 10))
       : 1;
+  const maxRetries = Number.parseInt(
+    process.env.MIGRATE_LLM_RETRIES || process.env.SEED_LLM_RETRIES || "2",
+    10,
+  );
   if (!uri) {
     throw new Error("MONGODB_URI is not set.");
   }
@@ -178,65 +232,146 @@ const run = async () => {
     let evidenceBySection = null;
     let evidenceUnits = null;
     const entryText = `Title: ${entry.title || "Untitled reflection"}\nEntry: ${bodyText}`;
+    let failure = null;
 
     try {
-      const llmSummary = await generateSummaryWithLlm(bodyText);
+      const llmSummary = await retryWithBackoff(
+        () => generateSummaryWithLlm(bodyText),
+        { retries: maxRetries, label: "Migration summary" },
+      );
       if (llmSummary) summaryText = llmSummary;
     } catch (error) {
       llmFailures += 1;
-      console.warn(
-        `Summary LLM failed for entry ${entry._id}: ${error?.message || error}`,
-      );
+      failure = { step: "summary", error: error?.message || String(error) };
+      console.warn(`Summary LLM failed for entry ${entry._id}: ${failure.error}`);
     }
 
-    try {
-      const legacyResult = await generateLegacyEntryAnalysis(bodyText);
-      if (!legacyResult?.error && legacyResult?.data) {
-        legacySignals = legacyResult.data;
+    if (!failure) {
+      try {
+        const legacyResult = await retryWithBackoff(
+          async () => {
+            const result = await generateLegacyEntryAnalysis(bodyText);
+            if (result?.error) {
+              throw new Error(result.error);
+            }
+            return result;
+          },
+          { retries: maxRetries, label: "Migration legacy analysis" },
+        );
+        if (!legacyResult?.error && legacyResult?.data) {
+          legacySignals = legacyResult.data;
+        }
+      } catch (error) {
+        legacyFailures += 1;
+        failure = { step: "legacy_analysis", error: error?.message || String(error) };
+        console.warn(`Legacy analysis failed for entry ${entry._id}: ${failure.error}`);
       }
-    } catch (error) {
-      legacyFailures += 1;
-      console.warn(
-        `Legacy analysis failed for entry ${entry._id}: ${error?.message || error}`,
+    }
+
+    if (failure) {
+      const updatePayload = {
+        body: bodyText,
+        summary: summaryText,
+        title: "[LLM failed]",
+        meta: { source: "fallback" },
+      };
+      await Entry.updateOne(
+        { _id: entry._id },
+        { $set: updatePayload },
       );
+      logFailure({
+        entryId: entry._id?.toString(),
+        userId: entry.userId?.toString(),
+        step: failure.step,
+        error: failure.error,
+      });
+      updated += 1;
+      progress.render(updated, (Date.now() - startTime) / 1000);
+      continue;
     }
 
     if (!entry.evidenceBySection || !Object.keys(entry.evidenceBySection || {}).length) {
       try {
-        const evidenceResult = await generateEntryEvidence(entryText);
+        const evidenceResult = await retryWithBackoff(
+          () => generateEntryEvidence(entryText),
+          { retries: maxRetries, label: "Migration evidence snippets" },
+        );
         if (!evidenceResult?.error && evidenceResult?.evidenceBySection) {
           evidenceBySection = evidenceResult.evidenceBySection;
         } else if (evidenceResult?.error) {
           evidenceFailures += 1;
-          console.warn(
-            `Evidence snippets failed for entry ${entry._id}: ${evidenceResult.error}`,
-          );
+          failure = { step: "evidence_snippets", error: evidenceResult.error };
+          console.warn(`Evidence snippets failed for entry ${entry._id}: ${failure.error}`);
         }
       } catch (error) {
         evidenceFailures += 1;
-        console.warn(
-          `Evidence snippets failed for entry ${entry._id}: ${error?.message || error}`,
-        );
+        failure = { step: "evidence_snippets", error: error?.message || String(error) };
+        console.warn(`Evidence snippets failed for entry ${entry._id}: ${failure.error}`);
       }
+    }
+
+    if (failure) {
+      const updatePayload = {
+        body: bodyText,
+        summary: summaryText,
+        title: "[LLM failed]",
+        meta: { source: "fallback" },
+      };
+      await Entry.updateOne(
+        { _id: entry._id },
+        { $set: updatePayload },
+      );
+      logFailure({
+        entryId: entry._id?.toString(),
+        userId: entry.userId?.toString(),
+        step: failure.step,
+        error: failure.error,
+      });
+      updated += 1;
+      progress.render(updated, (Date.now() - startTime) / 1000);
+      continue;
     }
 
     if (!Array.isArray(entry.evidenceUnits) || entry.evidenceUnits.length === 0) {
       try {
-        const clinicalEvidence = await generateClinicalEvidenceUnits(entryText);
+        const clinicalEvidence = await retryWithBackoff(
+          () => generateClinicalEvidenceUnits(entryText),
+          { retries: maxRetries, label: "Migration evidence units" },
+        );
         if (!clinicalEvidence?.error && Array.isArray(clinicalEvidence?.evidenceUnits)) {
           evidenceUnits = clinicalEvidence.evidenceUnits;
         } else if (clinicalEvidence?.error) {
           clinicalFailures += 1;
-          console.warn(
-            `Evidence units failed for entry ${entry._id}: ${clinicalEvidence.error}`,
-          );
+          failure = { step: "evidence_units", error: clinicalEvidence.error };
+          console.warn(`Evidence units failed for entry ${entry._id}: ${failure.error}`);
         }
       } catch (error) {
         clinicalFailures += 1;
-        console.warn(
-          `Evidence units failed for entry ${entry._id}: ${error?.message || error}`,
-        );
+        failure = { step: "evidence_units", error: error?.message || String(error) };
+        console.warn(`Evidence units failed for entry ${entry._id}: ${failure.error}`);
       }
+    }
+
+    if (failure) {
+      const updatePayload = {
+        body: bodyText,
+        summary: summaryText,
+        title: "[LLM failed]",
+        meta: { source: "fallback" },
+      };
+      await Entry.updateOne(
+        { _id: entry._id },
+        { $set: updatePayload },
+      );
+      logFailure({
+        entryId: entry._id?.toString(),
+        userId: entry.userId?.toString(),
+        step: failure.step,
+        error: failure.error,
+      });
+      updated += 1;
+      progress.render(updated, (Date.now() - startTime) / 1000);
+      continue;
     }
 
     const updatePayload = {
