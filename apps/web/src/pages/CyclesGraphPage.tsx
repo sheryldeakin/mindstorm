@@ -11,8 +11,8 @@ type NodeData = {
   key: string;
   text: string;
   color: string;
-  loc: string;
   kind: "symptom" | "context" | "impact";
+  group?: string;
 };
 type LinkData = {
   from: string;
@@ -30,6 +30,14 @@ type CycleEdge = {
   lagDaysMin?: number;
   avgLag?: number;
   evidenceEntryIds: string[];
+};
+
+type GroupData = {
+  key: string;
+  text: string;
+  color: string;
+  loc?: string;
+  isGroup: true;
 };
 
 const CARD_COLOR = "#dad9d9";
@@ -74,33 +82,52 @@ const CyclesGraphPage = () => {
   const diagramRef = useRef<HTMLDivElement | null>(null);
   const diagramInstance = useRef<go.Diagram | null>(null);
   const [cycleEdges, setCycleEdges] = useState<CycleEdge[]>([]);
+  const [minConfidence, setMinConfidence] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selection, setSelection] = useState<{ primary: string | null; comparison: string | null }>({
     primary: null,
     comparison: null,
   });
+  const [selectedEdge, setSelectedEdge] = useState<CycleEdge | null>(null);
+  const filteredEdges = useMemo(
+    () => cycleEdges.filter((edge) => edge.confidence >= minConfidence),
+    [cycleEdges, minConfidence],
+  );
   const nodeDataArray = useMemo<NodeData[]>(() => {
     const labels = new Set<string>();
-    cycleEdges.forEach((edge) => {
+    filteredEdges.forEach((edge) => {
       labels.add(edge.sourceNode);
       labels.add(edge.targetNode);
     });
-    return Array.from(labels).map((label, index) => ({
+    return Array.from(labels).map((label) => ({
       key: label,
       text: getPatientLabel(label),
       color: CARD_COLOR,
-      loc: `${index * 120} 0`,
       kind: label.startsWith("CONTEXT_")
         ? "context"
         : label.startsWith("IMPACT_")
           ? "impact"
           : "symptom",
+      group: label.startsWith("CONTEXT_")
+        ? "context"
+        : label.startsWith("IMPACT_")
+          ? "impact"
+          : "symptom",
     }));
-  }, [cycleEdges, getPatientLabel]);
+  }, [filteredEdges, getPatientLabel]);
+
+  const groupDataArray = useMemo<GroupData[]>(
+    () => [
+      { key: "context", text: "Influences", color: "#f1f5f9", isGroup: true, loc: "0 0" },
+      { key: "symptom", text: "Core Experiences", color: "#ffffff", isGroup: true, loc: "280 0" },
+      { key: "impact", text: "Life Impact", color: "#f8fafc", isGroup: true, loc: "560 0" },
+    ],
+    [],
+  );
 
   const linkDataArray = useMemo<LinkData[]>(() => {
-    return cycleEdges.map((edge) => ({
+    return filteredEdges.map((edge) => ({
       from: edge.sourceNode,
       to: edge.targetNode,
       color: toLinkColor(edge.confidence),
@@ -108,7 +135,7 @@ const CyclesGraphPage = () => {
       lagDaysMin: edge.lagDaysMin ?? 0,
       avgLag: edge.avgLag ?? 0,
     }));
-  }, [cycleEdges]);
+  }, [filteredEdges]);
 
   const adjacency = useMemo(() => buildAdjacency(linkDataArray), [linkDataArray]);
   const [cycles, setCycles] = useState<string[][]>([]);
@@ -146,7 +173,19 @@ const CyclesGraphPage = () => {
     setPairTo((prev) => prev || nodeDataArray[Math.min(1, nodeDataArray.length - 1)].key);
   }, [nodeDataArray]);
 
+  useEffect(() => {
+    if (!selectedEdge) return;
+    const stillVisible = filteredEdges.some(
+      (edge) =>
+        edge.sourceNode === selectedEdge.sourceNode && edge.targetNode === selectedEdge.targetNode,
+    );
+    if (!stillVisible) {
+      setSelectedEdge(null);
+    }
+  }, [filteredEdges, selectedEdge]);
+
   const handleNodeSelection = useCallback((nodeKey: string) => {
+    setSelectedEdge(null);
     setCycles([]);
     setSelection((prev) => {
       const { primary, comparison } = prev;
@@ -170,15 +209,56 @@ const CyclesGraphPage = () => {
       "undoManager.isEnabled": true,
       initialContentAlignment: go.Spot.Center,
       autoScale: go.Diagram.Uniform,
-      layout: $(go.LayeredDigraphLayout, {
-        direction: 90,
-        isInitial: false,
-        isOngoing: false,
-        layerSpacing: 120,
-        columnSpacing: 60,
+      layout: $(go.GridLayout, {
+        wrappingColumn: 3,
+        spacing: new go.Size(60, 24),
+        alignment: go.GridLayout.Position,
       }),
       "toolManager.hoverDelay": 100,
     });
+
+    diagramInstance.current.groupTemplate = $(
+      go.Group,
+      "Auto",
+      {
+        layout: $(go.GridLayout, {
+          wrappingColumn: 1,
+          spacing: new go.Size(0, 10),
+          alignment: go.GridLayout.Position,
+        }),
+        selectable: false,
+        computesBoundsAfterDrag: true,
+        handlesDragDropForMembers: true,
+      },
+      new go.Binding("location", "loc", go.Point.parse).makeTwoWay(go.Point.stringify),
+      $(
+        go.Shape,
+        "RoundedRectangle",
+        {
+          strokeWidth: 1,
+          stroke: "#e2e8f0",
+          fill: "#ffffff",
+        },
+        new go.Binding("fill", "color"),
+      ),
+      $(
+        go.Panel,
+        "Vertical",
+        {
+          padding: new go.Margin(12, 16, 16, 16),
+        },
+        $(
+          go.TextBlock,
+          {
+            font: "600 12px 'Inter'",
+            stroke: "#475569",
+            margin: new go.Margin(0, 0, 8, 0),
+          },
+          new go.Binding("text", "text"),
+        ),
+        $(go.Placeholder, { padding: 8 }),
+      ),
+    );
 
     diagramInstance.current.nodeTemplate = $(
       go.Node,
@@ -235,7 +315,6 @@ const CyclesGraphPage = () => {
         new go.Binding("stroke", "isHighlighted", (s) => (s ? "white" : TEXT_COLOR)).ofObject(),
         new go.Binding("font", "isHighlighted", (s) => (s ? "bold 12px 'Inter'" : "12px 'Inter'")).ofObject(),
       ),
-      new go.Binding("location", "loc", go.Point.parse).makeTwoWay(go.Point.stringify),
     );
 
     diagramInstance.current.linkTemplate = $(
@@ -245,7 +324,29 @@ const CyclesGraphPage = () => {
         curve: go.Link.Bezier,
         layerName: "Background",
         corner: 10,
+        click: (_, link) => {
+          const data = link.data as LinkData | undefined;
+          if (!data) return;
+          const match = filteredEdges.find(
+            (edge) => edge.sourceNode === data.from && edge.targetNode === data.to,
+          );
+          if (match) {
+            setSelectedEdge(match);
+          }
+        },
+        mouseEnter: (_, link) => {
+          const highlight = link.findObject("HIGHLIGHT") as go.Shape | null;
+          if (highlight) highlight.stroke = "rgba(59,130,246,0.2)";
+        },
+        mouseLeave: (_, link) => {
+          const highlight = link.findObject("HIGHLIGHT") as go.Shape | null;
+          if (highlight) highlight.stroke = "transparent";
+        },
       },
+      $(
+        go.Shape,
+        { isPanelMain: true, strokeWidth: 12, stroke: "transparent", name: "HIGHLIGHT" },
+      ),
       $(
         go.Shape,
         { isPanelMain: true },
@@ -290,7 +391,7 @@ const CyclesGraphPage = () => {
     );
 
     diagramInstance.current.model = new go.GraphLinksModel(
-      nodeDataArray.map((node) => ({ ...node })),
+      [...groupDataArray, ...nodeDataArray].map((node) => ({ ...node })),
       linkDataArray.map((link) => ({ ...link })),
     );
 
@@ -300,7 +401,7 @@ const CyclesGraphPage = () => {
         diagramInstance.current = null;
       }
     };
-  }, [handleNodeSelection, showAdvanced, nodeDataArray, linkDataArray]);
+  }, [filteredEdges, groupDataArray, handleNodeSelection, showAdvanced, nodeDataArray, linkDataArray]);
 
   useEffect(() => {
     const { primary, comparison } = selection;
@@ -489,9 +590,22 @@ const CyclesGraphPage = () => {
   }, [pairFrom, pairTo, suggestionMatrix, nodeKeyToText]);
 
   const hasData = nodeDataArray.length > 0;
+  const selectedEdgeSummary = useMemo(() => {
+    if (!selectedEdge) return null;
+    const fromText = nodeKeyToText[selectedEdge.sourceNode] ?? selectedEdge.sourceNode;
+    const toText = nodeKeyToText[selectedEdge.targetNode] ?? selectedEdge.targetNode;
+    const lagText =
+      !selectedEdge.avgLag || selectedEdge.avgLag < 0.5 ? "Same day" : `+${selectedEdge.avgLag} days`;
+    return {
+      title: `${fromText} → ${toText}`,
+      frequency: selectedEdge.frequency,
+      lagText,
+      evidenceCount: selectedEdge.evidenceEntryIds?.length ?? 0,
+    };
+  }, [selectedEdge, nodeKeyToText]);
 
   return (
-    <div className="space-y-10 text-slate-900">
+    <div className="w-full space-y-10 pb-20 text-slate-900">
       <PageHeader
         eyebrow="Quick intel"
         title="Issue Pair Explorer"
@@ -501,7 +615,7 @@ const CyclesGraphPage = () => {
             <Button variant="secondary" size="sm" onClick={() => setShowAdvanced((prev) => !prev)}>
               {showAdvanced ? "Hide deeper analysis" : "Open deeper analysis"}
             </Button>
-            <div className="flex gap-3">
+            <div className="flex flex-wrap gap-3">
               <div>
                 <p className="text-xs uppercase tracking-[0.4em] text-slate-400">From</p>
                 <select
@@ -549,18 +663,35 @@ const CyclesGraphPage = () => {
         ) : null}
         <div className="grid gap-6 lg:grid-cols-3">
           <Card className="p-5">
-            <p className="text-xs uppercase tracking-[0.4em] text-slate-400">Frequency</p>
-            <h3 className="mt-3 text-3xl font-semibold text-brand">{pairPaths.length}</h3>
-            <p className="text-sm text-slate-500">
-              {pairPercent}% of paths starting at {nodeKeyToText[pairFrom] || "—"}
-            </p>
+            <p className="text-xs uppercase tracking-[0.4em] text-slate-400">Cycle detail</p>
+            {selectedEdgeSummary ? (
+              <>
+                <h3 className="mt-3 text-lg font-semibold text-brand">{selectedEdgeSummary.title}</h3>
+                <p className="mt-2 text-sm text-slate-500">
+                  Happened {selectedEdgeSummary.frequency} times · {selectedEdgeSummary.lagText}
+                </p>
+                <p className="mt-1 text-xs text-slate-400">
+                  Evidence entries: {selectedEdgeSummary.evidenceCount}
+                </p>
+              </>
+            ) : (
+              <>
+                <h3 className="mt-3 text-lg font-semibold text-brand">Select a connection</h3>
+                <p className="mt-2 text-sm text-slate-500">
+                  Tap a line in the graph to see strength, lag, and evidence counts.
+                </p>
+              </>
+            )}
           </Card>
           <Card className="p-5 lg:col-span-2">
             <p className="text-xs uppercase tracking-[0.4em] text-slate-400">Top paths</p>
             {pairPaths.length ? (
               <div className="mt-3 flex flex-wrap gap-2">
                 {pairPaths.slice(0, 3).map((path, idx) => (
-                  <div key={`${path.join("-")}-${idx}`} className="flex items-center rounded-full bg-slate-100 px-4 py-2 text-sm text-brand">
+                  <div
+                    key={`${path.join("-")}-${idx}`}
+                    className="flex max-w-full flex-wrap items-center rounded-full bg-slate-100 px-4 py-2 text-sm text-brand"
+                  >
                     {path.map((nodeKey, i) => (
                       <span key={`${nodeKey}-${i}`} className="flex items-center">
                         {nodeKeyToText[nodeKey] ?? nodeKey}
@@ -579,6 +710,26 @@ const CyclesGraphPage = () => {
         <div className="mt-6 rounded-3xl border border-brand/10 bg-brand/5 p-5">
           <p className="text-xs uppercase tracking-[0.4em] text-brand/70">Suggested intervention</p>
           <p className="mt-2 text-sm text-slate-600">{activeSuggestion}</p>
+        </div>
+        <div className="mt-4 rounded-3xl border border-slate-200 bg-white p-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-xs uppercase tracking-[0.4em] text-slate-400">Confidence filter</p>
+              <p className="text-sm text-slate-500">Show patterns at or above {Math.round(minConfidence * 100)}% confidence.</p>
+            </div>
+            <div className="flex w-full max-w-xs items-center gap-3">
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.05"
+                value={minConfidence}
+                onChange={(e) => setMinConfidence(Number(e.target.value))}
+                className="w-full"
+              />
+              <span className="text-xs font-semibold text-slate-500">{Math.round(minConfidence * 100)}%</span>
+            </div>
+          </div>
         </div>
       </PageHeader>
 

@@ -64,6 +64,19 @@ const buildPrepareChunkPrompt = (timeRangeLabel, signalContext) =>
     signalContext ? `Detected Signals (PRESENT counts): ${signalContext}` : "Detected Signals: none.",
   ].join(" ");
 
+const normalizeStringArray = (value) => {
+  if (Array.isArray(value)) {
+    return value
+      .flat(Infinity)
+      .map((item) => (typeof item === "string" ? item.trim() : item == null ? "" : String(item).trim()))
+      .filter(Boolean);
+  }
+  if (typeof value === "string") {
+    return value.trim() ? [value.trim()] : [];
+  }
+  return [];
+};
+
 /**
  * Builds the LLM prompt for clinical Evidence Unit extraction.
  * @returns {string}
@@ -109,6 +122,7 @@ const buildClinicalSignalPrompt = () =>
     " **CRITICAL:** Do NOT tag 'productive day' or 'cleaning the house' as MANIA unless accompanied by a *decreased need for sleep* (e.g., feeling rested after 3 hours).",
     " If they are sleeping normal hours, this is likely recovery, not mania.",
     " DO NOT tag 'mood swings' or 'erratic mood' as MANIA—only sustained high energy/euphoria.",
+    " If racing thoughts, high energy, or decreased sleep appear alongside depressive content (mixed features), still tag those specific spans as SYMPTOM_MANIA.",
     "- SYMPTOM_PSYCHOSIS: Hallucinations (auditory/visual), delusions, disorganization.",
     " DO NOT tag 'inner critic', 'inner voice' (internal monologue), or colloquial 'paranoia' (social worry) as PSYCHOSIS. Only tag clear breaks from reality.",
     "- SYMPTOM_TRAUMA: Flashbacks, intrusive memories of traumatic events, dissociation (feeling 'unreal'), derealization, depersonalization.",
@@ -121,7 +135,7 @@ const buildClinicalSignalPrompt = () =>
 
     "4. Context Factors:", 
     "- CONTEXT_SUBSTANCE: Use of alcohol, drugs, or medications (prescribed or recreational).",
-    " **CRITICAL:** Do NOT tag transient after-effects (e.g. 'hangover', 'headache') unless linked to a sustained mood pattern. Ignore incidental use.",
+    " **CRITICAL:** Do NOT tag transient physical hangovers unless they trigger mood/anxiety symptoms (e.g., 'hangxiety', 'crash', 'withdrawal depression'). If substance use drives mood, tag it. Ignore incidental use.",
     "- CONTEXT_MEDICAL: Mentions of physical health conditions (e.g., thyroid, pain, pregnancy)",
     " OR specific reproductive status (pregnancy, postpartum, breastfeeding) to support Peripartum specifier detection.",
     "- CONTEXT_STRESSOR: Grief, job loss, breakup/relationship conflict, specific life events.",
@@ -137,7 +151,7 @@ const buildClinicalSignalPrompt = () =>
     "3. frequency: How often it happens (e.g., 'every night', 'sometimes').",
     "4. severity: Normalize to 'MILD', 'MODERATE', or 'SEVERE' where possible. If ambiguous, use the exact descriptor.",
     "   - For SYMPTOM_RISK: Explicitly distinguish 'Passive' (thoughts) vs 'Active' (intent/plan).",
-    "5. attribution: If the user links the symptom to a cause (e.g., 'because of my meds').",
+    "5. attribution: If the user links the symptom to a cause (e.g., 'because of my meds', 'from the alcohol', 'withdrawal').",
     "6. uncertainty: 'LOW' for direct statements. 'HIGH' for hedging language (e.g., maybe, I think, it is hard to say).",
     
     "--- FEW-SHOT EXAMPLE ---",
@@ -417,6 +431,24 @@ const extractJson = (text) => {
   if (arrayFallback) return arrayFallback;
 
   return null;
+};
+
+const normalizeEmotions = (emotions) => {
+  if (!Array.isArray(emotions)) return [];
+  return emotions
+    .map((emotion) => {
+      if (!emotion || typeof emotion !== "object") return null;
+      const label = typeof emotion.label === "string" ? emotion.label.trim() : "";
+      if (!label) return null;
+      const intensity = Number.isFinite(emotion.intensity) ? emotion.intensity : 0;
+      const tone = typeof emotion.tone === "string" && emotion.tone.trim() ? emotion.tone : "neutral";
+      return {
+        label,
+        intensity,
+        tone,
+      };
+    })
+    .filter(Boolean);
 };
 
 /**
@@ -884,13 +916,13 @@ const generateWeeklySummary = async ({ userId, weekStartIso }) => {
   }
 
   const summary = {
-    recurringExperiences: response.data.recurringExperiences || [],
-    overTimeSummary: response.data.overTimeSummary || "",
-    intensityLines: response.data.intensityLines || [],
-    impactAreas: response.data.impactAreas || [],
-    relatedInfluences: response.data.relatedInfluences || [],
-    unclearAreas: response.data.unclearAreas || [],
-    questionsToExplore: response.data.questionsToExplore || [],
+    recurringExperiences: normalizeStringArray(response.data.recurringExperiences),
+    overTimeSummary: typeof response.data.overTimeSummary === "string" ? response.data.overTimeSummary : "",
+    intensityLines: normalizeStringArray(response.data.intensityLines),
+    impactAreas: normalizeStringArray(response.data.impactAreas),
+    relatedInfluences: normalizeStringArray(response.data.relatedInfluences),
+    unclearAreas: normalizeStringArray(response.data.unclearAreas),
+    questionsToExplore: normalizeStringArray(response.data.questionsToExplore),
   };
 
   await WeeklySummary.findOneAndUpdate(
@@ -961,7 +993,7 @@ const analyzeEntry = asyncHandler(async (req, res) => {
   res.json({
     analysis: {
       title: parsed.title,
-      emotions: parsed.emotions || [],
+      emotions: normalizeEmotions(parsed.emotions),
       themes: parsed.themes || [],
       themeIntensities: parsed.themeIntensities || [],
       triggers: parsed.triggers || [],
@@ -1025,7 +1057,7 @@ const generateLegacyEntryAnalysis = async (text) => {
     data: {
       title: parsed.title,
       summary: parsed.summary,
-      emotions: parsed.emotions || [],
+      emotions: normalizeEmotions(parsed.emotions),
       themes: parsed.themes || [],
       themeIntensities: parsed.themeIntensities || [],
       triggers: parsed.triggers || [],

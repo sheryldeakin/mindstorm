@@ -62,6 +62,39 @@ const retryWithBackoff = async (fn, { retries, label }) => {
   throw lastError;
 };
 
+const createProgress = (total, label) => {
+  const start = Date.now();
+  const safeTotal = total > 0 ? total : 1;
+  let ewma = null;
+  const alpha = 0.2;
+  const formatDuration = (seconds) => {
+    const totalSeconds = Math.max(0, Math.round(seconds));
+    const hrs = Math.floor(totalSeconds / 3600);
+    const mins = Math.floor((totalSeconds % 3600) / 60);
+    const secs = totalSeconds % 60;
+    return `${String(hrs).padStart(2, "0")}:${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+  };
+  const render = (current, lastDuration) => {
+    const percent = Math.min(current / safeTotal, 1);
+    const width = 24;
+    const filled = Math.round(width * percent);
+    const bar = `${"█".repeat(filled)}${"░".repeat(width - filled)}`;
+    if (Number.isFinite(lastDuration)) {
+      ewma = ewma === null ? lastDuration : alpha * lastDuration + (1 - alpha) * ewma;
+    }
+    const avgDuration = ewma ?? (Date.now() - start) / 1000 / Math.max(current, 1);
+    const eta = avgDuration * (safeTotal - current);
+    const elapsedMinutes = Math.max((Date.now() - start) / 60000, 1 / 60);
+    const rate = current / elapsedMinutes;
+    const line = `${label} [${bar}] ${(percent * 100).toFixed(1)}% (${current}/${safeTotal}) ETA ${formatDuration(eta)} ${rate.toFixed(1)}/min`;
+    process.stdout.write(`\r${line}`);
+  };
+  const done = () => {
+    process.stdout.write("\n");
+  };
+  return { render, done };
+};
+
 const parseArgs = (argv) => {
   const args = { positional: [] };
   for (let i = 0; i < argv.length; i += 1) {
@@ -127,19 +160,25 @@ const getWeekStartIso = (dateIso) => {
   return monday.toISOString().slice(0, 10);
 };
 
-const run = async () => {
-  const uri = process.env.MONGODB_URI;
-  if (!uri) {
-    throw new Error("MONGODB_URI is not set.");
-  }
+const normalizeEmotions = (emotions) => {
+  if (!Array.isArray(emotions)) return [];
+  return emotions
+    .map((emotion) => {
+      if (!emotion || typeof emotion !== "object") return null;
+      const label = typeof emotion.label === "string" ? emotion.label.trim() : "";
+      if (!label) return null;
+      const intensity = Number.isFinite(emotion.intensity) ? emotion.intensity : 0;
+      const tone = typeof emotion.tone === "string" && emotion.tone.trim() ? emotion.tone : "neutral";
+      return {
+        label,
+        intensity,
+        tone,
+      };
+    })
+    .filter(Boolean);
+};
 
-  const args = parseArgs(process.argv.slice(2));
-  const source = args.source || "all";
-  const maxRetries = Number.parseInt(
-    process.env.RETRY_LLM_RETRIES || process.env.SEED_LLM_RETRIES || "2",
-    10,
-  );
-
+const loadFailures = (source) => {
   const sources = source === "all"
     ? ["seed-sample-entries", "migrate-entry-bodies", "rebuild-derived", "retry-failed-entries"]
     : [source];
@@ -153,20 +192,25 @@ const run = async () => {
     })));
   });
   const failures = Array.from(failuresByFile.values()).flat();
+  return { failuresByFile, failures };
+};
+
+const runOnce = async ({ source, maxRetries }) => {
+  const { failuresByFile, failures } = loadFailures(source);
   const uniqueEntryIds = Array.from(new Set(failures.map((row) => row.entryId)));
 
   if (!uniqueEntryIds.length) {
     console.log("No failed entries found to retry.");
-    return;
+    return { processed: 0, remaining: 0 };
   }
-
-  await mongoose.connect(uri, { socketTimeoutMS: 45000 });
 
   const entries = await Entry.find({ _id: { $in: uniqueEntryIds } });
   const staleUserIds = new Set();
-
   const resolvedEntryIds = new Set();
+  const progress = createProgress(entries.length, "Retrying failures");
+  let processed = 0;
   for (const entry of entries) {
+    const stepStart = Date.now();
     const bodyText = entry.body || entry.summary || "";
     if (!bodyText) continue;
     const entryText = `Title: ${entry.title || "Untitled reflection"}\nEntry: ${bodyText}`;
@@ -224,6 +268,8 @@ const run = async () => {
         step: failedStep.step,
         error: failedStep.error,
       });
+      processed += 1;
+      progress.render(processed, (Date.now() - stepStart) / 1000);
       continue;
     }
 
@@ -233,7 +279,8 @@ const run = async () => {
     if (legacySignals?.title && entry.title === "[LLM failed]") {
       entry.title = legacySignals.title;
     }
-    entry.emotions = legacySignals?.emotions || entry.emotions || [];
+    const mergedEmotions = legacySignals?.emotions || entry.emotions || [];
+    entry.emotions = normalizeEmotions(mergedEmotions);
     entry.themes = legacySignals?.themes || entry.themes || [];
     entry.triggers = legacySignals?.triggers || entry.triggers || [];
     entry.themeIntensities = legacySignals?.themeIntensities || entry.themeIntensities || [];
@@ -269,7 +316,11 @@ const run = async () => {
         await generateWeeklySummary({ userId: entry.userId, weekStartIso });
       }
     }
+
+    processed += 1;
+    progress.render(processed, (Date.now() - stepStart) / 1000);
   }
+  progress.done();
 
   for (const userId of staleUserIds) {
     await markDerivedStale({
@@ -283,8 +334,91 @@ const run = async () => {
     writeFailures(filePath, remaining);
   });
 
-  await mongoose.disconnect();
+  const remainingCount = Array.from(failuresByFile.values())
+    .flat()
+    .filter((row) => !resolvedEntryIds.has(row.entryId)).length;
+
   console.log(`Retry complete. Processed ${entries.length} entries.`);
+  if (!remainingCount) {
+    console.log("No failures remaining.");
+  }
+  return { processed: entries.length, remaining: remainingCount };
+};
+
+const run = async () => {
+  const uri = process.env.MONGODB_URI;
+  if (!uri) {
+    throw new Error("MONGODB_URI is not set.");
+  }
+
+  const args = parseArgs(process.argv.slice(2));
+  const source = args.source || "all";
+  const maxRetries = Number.parseInt(
+    process.env.RETRY_LLM_RETRIES || process.env.SEED_LLM_RETRIES || "2",
+    10,
+  );
+  const repeat = args.repeat ? Number.parseInt(String(args.repeat), 10) : 1;
+  const untilClear = Boolean(args["until-clear"]);
+  const maxRuns = args["max-runs"]
+    ? Number.parseInt(String(args["max-runs"]), 10)
+    : 10;
+
+  if (Number.isNaN(repeat) || repeat < 1) {
+    throw new Error("--repeat must be a positive integer.");
+  }
+  if (Number.isNaN(maxRuns) || maxRuns < 1) {
+    throw new Error("--max-runs must be a positive integer.");
+  }
+
+  await mongoose.connect(uri, { socketTimeoutMS: 45000 });
+
+  const initialFailures = loadFailures(source).failures.length;
+  const overallProgress = initialFailures > 0
+    ? createProgress(initialFailures, "Failures fixed")
+    : null;
+  const targetRuns = untilClear ? maxRuns : repeat;
+  const runsProgress = !untilClear && targetRuns > 1
+    ? createProgress(targetRuns, "Retry runs")
+    : null;
+  let runs = 0;
+  let remaining = 0;
+  while (runs < targetRuns) {
+    const runStart = Date.now();
+    runs += 1;
+    const previousRemaining = remaining || initialFailures;
+    const result = await runOnce({ source, maxRetries });
+    remaining = result.remaining;
+    const fixedThisRun = Math.max(previousRemaining - remaining, 0);
+    const fixedTotal = Math.max(initialFailures - remaining, 0);
+    if (overallProgress) {
+      overallProgress.render(fixedTotal, (Date.now() - runStart) / 1000);
+    }
+    if (runsProgress) {
+      runsProgress.render(runs, (Date.now() - runStart) / 1000);
+    }
+    console.log(
+      `Retry run ${runs}${untilClear ? "" : `/${targetRuns}`} complete. Fixed ${fixedThisRun}, remaining ${remaining}.`,
+    );
+    if (untilClear && remaining === 0) {
+      break;
+    }
+    if (!untilClear && runs >= targetRuns) {
+      break;
+    }
+  }
+
+  if (untilClear && remaining > 0) {
+    console.log(`Stopped after ${runs} runs. Remaining failures: ${remaining}.`);
+  }
+
+  if (overallProgress) {
+    overallProgress.done();
+  }
+  if (runsProgress) {
+    runsProgress.done();
+  }
+
+  await mongoose.disconnect();
 };
 
 run().catch((error) => {

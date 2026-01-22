@@ -33,12 +33,19 @@ export type PatientEvidenceUnit = SignalEvidenceUnit & {
   attributes?: EvidenceAttributes | null;
 };
 
-const humanizeLabel = (value: string) =>
-  value
-    .replace(/_/g, " ")
-    .trim()
-    .toLowerCase()
-    .replace(/\b\w/g, (match) => match.toUpperCase());
+const humanizeLabel = (value: string) => {
+  const cleaned = value
+    .replace(/^SYMPTOM_/, "")
+    .replace(/^IMPACT_/, "")
+    .replace(/^CONTEXT_/, "")
+    .replace(/^DX_/, "")
+    .replace(/_/g, " ");
+  const lower = cleaned.trim().toLowerCase();
+  if (lower === "risk") return "Safety thoughts";
+  if (lower === "mania") return "High energy";
+  if (lower === "trauma") return "Difficult memories";
+  return lower.replace(/\b\w/g, (match) => match.toUpperCase());
+};
 
 const mapping = patientView as PatientViewMapping;
 

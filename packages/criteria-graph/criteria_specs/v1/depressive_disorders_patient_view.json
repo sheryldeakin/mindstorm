@@ -112,6 +112,10 @@
       "patient_label": "Low mood or loss of interest",
       "reflection_prompt": "You described feeling down, empty, irritable, or less interested in things."
     },
+    "SYMPTOM_ANHEDONIA": {
+      "patient_label": "Reduced enjoyment",
+      "reflection_prompt": "You mentioned finding less pleasure or interest in things you usually care about."
+    },
     "SYMPTOM_COGNITIVE": {
       "patient_label": "Self-critical or foggy thoughts",
       "reflection_prompt": "You mentioned guilt, worthlessness, indecision, or trouble concentrating."
@@ -148,6 +152,18 @@
       "patient_label": "Daily life impact",
       "reflection_prompt": "You described difficulty functioning in daily life."
     },
+    "IMPACT_WORK": {
+      "patient_label": "Work or school impact",
+      "reflection_prompt": "You mentioned this making it hard to keep up with work or classes."
+    },
+    "IMPACT_SOCIAL": {
+      "patient_label": "Connection with others",
+      "reflection_prompt": "You mentioned pulling away from friends or conflict with people."
+    },
+    "IMPACT_SELF_CARE": {
+      "patient_label": "Taking care of yourself",
+      "reflection_prompt": "You mentioned struggles with daily tasks like hygiene or eating."
+    },
     "CONTEXT_SUBSTANCE": {
       "patient_label": "Substances or medications",
       "reflection_prompt": "You mentioned alcohol, drugs, or medication changes."
@@ -159,6 +175,14 @@
     "CONTEXT_STRESSOR": {
       "patient_label": "Life stressors",
       "reflection_prompt": "You described stressful events or conflicts."
+    },
+    "DURATION": {
+      "patient_label": "Timing",
+      "reflection_prompt": "You mentioned how long this has been going on."
+    },
+    "TEMPORALITY": {
+      "patient_label": "Timing",
+      "reflection_prompt": "You described when this started or how long it lasted."
     }
   },
   "derived_prompts": {

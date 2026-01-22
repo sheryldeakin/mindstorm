@@ -51,6 +51,7 @@ const DiagnosisReasoningPanel = ({
             items={diagnosis.criteria}
             summary={diagnosis.criteriaSummary}
             criteriaSets={diagnosis.criteriaSets}
+            entries={entries}
           />
         </div>
       </Card>

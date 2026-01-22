@@ -353,18 +353,18 @@ const symptomManifestations = {
     "This feeling is physically painful in my chest.",
   ],
   SPEC_MIXED_FEATURES: [
-    "I feel exhausted but my mind is racing at a million miles an hour.",
-    "I'm crying, but I also feel incredibly wired.",
-    "I have so much energy I want to scream, but I feel hopeless.",
-    "My thoughts are jumping around so fast I can't catch them.",
-    "I feel an agitated pressure to keep talking.",
+    "I feel exhausted but my mind is racing at a million miles an hour and I can't sleep.",
+    "I'm crying, but I also feel incredibly wired and haven't slept in 24 hours.",
+    "I have so much energy I want to scream; I've been awake for two days feeling hopeless.",
+    "My thoughts are jumping around so fast I can't catch them, making sleep impossible.",
+    "I feel an agitated pressure to keep talking and I haven't slept all night.",
     "I haven't slept but I don't feel tired, just sad and buzzing.",
-    "I feel impulsive, like I might do something risky.",
-    "My brain is loud and fast, even though my mood is low.",
-    "I feel like I'm vibrating with nervous energy.",
-    "I started three new projects today while feeling miserable.",
-    "I'm irritable and snappy, everything is moving too slow.",
-    "I feel a weird mix of high energy and deep depression.",
+    "I feel impulsive, like I might do something risky, and I can't get any sleep.",
+    "My brain is loud and fast, even though my mood is low, and I can't shut down to sleep.",
+    "I feel like I'm vibrating with nervous energy and I haven't slept in a full day.",
+    "I started three new projects today while feeling miserable and barely sleeping.",
+    "I'm irritable and snappy, everything is moving too slow, and I'm still awake at 3 AM.",
+    "I feel a weird mix of high energy and deep depression, with sleep feeling impossible.",
   ],
 };
 
@@ -392,10 +392,12 @@ const contextScenarios = {
 
 const confounders = {
   SUBSTANCE_USE: [
-    "I had a few too many drinks last night to numb the feeling.",
-    "I think my new blood pressure meds are making me tired.",
-    "I smoked some weed to help me sleep, but I feel groggy today.",
-    "My head hurts, probably a hangover from the weekend.",
+    "My mood crashes every time the alcohol wears off.",
+    "I was fine until the hangover set in, now I feel completely hopeless.",
+    "I notice I only feel this heavy depression after a weekend of heavy drinking.",
+    "The anxiety is definitely coming from the withdrawal.",
+    "I skipped my meds for three days and now I can't stop crying.",
+    "I know this emptiness is just the chemical crash from the party favors.",
   ],
   MEDICAL_ISSUES: [
     "My thyroid levels are off again according to the doctor.",
@@ -406,6 +408,14 @@ const confounders = {
     "I stayed up all night cleaning and didn't feel tired at all.",
     "My thoughts are racing so fast I can't keep up with them.",
     "I spent way too much money online today but I felt amazing doing it.",
+    "I cleaned the whole house at 3 AM and still don't feel tired.",
+    "My thoughts are moving faster than I can speak.",
+    "I felt like a god today, like I could do anything.",
+    "I started five new hobbies and spent my rent money.",
+    "I've only slept 2 hours in the last two days but I have infinite energy.",
+    "Sleep feels like a waste of time right now; I don't need it.",
+    "I barely slept last night and still felt wired and unstoppable.",
+    "I spent my entire savings on a new idea at 4 AM.",
   ],
 };
 
@@ -556,6 +566,42 @@ const clinicalProfiles = {
     emotions: [{ label: "steady", intensity: 40, tone: "neutral" }],
     impairmentProbability: 0.1,
     confounderProbability: 0.02,
+  },
+  BP_II_SOFT_SIGNALS: {
+    title: "Wired but tired",
+    diagnosis: "Rule-Out: Bipolar II / Mixed Features",
+    specifiers: ["With Mixed Features", "Cycling"],
+    themes: ["racing thoughts", "impulse spending", "crash"],
+    triggers: ["sleep deprivation", "project deadlines"],
+    symptomProbabilities: {
+      MDD_A1_DEPRESSED_MOOD: 0.7,
+      MDD_A6_FATIGUE: 0.6,
+      SPEC_MIXED_FEATURES: 0.6,
+      MANIC_SIGNAL: 0.3,
+    },
+    baseIntensity: { min: 0.5, max: 0.9 },
+    confounderProbability: 0.25,
+    emotions: [
+      { label: "wired", intensity: 85, tone: "negative" },
+      { label: "irritable", intensity: 70, tone: "negative" },
+    ],
+  },
+  SUBSTANCE_MIMIC: {
+    title: "The weekend crash",
+    diagnosis: "Substance-Induced Depressive Disorder",
+    specifiers: ["Alcohol Use", "Withdrawal pattern"],
+    themes: ["chemical crash", "withdrawal", "regret", "hangxiety"],
+    triggers: ["alcohol withdrawal", "skipped medication", "morning after drinking"],
+    symptomProbabilities: {
+      MDD_A1_DEPRESSED_MOOD: 0.9,
+      SUBSTANCE_USE: 1.0,
+    },
+    baseIntensity: { min: 0.7, max: 0.95 },
+    confounderProbability: 1.0,
+    emotions: [
+      { label: "hungover", intensity: 80, tone: "negative" },
+      { label: "physically ill", intensity: 70, tone: "negative" },
+    ],
   },
 };
 

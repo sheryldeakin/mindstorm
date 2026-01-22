@@ -26,6 +26,7 @@ export type CriterionItem = {
   label: string;
   state: "present" | "absent" | "ambiguous";
   evidenceNote: string;
+  evidenceLabels?: string[];
   severity?: "mild" | "moderate" | "high";
   recency?: string;
 };

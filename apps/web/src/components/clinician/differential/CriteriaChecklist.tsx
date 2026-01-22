@@ -2,6 +2,7 @@ import { CheckCircle2, HelpCircle, MinusCircle } from "lucide-react";
 import clsx from "clsx";
 import { useEffect, useMemo, useState } from "react";
 import type { CriterionItem, DifferentialDiagnosis } from "./types";
+import type { CaseEntry } from "../../../types/clinician";
 
 /**
  * Props for CriteriaChecklist (Clinician-Facing).
@@ -11,9 +12,10 @@ type CriteriaChecklistProps = {
   items?: CriterionItem[];
   summary?: DifferentialDiagnosis["criteriaSummary"];
   criteriaSets?: DifferentialDiagnosis["criteriaSets"];
+  entries?: CaseEntry[];
 };
 
-const CriteriaChecklist = ({ items, summary, criteriaSets }: CriteriaChecklistProps) => {
+const CriteriaChecklist = ({ items, summary, criteriaSets, entries = [] }: CriteriaChecklistProps) => {
   const availableSets = useMemo(() => {
     if (!criteriaSets) return [];
     const sets = [
@@ -42,6 +44,16 @@ const CriteriaChecklist = ({ items, summary, criteriaSets }: CriteriaChecklistPr
     : summary;
 
   if (!activeSummary) return null;
+  const isWeakSignal = (labels?: string[]) => {
+    if (!labels?.length) return false;
+    const units = entries
+      .flatMap((entry) => entry.evidenceUnits || [])
+      .filter(
+        (unit) => labels.includes(unit.label) && unit.attributes?.polarity === "PRESENT",
+      );
+    if (!units.length) return false;
+    return units.every((unit) => unit.attributes?.uncertainty === "HIGH");
+  };
   return (
     <div className="space-y-3">
       <div className="space-y-1 text-xs text-slate-500">
@@ -120,25 +132,33 @@ const CriteriaChecklist = ({ items, summary, criteriaSets }: CriteriaChecklistPr
           </>
         )}
       </div>
-      {activeItems.map((item) => (
+      {activeItems.map((item) => {
+        const weakSignal = item.state === "present" && isWeakSignal(item.evidenceLabels);
+        return (
         <div
           key={item.id}
           className={clsx(
             "rounded-2xl border p-4",
-            item.state === "present" && "border-emerald-200 bg-emerald-50/40",
+            item.state === "present" && !weakSignal && "border-emerald-200 bg-emerald-50/40",
+            item.state === "present" && weakSignal && "border-amber-200 bg-amber-50/40 border-dashed",
             item.state === "ambiguous" && "border-amber-200 bg-amber-50/40",
             item.state === "absent" && "border-slate-200 bg-slate-50",
           )}
         >
           <div className="flex items-start gap-3">
             {item.state === "present" ? (
-              <CheckCircle2 className="mt-0.5 h-5 w-5 text-emerald-500" />
+              <CheckCircle2 className={clsx("mt-0.5 h-5 w-5", weakSignal ? "text-amber-500" : "text-emerald-500")} />
             ) : item.state === "ambiguous" ? (
               <HelpCircle className="mt-0.5 h-5 w-5 text-amber-500" />
             ) : (
               <MinusCircle className="mt-0.5 h-5 w-5 text-slate-400" />
             )}
             <div>
+              {weakSignal ? (
+                <span className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.2em] text-amber-600">
+                  Suspected
+                </span>
+              ) : null}
               <p className="text-sm font-semibold text-slate-800">{item.label}</p>
               <p className="mt-1 text-xs text-slate-500">{item.evidenceNote}</p>
               {item.recency ? (
@@ -149,7 +169,7 @@ const CriteriaChecklist = ({ items, summary, criteriaSets }: CriteriaChecklistPr
             </div>
           </div>
         </div>
-      ))}
+      )})}
     </div>
   );
 };

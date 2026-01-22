@@ -280,7 +280,6 @@
           },
           "rule": {
             "kind": "exclusion_if_present",
-            "min_confidence": "HIGH",
             "attributes_required": { "polarity": "PRESENT" }
           },
           "evidence_binding": { "signal_types": ["RULE_OUT"], "aliases": ["mania", "hypomania"] },

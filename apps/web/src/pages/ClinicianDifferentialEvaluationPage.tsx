@@ -389,6 +389,7 @@ const buildDifferentialFromEntries = (
           id,
           label,
           state: "present",
+          evidenceLabels: labels,
           evidenceNote: `${defaultNote} Clinician override applied.`,
         },
       };
@@ -400,6 +401,7 @@ const buildDifferentialFromEntries = (
           id,
           label,
           state: "absent",
+          evidenceLabels: labels,
           evidenceNote: `${defaultNote} Clinician override applied.`,
         },
       };
@@ -412,6 +414,7 @@ const buildDifferentialFromEntries = (
           id,
           label,
           state: "present",
+          evidenceLabels: labels,
           evidenceNote: `${defaultNote} ${latest.span}`,
           severity: "moderate",
           recency: latest.dateISO,
@@ -426,6 +429,7 @@ const buildDifferentialFromEntries = (
           id,
           label,
           state: "absent",
+          evidenceLabels: labels,
           evidenceNote: `${defaultNote} ${latest.span}`,
           recency: latest.dateISO,
         },
@@ -437,6 +441,7 @@ const buildDifferentialFromEntries = (
         id,
         label,
         state: "ambiguous",
+        evidenceLabels: labels,
         evidenceNote: emptyNote,
       },
     };

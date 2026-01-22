@@ -32,8 +32,12 @@ type DiagnosticLogicGraphProps = {
 
 const NODES: GraphNode[] = DIAGNOSTIC_GRAPH_NODES;
 
-const statusClass = (status: string) => {
-  if (status === "MET") return "bg-emerald-100 border-emerald-400 text-emerald-700";
+const statusClass = (status: string, weakSignal: boolean) => {
+  if (status === "MET") {
+    return weakSignal
+      ? "bg-amber-50 border-amber-300 text-amber-700 border-dashed"
+      : "bg-emerald-100 border-emerald-400 text-emerald-700";
+  }
   if (status === "EXCLUDED") return "bg-rose-100 border-rose-400 text-rose-700";
   return "bg-slate-50 border-dashed border-slate-300 text-slate-500";
 };
@@ -91,10 +95,22 @@ const DiagnosticLogicGraph = ({
     return priorLogic.getStatusForLabels(node.evidenceLabels);
   };
 
+  const isWeakSignal = (labels?: string[]) => {
+    if (!labels?.length) return false;
+    const units = entries
+      .flatMap((entry) => entry.evidenceUnits || [])
+      .filter(
+        (unit) => labels.includes(unit.label) && unit.attributes?.polarity === "PRESENT",
+      );
+    if (!units.length) return false;
+    return units.every((unit) => unit.attributes?.uncertainty === "HIGH");
+  };
+
   const renderColumn = (nodes: GraphNode[]) => (
     <div className="space-y-3">
       {nodes.map((node) => {
         const status = getNodeStatus(node);
+        const weakSignal = status === "MET" && isWeakSignal(node.evidenceLabels);
         const priorStatus = getPriorNodeStatus(node);
         const hasChanged =
           lastAccessDate && priorStatus !== "UNKNOWN" && status !== priorStatus;
@@ -104,7 +120,9 @@ const DiagnosticLogicGraph = ({
           : status;
         const statusLabel =
           status === "MET"
-            ? "Evidence found"
+            ? weakSignal
+              ? "Suspected"
+              : "Evidence found"
             : status === "EXCLUDED"
               ? "Evidence denied"
               : "No signal";
@@ -113,7 +131,7 @@ const DiagnosticLogicGraph = ({
             key={node.id}
             className={clsx(
               "w-full rounded-xl border px-4 py-3 text-left text-sm font-medium transition",
-              statusClass(status),
+              statusClass(status, weakSignal),
               hasChanged && "relative ring-2 ring-sky-300 animate-pulse",
             )}
           >
