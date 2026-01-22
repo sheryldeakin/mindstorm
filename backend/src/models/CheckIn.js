@@ -14,6 +14,7 @@ const checkInSchema = new mongoose.Schema(
     userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true },
     dateISO: { type: String, required: true, index: true },
     metrics: { type: [checkInMetricSchema], default: [] },
+    tags: { type: [String], default: [] },
     note: { type: String, default: "" },
   },
   { timestamps: true },

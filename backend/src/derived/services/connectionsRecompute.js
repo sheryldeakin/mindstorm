@@ -30,6 +30,57 @@ const mapEvidenceLabelToTheme = (label) => {
     .trim();
 };
 
+const normalizeThemeLabel = (theme) => {
+  const trimmed = String(theme || "").trim();
+  if (!trimmed) return "";
+  const upper = trimmed.toUpperCase();
+  if (upper.startsWith("SYMPTOM_")) return mapEvidenceLabelToTheme(upper);
+  if (upper.startsWith("IMPACT_")) return mapEvidenceLabelToTheme(upper);
+  if (upper.startsWith("CONTEXT_")) return mapEvidenceLabelToTheme(upper);
+  const match = trimmed.match(/^([A-Za-z\s]+):/);
+  if (!match) return trimmed;
+  const prefix = match[1].trim().toLowerCase();
+  const prefixMap = {
+    "symptom mood": "SYMPTOM_MOOD",
+    "symptom anhedonia": "SYMPTOM_ANHEDONIA",
+    "symptom sleep": "SYMPTOM_SLEEP",
+    "symptom anxiety": "SYMPTOM_ANXIETY",
+    "symptom risk": "SYMPTOM_RISK",
+    "symptom mania": "SYMPTOM_MANIA",
+    "symptom psychosis": "SYMPTOM_PSYCHOSIS",
+    "symptom trauma": "SYMPTOM_TRAUMA",
+    "symptom cognitive": "SYMPTOM_COGNITIVE",
+    "symptom somatic": "SYMPTOM_SOMATIC",
+    "impact work": "IMPACT_WORK",
+    "impact social": "IMPACT_SOCIAL",
+    "impact self care": "IMPACT_SELF_CARE",
+    "impact self-care": "IMPACT_SELF_CARE",
+    "context stressor": "CONTEXT_STRESSOR",
+    "context medical": "CONTEXT_MEDICAL",
+    "context substance": "CONTEXT_SUBSTANCE",
+  };
+  const mapped = prefixMap[prefix];
+  if (mapped) return mapEvidenceLabelToTheme(mapped);
+  return trimmed;
+};
+
+const normalizeThemeLabels = (theme) => {
+  const normalized = normalizeThemeLabel(theme);
+  if (!normalized) return [];
+  const lower = normalized.toLowerCase();
+  if (lower.includes("low mood") && lower.includes("loss of interest")) {
+    return ["Low mood", "Loss of interest"];
+  }
+  return [normalized];
+};
+
+const normalizeThemeKey = (value) =>
+  String(value || "")
+    .toLowerCase()
+    .replace(/\s+/g, " ")
+    .replace(/[.:]+$/g, "")
+    .trim();
+
 /**
  * Returns the dateISO lower bound for a range key.
  * @param {string} rangeKey
@@ -66,7 +117,9 @@ const buildConnectionsGraph = (signals) => {
   const edgeEvidence = new Map();
 
   signals.forEach((signal) => {
-    const themes = Array.from(new Set((signal.themes || []).map((theme) => theme.trim()).filter(Boolean)));
+    const themes = Array.from(
+      new Set((signal.themes || []).flatMap((theme) => normalizeThemeLabels(theme))),
+    );
     const units = Array.isArray(signal.evidenceUnits) ? signal.evidenceUnits : [];
     units.forEach((unit) => {
       if (unit?.attributes?.polarity !== "PRESENT") return;
@@ -75,14 +128,16 @@ const buildConnectionsGraph = (signals) => {
       if (formatted) themes.push(formatted);
     });
     themes.forEach((theme) => {
-      const key = theme.toLowerCase();
+      const key = normalizeThemeKey(theme);
+      if (!key) return;
       themeCounts.set(key, (themeCounts.get(key) || 0) + 1);
     });
 
     for (let i = 0; i < themes.length; i += 1) {
       for (let j = i + 1; j < themes.length; j += 1) {
-        const a = themes[i].toLowerCase();
-        const b = themes[j].toLowerCase();
+        const a = normalizeThemeKey(themes[i]);
+        const b = normalizeThemeKey(themes[j]);
+        if (!a || !b) continue;
         const pair = [a, b].sort().join("__");
         edgeCounts.set(pair, (edgeCounts.get(pair) || 0) + 1);
         if (!edgeEvidence.has(pair)) {
@@ -164,6 +219,20 @@ const recomputeConnectionsForUser = async ({ userId, rangeKey }) => {
 };
 
 /**
+ * Recompute connections graphs for a user across multiple ranges.
+ * @param {{ userId: import("mongoose").Types.ObjectId | string, rangeKeys?: string[] }} params
+ * @returns {Promise<void>}
+ */
+const recomputeConnectionsForUserRanges = async ({ userId, rangeKeys } = {}) => {
+  const keys = rangeKeys?.length
+    ? rangeKeys
+    : ["all_time", "last_7_days", "last_30_days", "last_90_days", "last_365_days"];
+  for (const rangeKey of keys) {
+    await recomputeConnectionsForUser({ userId, rangeKey });
+  }
+};
+
+/**
  * Recompute all connections graphs marked stale.
  * @returns {Promise<void>}
  */
@@ -179,4 +248,8 @@ const recomputeStaleConnections = async () => {
   }
 };
 
-module.exports = { recomputeConnectionsForUser, recomputeStaleConnections };
+module.exports = {
+  recomputeConnectionsForUser,
+  recomputeConnectionsForUserRanges,
+  recomputeStaleConnections,
+};

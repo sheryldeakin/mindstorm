@@ -56,7 +56,7 @@ const ConnectionsPage = () => {
       .then(({ graph }) => {
         setNodes(graph.nodes || []);
         setEdges(graph.edges || []);
-        setSelectedEdge((graph.edges || [])[0]);
+        setSelectedEdge(undefined);
       })
       .catch((err) => {
         setError(err instanceof Error ? err.message : "Failed to load connections.");
@@ -68,37 +68,105 @@ const ConnectionsPage = () => {
   }, [status]);
 
   const mapConnectionLabel = (label: string) => {
-    if (label === "CONTEXT_STRESSOR") return "Life Stressors";
-    if (label === "CONTEXT_MEDICAL") return "Physical Health";
-    return getPatientLabel(label);
+    const raw = String(label || "").trim();
+    if (!raw) return "";
+    if (raw.includes("<->")) {
+      return raw
+        .split("<->")
+        .map((chunk) => mapConnectionLabel(chunk.trim()))
+        .filter(Boolean)
+        .join(" <-> ");
+    }
+    if (raw === "CONTEXT_STRESSOR") return "Life Stressors";
+    if (raw === "CONTEXT_MEDICAL") return "Physical Health";
+    if (raw === "CONTEXT_SUBSTANCE") return "Substance or medication changes";
+    const base = raw.includes(":") ? raw.split(":")[0].trim() : raw;
+    const normalized = base.replace(/\s+/g, "_").toUpperCase();
+    if (normalized === "SYMPTOM_MOOD") return "Low mood";
+    if (normalized === "SYMPTOM_ANHEDONIA") return "Loss of interest";
+    if (
+      normalized.startsWith("SYMPTOM_") ||
+      normalized.startsWith("IMPACT_") ||
+      normalized.startsWith("CONTEXT_")
+    ) {
+      return getPatientLabel(normalized);
+    }
+    return getPatientLabel(raw);
   };
+
+  const normalizeKey = (value: string) =>
+    value
+      .toLowerCase()
+      .replace(/\s+/g, " ")
+      .replace(/[.:]+$/g, "")
+      .trim();
 
   const mappedNodes = nodes.map((node) => ({
     ...node,
     label: mapConnectionLabel(node.label),
   }));
 
-  const mappedEdges = edges.map((edge) => ({
-    ...edge,
-    label: mapConnectionLabel(edge.label),
-  }));
+  const nodeMap = new Map<string, ConnectionNode>();
+  const nodeKeyById = new Map<string, string>();
+  mappedNodes.forEach((node) => {
+    const key = normalizeKey(node.label);
+    if (!nodeMap.has(key)) {
+      nodeMap.set(key, { ...node, id: key, label: node.label });
+    }
+    nodeKeyById.set(node.id, key);
+  });
 
-  const selectedMappedEdge = mappedEdges.find((edge) => edge.id === selectedEdge?.id);
+  const mergedEdges = new Map<string, ConnectionEdge>();
+  mappedNodes.forEach((node) => {
+    if (!nodeKeyById.has(node.id)) {
+      nodeKeyById.set(node.id, normalizeKey(node.label));
+    }
+  });
+
+  edges.forEach((edge) => {
+    const fromKey = nodeKeyById.get(edge.from) || normalizeKey(mapConnectionLabel(edge.from));
+    const toKey = nodeKeyById.get(edge.to) || normalizeKey(mapConnectionLabel(edge.to));
+    if (!fromKey || !toKey || fromKey === toKey) return;
+    const pairKey = [fromKey, toKey].sort().join("__");
+    const existing = mergedEdges.get(pairKey);
+    const fromLabel = nodeMap.get(fromKey)?.label || mapConnectionLabel(edge.from);
+    const toLabel = nodeMap.get(toKey)?.label || mapConnectionLabel(edge.to);
+    const next = {
+      ...edge,
+      id: pairKey,
+      from: fromKey,
+      to: toKey,
+      label: `${fromLabel} <-> ${toLabel}`,
+      strength: existing ? Math.max(existing.strength, edge.strength) : edge.strength,
+      evidence: existing
+        ? [...existing.evidence, ...(edge.evidence || [])].filter(
+            (item, index, self) =>
+              index === self.findIndex((other) => other.quote === item.quote && other.source === item.source),
+          )
+        : edge.evidence || [],
+    };
+    mergedEdges.set(pairKey, next);
+  });
+
+  const mappedEdges = Array.from(mergedEdges.values());
+  const selectedMappedEdge = selectedEdge
+    ? mappedEdges.find((edge) => edge.id === selectedEdge.id)
+    : mappedEdges[0];
+  const mappedNodeList = Array.from(nodeMap.values());
 
   return (
     <div className="space-y-8 text-slate-900">
       <PageHeader pageId="connections" />
       <CausalityDisclaimer />
       <ConnectionsGraph
-        nodes={mappedNodes}
+        nodes={mappedNodeList}
         edges={mappedEdges}
         selectedEdgeId={selectedMappedEdge?.id}
         onEdgeSelect={(edge) => {
-          const original = edges.find((item) => item.id === edge.id);
-          setSelectedEdge(original);
+          setSelectedEdge(edge);
         }}
         loading={loading}
-        emptyState={!!error || (!loading && mappedNodes.length === 0)}
+        emptyState={!!error || (!loading && mappedNodeList.length === 0)}
       />
       <section className="ms-card ms-elev-2 rounded-3xl p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -144,12 +212,17 @@ const ConnectionsPage = () => {
           <p className="mt-4 text-sm text-rose-600">{error}</p>
         ) : selectedMappedEdge ? (
           <div className="mt-6 space-y-4">
-            {selectedMappedEdge.evidence.length ? selectedMappedEdge.evidence.map((evidence) => (
-              <div key={evidence.id} className="ms-glass-surface rounded-2xl border p-4">
-                <p className="text-sm text-slate-700">“{evidence.quote}”</p>
-                <p className="mt-2 text-xs text-slate-400">{evidence.source}</p>
-              </div>
-            )) : (
+            {selectedMappedEdge.evidence.length ? (
+              selectedMappedEdge.evidence.map((evidence, index) => (
+                <div
+                  key={`${evidence.id}-${evidence.source}-${index}`}
+                  className="ms-glass-surface rounded-2xl border p-4"
+                >
+                  <p className="text-sm text-slate-700">“{evidence.quote}”</p>
+                  <p className="mt-2 text-xs text-slate-400">{evidence.source}</p>
+                </div>
+              ))
+            ) : (
               <p className="text-sm text-slate-500">No quotes attached to this connection yet.</p>
             )}
           </div>

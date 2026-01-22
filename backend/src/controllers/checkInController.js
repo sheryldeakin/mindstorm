@@ -8,7 +8,7 @@ const CheckIn = require("../models/CheckIn");
  */
 const upsertCheckIn = async (req, res) => {
   const userId = req.user._id;
-  const { dateISO, metrics, note } = req.body || {};
+  const { dateISO, metrics, note, tags } = req.body || {};
 
   if (!dateISO) {
     return res.status(400).json({ message: "dateISO is required." });
@@ -18,6 +18,7 @@ const upsertCheckIn = async (req, res) => {
     userId,
     dateISO,
     metrics: Array.isArray(metrics) ? metrics : [],
+    tags: Array.isArray(tags) ? tags : [],
     note: typeof note === "string" ? note : "",
   };
 

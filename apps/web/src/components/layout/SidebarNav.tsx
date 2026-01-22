@@ -4,12 +4,12 @@ import { Activity, BookOpen, CalendarDays, FileText, Share2, SlidersHorizontal, 
 
 const navItems = [
   { label: "Dashboard", to: "/patient/home", icon: CalendarDays },
-  { label: "Journal Library", to: "/patient/journal", icon: BookOpen },
   { label: "New Entry", to: "/patient/entry", icon: Sparkles },
   { label: "Check-in", to: "/patient/check-in", icon: SlidersHorizontal },
+  { label: "Journal Library", to: "/patient/journal", icon: BookOpen },
   { label: "Connections", to: "/patient/connections", icon: Share2 },
+  { label: "Cycles", to: "/patient/cycles", icon: Activity },
   { label: "Patterns", to: "/patient/patterns", icon: Activity },
-  { label: "Cycles Graph", to: "/patient/cycles", icon: Activity },
   { label: "Prepare", to: "/patient/prepare", icon: FileText },
 ];
 

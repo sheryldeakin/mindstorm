@@ -20,12 +20,12 @@ const landingLinks = [
 
 const appLinks = [
   { label: "Home", to: "/patient/home" },
-  { label: "Journal", to: "/patient/journal" },
-  { label: "Entry", to: "/patient/entry" },
+  { label: "New Entry", to: "/patient/entry" },
   { label: "Check-in", to: "/patient/check-in" },
+  { label: "Journal", to: "/patient/journal" },
   { label: "Connections", to: "/patient/connections" },
-  { label: "Patterns", to: "/patient/patterns" },
   { label: "Cycles", to: "/patient/cycles" },
+  { label: "Patterns", to: "/patient/patterns" },
   { label: "Prepare", to: "/patient/prepare" },
 ];
 

@@ -10,7 +10,7 @@ const {
 } = require("../src/controllers/aiController");
 const { recomputeSnapshotForUser } = require("../src/derived/services/snapshotRecompute");
 const { upsertEntrySignals } = require("../src/derived/services/derivedService");
-const { recomputeConnectionsForUser } = require("../src/derived/services/connectionsRecompute");
+const { recomputeConnectionsForUserRanges } = require("../src/derived/services/connectionsRecompute");
 const { recomputeThemeSeriesForUser } = require("../src/derived/services/themeSeriesRecompute");
 const { recomputeCyclesForUser } = require("../src/derived/services/cyclesRecompute");
 
@@ -322,9 +322,7 @@ const run = async () => {
     for (const rangeKey of rangeKeys) {
       await recomputeSnapshotForUser({ userId, rangeKey });
     }
-    for (const rangeKey of rangeKeys) {
-      await recomputeConnectionsForUser({ userId, rangeKey });
-    }
+    await recomputeConnectionsForUserRanges({ userId, rangeKeys });
     for (const rangeKey of rangeKeys) {
       await recomputeCyclesForUser({ userId, rangeKey });
     }

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
+import { X } from "lucide-react";
 import LiveInsightPanel from "../components/features/LiveInsightPanel";
 import Input from "../components/ui/Input";
 import Button from "../components/ui/Button";
@@ -11,6 +12,7 @@ import { analyzeEntryText, type LlmAnalysis } from "../lib/analyzeEntry";
 
 const EntryEditorPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, status } = useAuth();
   const { createEntry, loading, error, success, setSuccess } = useCreateEntry();
   const [title, setTitle] = useState("");
@@ -28,6 +30,7 @@ const EntryEditorPage = () => {
   const [draftAnalysis, setDraftAnalysis] = useState<LlmAnalysis | null>(null);
   const [draftLoading, setDraftLoading] = useState(false);
   const [draftError, setDraftError] = useState<string | null>(null);
+  const [pulseTags, setPulseTags] = useState<string[]>([]);
   const draftRequestRef = useRef(0);
   const lastAnalyzedTextRef = useRef("");
   const bodyText = summary;
@@ -39,6 +42,14 @@ const EntryEditorPage = () => {
     day: "numeric",
     year: "numeric",
   });
+
+  useEffect(() => {
+    const state = location.state as { prefilledTags?: unknown; prefilledContext?: string } | null;
+    if (state?.prefilledTags && Array.isArray(state.prefilledTags)) {
+      const cleanTags = state.prefilledTags.filter((tag) => typeof tag === "string");
+      setPulseTags(cleanTags);
+    }
+  }, [location.state]);
 
   useEffect(() => {
     if (success) {
@@ -101,6 +112,7 @@ const EntryEditorPage = () => {
         analysis = await analyzeEntryText(combinedText);
       }
       const combinedTags = new Set<string>();
+      pulseTags.forEach((tag) => combinedTags.add(tag.toLowerCase()));
       analysis?.emotions?.forEach((emotion) => {
         if (emotion.label) combinedTags.add(emotion.label.toLowerCase());
       });
@@ -180,6 +192,31 @@ const EntryEditorPage = () => {
               </p>
             )}
           </div>
+          {pulseTags.length ? (
+            <div className="rounded-2xl border border-slate-200 bg-slate-50/60 p-4">
+              <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
+                From your pulse check
+              </p>
+              <p className="mt-2 text-sm text-slate-600">
+                These tags came from your Pulse. Edit or remove anything that does not fit.
+              </p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {pulseTags.map((tag) => (
+                  <button
+                    key={tag}
+                    type="button"
+                    onClick={() =>
+                      setPulseTags((prev) => prev.filter((item) => item.toLowerCase() !== tag.toLowerCase()))
+                    }
+                    className="flex items-center gap-1 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-600 hover:border-slate-300"
+                  >
+                    {tag}
+                    <X size={12} className="text-slate-400" />
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : null}
           <div className="flex flex-1 flex-col">
             <label className="text-sm text-slate-500">Reflection</label>
             <Textarea
