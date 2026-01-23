@@ -176,6 +176,18 @@
       "patient_label": "Life stressors",
       "reflection_prompt": "You described stressful events or conflicts."
     },
+    "CONTEXT_ROUTINE": {
+      "patient_label": "Daily Routine",
+      "reflection_prompt": "You mentioned your daily flow, habits, or schedule."
+    },
+    "CONTEXT_ENVIRONMENT": {
+      "patient_label": "Sensory Environment",
+      "reflection_prompt": "You described the space around you—noise, light, or atmosphere."
+    },
+    "CONTEXT_SOCIAL_INTERACTION": {
+      "patient_label": "Social Moments",
+      "reflection_prompt": "You mentioned interactions, conversations, or time with others."
+    },
     "DURATION": {
       "patient_label": "Timing",
       "reflection_prompt": "You mentioned how long this has been going on."

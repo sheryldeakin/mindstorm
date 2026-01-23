@@ -274,9 +274,19 @@ const EntryDetailPage = () => {
   }, [data?.createdAt, data?.dateISO]);
 
   const evidenceUnits = useMemo(() => data?.evidenceUnits || [], [data?.evidenceUnits]);
+  const uniqueUnits = useMemo(() => {
+    const seen = new Set<string>();
+    return evidenceUnits.filter((unit) => {
+      const attributes = unit?.attributes ? JSON.stringify(unit.attributes) : "";
+      const key = [unit?.label || "", unit?.span || unit?.quote || "", attributes].join("::");
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }, [evidenceUnits]);
   const filteredUnits = useMemo(
-    () => evidenceUnits.filter((unit) => !shouldExcludeLabel(unit.label)),
-    [evidenceUnits],
+    () => uniqueUnits.filter((unit) => !shouldExcludeLabel(unit.label)),
+    [uniqueUnits],
   );
   const symptomUnits = useMemo(
     () =>
@@ -389,9 +399,15 @@ const EntryDetailPage = () => {
         {deleteError ? (
           <p className="mt-3 text-sm text-rose-600">{deleteError}</p>
         ) : null}
-        <div className="mt-6">
-          <h3 className="text-sm font-semibold text-slate-700">Reflection</h3>
-          <p className="mt-2 text-sm text-slate-600">{data.summary}</p>
+        <div className="mt-6 space-y-4">
+          <div>
+            <h3 className="text-sm font-semibold text-slate-700">Summary</h3>
+            <p className="mt-2 text-sm text-slate-600">{data.summary}</p>
+          </div>
+          <div>
+            <h3 className="text-sm font-semibold text-slate-700">Reflection</h3>
+            <p className="mt-2 text-sm text-slate-600">{data.body || "No reflection text available."}</p>
+          </div>
         </div>
       </Card>
 

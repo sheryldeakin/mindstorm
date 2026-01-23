@@ -787,7 +787,7 @@ const generateClinicalEvidenceUnits = async (entryText) => {
    */
   const normalizeEvidenceUnits = (units) => {
     if (!Array.isArray(units)) return [];
-    return units
+    const normalized = units
       .filter((unit) => unit && typeof unit === "object")
       .map((unit) => ({
         span: typeof unit.span === "string" ? unit.span.trim() : "",
@@ -795,6 +795,14 @@ const generateClinicalEvidenceUnits = async (entryText) => {
         attributes: unit.attributes && typeof unit.attributes === "object" ? unit.attributes : {},
       }))
       .filter((unit) => unit.span && unit.label);
+
+    const seen = new Set();
+    return normalized.filter((unit) => {
+      const key = `${unit.label}::${unit.span}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
   };
 
   const evidenceUnits = normalizeEvidenceUnits(parsed.evidence_units);

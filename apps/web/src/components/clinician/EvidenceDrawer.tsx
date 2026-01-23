@@ -96,7 +96,16 @@ const EvidenceDrawer = ({
   }, [open]);
 
   const sortedEvidence = useMemo(
-    () => [...evidence].sort((a, b) => a.dateISO.localeCompare(b.dateISO)),
+    () => {
+      const seen = new Set<string>();
+      const deduped = evidence.filter((item) => {
+        const key = `${item.dateISO}::${item.label}::${item.span}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+      return deduped.sort((a, b) => a.dateISO.localeCompare(b.dateISO));
+    },
     [evidence],
   );
   const latestDateISO = sortedEvidence[sortedEvidence.length - 1]?.dateISO;

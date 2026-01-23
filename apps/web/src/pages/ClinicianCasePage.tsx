@@ -136,7 +136,16 @@ const ClinicianCasePageContent = () => {
 
   const drawerEvidence = useMemo(() => {
     if (!selectedNode?.labels?.length) return [];
-    return evidenceUnits.filter((unit) => selectedNode.labels?.includes(unit.label));
+    const filtered = evidenceUnits.filter((unit) => selectedNode.labels?.includes(unit.label));
+    const seenSpans = new Set<string>();
+    return filtered.filter((unit) => {
+      const span = unit.span || "";
+      if (!span) return true;
+      const normalized = span.trim();
+      if (seenSpans.has(normalized)) return false;
+      seenSpans.add(normalized);
+      return true;
+    });
   }, [evidenceUnits, selectedNode]);
 
   const handleToggleReject = (item: EvidenceUnit & { dateISO: string }) => {

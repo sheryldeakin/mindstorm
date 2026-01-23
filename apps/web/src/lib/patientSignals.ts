@@ -112,28 +112,5 @@ export const buildContextImpactTags = (entry: JournalEntry | null | undefined, m
     }
   });
 
-  if (tags.length < maxLabels) {
-    units.forEach((unit) => {
-      if (tags.length >= maxLabels) return;
-      if (!unit.label) return;
-      if (unit.attributes?.polarity && unit.attributes.polarity !== "PRESENT") return;
-      if (unit.label === "SYMPTOM_RISK" || unit.label === "SYMPTOM_TRAUMA") return;
-      if (unit.label.startsWith("SYMPTOM_")) {
-        addTag(unit.label);
-      }
-    });
-  }
-
-  if (!tags.length && Array.isArray(entry.themes) && entry.themes.length) {
-    entry.themes.slice(0, maxLabels).forEach((theme) => {
-      const formatted = theme
-        ? theme.charAt(0).toUpperCase() + theme.slice(1)
-        : "";
-      if (!formatted || seen.has(formatted)) return;
-      seen.add(formatted);
-      tags.push(formatted);
-    });
-  }
-
   return tags.slice(0, maxLabels);
 };
