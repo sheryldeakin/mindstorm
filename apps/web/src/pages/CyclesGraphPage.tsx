@@ -6,11 +6,15 @@ import PageHeader from "../components/layout/PageHeader";
 import { apiFetch } from "../lib/apiClient";
 import { useAuth } from "../contexts/AuthContext";
 import { usePatientTranslation } from "../hooks/usePatientTranslation";
+import FlowGraph, { type FlowEdge, type FlowNode } from "../components/features/FlowGraph";
+import CycleCircuit from "../components/features/CycleCircuit";
+import CycleStory from "../components/features/CycleStory";
+import NestedCycleCard from "../components/features/NestedCycleCard";
+import { consolidateCycles, findAttachments, findSimpleCycles } from "../lib/graphUtils";
 
 type NodeData = {
   key: string;
   text: string;
-  color: string;
   kind: "symptom" | "context" | "impact";
   group?: string;
 };
@@ -21,6 +25,7 @@ type LinkData = {
   weight: number;
   lagDaysMin?: number;
   avgLag?: number;
+  sourcePairs?: Array<{ from: string; to: string }>;
 };
 type CycleEdge = {
   sourceNode: string;
@@ -40,8 +45,6 @@ type GroupData = {
   isGroup: true;
 };
 
-const CARD_COLOR = "#dad9d9";
-const TEXT_COLOR = "#122F41";
 const BASE_LINE_COLOR = "#d3d3d3";
 
 const toLinkColor = (confidence: number) => {
@@ -49,6 +52,14 @@ const toLinkColor = (confidence: number) => {
   if (confidence >= 0.45) return "#334155";
   if (confidence >= 0.25) return "#64748b";
   return "#cbd5f5";
+};
+
+const normalizeLabelKey = (value: string) => value.trim().toLowerCase().replace(/\s+/g, " ");
+
+const getNodeKind = (label: string): NodeData["kind"] => {
+  if (label.startsWith("CONTEXT_")) return "context";
+  if (label.startsWith("IMPACT_")) return "impact";
+  return "symptom";
 };
 
 const buildAdjacency = (links: LinkData[]) => {
@@ -94,48 +105,136 @@ const CyclesGraphPage = () => {
     () => cycleEdges.filter((edge) => edge.confidence >= minConfidence),
     [cycleEdges, minConfidence],
   );
-  const nodeDataArray = useMemo<NodeData[]>(() => {
-    const labels = new Set<string>();
+  const graphData = useMemo(() => {
+    const nodes = new Map<string, NodeData>();
+    const kindWeights = new Map<string, Record<NodeData["kind"], number>>();
+    const edges = new Map<
+      string,
+      CycleEdge & { sourcePairs: Array<{ from: string; to: string }> }
+    >();
+
+    const addKindWeight = (key: string, kind: NodeData["kind"], weight: number) => {
+      const existing = kindWeights.get(key) ?? { context: 0, symptom: 0, impact: 0 };
+      existing[kind] += weight;
+      kindWeights.set(key, existing);
+    };
+
+    const ensureNode = (rawLabel: string, weight: number) => {
+      const kind = getNodeKind(rawLabel);
+      const patientLabel = getPatientLabel(rawLabel);
+      const key = normalizeLabelKey(patientLabel);
+      const existing = nodes.get(key);
+      if (!existing) {
+        nodes.set(key, {
+          key,
+          text: patientLabel,
+          kind,
+          group: kind,
+        });
+      } else if (patientLabel.trim().length < existing.text.trim().length) {
+        nodes.set(key, { ...existing, text: patientLabel });
+      }
+      addKindWeight(key, kind, weight);
+      return key;
+    };
+
     filteredEdges.forEach((edge) => {
-      labels.add(edge.sourceNode);
-      labels.add(edge.targetNode);
+      const weight = edge.frequency || 1;
+      const fromKey = ensureNode(edge.sourceNode, weight);
+      const toKey = ensureNode(edge.targetNode, weight);
+      if (fromKey === toKey) return;
+      const key = `${fromKey}->${toKey}`;
+      const existing = edges.get(key);
+      if (!existing) {
+        edges.set(key, {
+          sourceNode: fromKey,
+          targetNode: toKey,
+          frequency: edge.frequency,
+          confidence: edge.confidence,
+          lagDaysMin: edge.lagDaysMin,
+          avgLag: edge.avgLag,
+          evidenceEntryIds: [...edge.evidenceEntryIds],
+          sourcePairs: [{ from: edge.sourceNode, to: edge.targetNode }],
+        });
+        return;
+      }
+
+      const nextFrequency = existing.frequency + edge.frequency;
+      const nextConfidence =
+        (existing.confidence * existing.frequency + edge.confidence * edge.frequency) / nextFrequency;
+      let nextAvgLag = existing.avgLag;
+      if (existing.avgLag != null && edge.avgLag != null) {
+        nextAvgLag =
+          (existing.avgLag * existing.frequency + edge.avgLag * edge.frequency) / nextFrequency;
+      } else if (existing.avgLag == null && edge.avgLag != null) {
+        nextAvgLag = edge.avgLag;
+      }
+      const nextLag =
+        existing.lagDaysMin == null
+          ? edge.lagDaysMin
+          : edge.lagDaysMin == null
+            ? existing.lagDaysMin
+            : Math.min(existing.lagDaysMin, edge.lagDaysMin);
+
+      const evidenceIds = new Set(existing.evidenceEntryIds);
+      edge.evidenceEntryIds.forEach((id) => evidenceIds.add(id));
+      const sourcePairs = existing.sourcePairs.some(
+        (pair) => pair.from === edge.sourceNode && pair.to === edge.targetNode,
+      )
+        ? existing.sourcePairs
+        : [...existing.sourcePairs, { from: edge.sourceNode, to: edge.targetNode }];
+
+      edges.set(key, {
+        ...existing,
+        frequency: nextFrequency,
+        confidence: nextConfidence,
+        avgLag: nextAvgLag,
+        lagDaysMin: nextLag,
+        evidenceEntryIds: Array.from(evidenceIds),
+        sourcePairs,
+      });
     });
-    return Array.from(labels).map((label) => ({
-      key: label,
-      text: getPatientLabel(label),
-      color: CARD_COLOR,
-      kind: label.startsWith("CONTEXT_")
-        ? "context"
-        : label.startsWith("IMPACT_")
-          ? "impact"
-          : "symptom",
-      group: label.startsWith("CONTEXT_")
-        ? "context"
-        : label.startsWith("IMPACT_")
-          ? "impact"
-          : "symptom",
-    }));
-  }, [filteredEdges, getPatientLabel]);
 
-  const groupDataArray = useMemo<GroupData[]>(
-    () => [
-      { key: "context", text: "Influences", color: "#f1f5f9", isGroup: true, loc: "0 0" },
-      { key: "symptom", text: "Core Experiences", color: "#ffffff", isGroup: true, loc: "280 0" },
-      { key: "impact", text: "Life Impact", color: "#f8fafc", isGroup: true, loc: "560 0" },
-    ],
-    [],
-  );
+    const nodeDataArray = Array.from(nodes.entries()).map(([key, node]) => {
+      const weights = kindWeights.get(key) ?? { context: 0, symptom: 0, impact: 0 };
+      let kind: NodeData["kind"] = node.kind;
+      const entries = Object.entries(weights) as Array<[NodeData["kind"], number]>;
+      entries.forEach(([candidate, value]) => {
+        if (value > weights[kind]) {
+          kind = candidate;
+        }
+      });
+      return { ...node, kind, group: kind };
+    });
 
-  const linkDataArray = useMemo<LinkData[]>(() => {
-    return filteredEdges.map((edge) => ({
+    const mergedEdges = Array.from(edges.values());
+    const linkDataArray = mergedEdges.map((edge) => ({
       from: edge.sourceNode,
       to: edge.targetNode,
       color: toLinkColor(edge.confidence),
       weight: edge.frequency,
       lagDaysMin: edge.lagDaysMin ?? 0,
       avgLag: edge.avgLag ?? 0,
+      sourcePairs: edge.sourcePairs,
     }));
-  }, [filteredEdges]);
+
+    return {
+      nodeDataArray,
+      mergedEdges,
+      linkDataArray,
+    };
+  }, [filteredEdges, getPatientLabel]);
+
+  const { nodeDataArray, mergedEdges, linkDataArray } = graphData;
+
+  const groupDataArray = useMemo<GroupData[]>(
+    () => [
+      { key: "context", text: "Influences", color: "#f1f5f9", isGroup: true },
+      { key: "symptom", text: "Core Experiences", color: "#ffffff", isGroup: true },
+      { key: "impact", text: "Life Impact", color: "#f8fafc", isGroup: true },
+    ],
+    [],
+  );
 
   const adjacency = useMemo(() => buildAdjacency(linkDataArray), [linkDataArray]);
   const [cycles, setCycles] = useState<string[][]>([]);
@@ -145,7 +244,6 @@ const CyclesGraphPage = () => {
   const [pairTo, setPairTo] = useState<string>("");
   const [pairPaths, setPairPaths] = useState<string[][]>([]);
   const [fromTotals, setFromTotals] = useState<number>(0);
-  const [showAdvanced, setShowAdvanced] = useState(false);
 
   useEffect(() => {
     if (status !== "authed") {
@@ -175,14 +273,14 @@ const CyclesGraphPage = () => {
 
   useEffect(() => {
     if (!selectedEdge) return;
-    const stillVisible = filteredEdges.some(
+    const stillVisible = mergedEdges.some(
       (edge) =>
         edge.sourceNode === selectedEdge.sourceNode && edge.targetNode === selectedEdge.targetNode,
     );
     if (!stillVisible) {
       setSelectedEdge(null);
     }
-  }, [filteredEdges, selectedEdge]);
+  }, [mergedEdges, selectedEdge]);
 
   const handleNodeSelection = useCallback((nodeKey: string) => {
     setSelectedEdge(null);
@@ -198,210 +296,6 @@ const CyclesGraphPage = () => {
       return { primary, comparison: nodeKey };
     });
   }, []);
-
-  useEffect(() => {
-    if (!showAdvanced || !diagramRef.current || nodeDataArray.length === 0) {
-      return;
-    }
-
-    const $ = go.GraphObject.make;
-    diagramInstance.current = $(go.Diagram, diagramRef.current, {
-      "undoManager.isEnabled": true,
-      initialContentAlignment: go.Spot.Center,
-      autoScale: go.Diagram.Uniform,
-      layout: $(go.GridLayout, {
-        wrappingColumn: 3,
-        spacing: new go.Size(60, 24),
-        alignment: go.GridLayout.Position,
-      }),
-      "toolManager.hoverDelay": 100,
-    });
-
-    diagramInstance.current.groupTemplate = $(
-      go.Group,
-      "Auto",
-      {
-        layout: $(go.GridLayout, {
-          wrappingColumn: 1,
-          spacing: new go.Size(0, 10),
-          alignment: go.GridLayout.Position,
-        }),
-        selectable: false,
-        computesBoundsAfterDrag: true,
-        handlesDragDropForMembers: true,
-      },
-      new go.Binding("location", "loc", go.Point.parse).makeTwoWay(go.Point.stringify),
-      $(
-        go.Shape,
-        "RoundedRectangle",
-        {
-          strokeWidth: 1,
-          stroke: "#e2e8f0",
-          fill: "#ffffff",
-        },
-        new go.Binding("fill", "color"),
-      ),
-      $(
-        go.Panel,
-        "Vertical",
-        {
-          padding: new go.Margin(12, 16, 16, 16),
-        },
-        $(
-          go.TextBlock,
-          {
-            font: "600 12px 'Inter'",
-            stroke: "#475569",
-            margin: new go.Margin(0, 0, 8, 0),
-          },
-          new go.Binding("text", "text"),
-        ),
-        $(go.Placeholder, { padding: 8 }),
-      ),
-    );
-
-    diagramInstance.current.nodeTemplate = $(
-      go.Node,
-      "Auto",
-      {
-        cursor: "pointer",
-        click: (_, obj) => {
-          const nodeKey = obj.part?.data.key;
-          if (nodeKey) {
-            handleNodeSelection(nodeKey);
-          }
-        },
-        mouseEnter: (_, obj) => (obj.part!.isShadowed = true),
-        mouseLeave: (_, obj) => (obj.part!.isShadowed = false),
-      },
-      $(
-        go.Shape,
-        "RoundedRectangle",
-        {
-          strokeWidth: 1,
-          fill: CARD_COLOR,
-          portId: "",
-          fromLinkable: true,
-          toLinkable: true,
-          fromSpot: go.Spot.AllSides,
-          toSpot: go.Spot.AllSides,
-        },
-        new go.Binding("figure", "kind", (kind) => (kind === "context" ? "Rectangle" : "RoundedRectangle")),
-        new go.Binding("fill", "", (data, obj) => {
-          if (obj.part?.isHighlighted) return TEXT_COLOR;
-          if (data.kind === "context") return "#f1f5f9";
-          if (data.kind === "impact") return "#f8fafc";
-          return CARD_COLOR;
-        }),
-        new go.Binding("stroke", "kind", (kind) => {
-          if (kind === "context") return "#94a3b8";
-          if (kind === "impact") return "#475569";
-          return "transparent";
-        }),
-        new go.Binding("strokeDashArray", "kind", (kind) => (kind === "context" ? [4, 3] : null)),
-        new go.Binding("stroke", "data.isIntermediateHighlighted", (h) => (h ? "lightblue" : "transparent")).ofObject(),
-        new go.Binding("strokeWidth", "data.isIntermediateHighlighted", (h) => (h ? 5 : 0)).ofObject(),
-      ),
-      $(
-        go.TextBlock,
-        {
-          font: "bold 12px 'Inter'",
-          stroke: TEXT_COLOR,
-          margin: 8,
-          wrap: go.TextBlock.WrapFit,
-          width: 120,
-        },
-        new go.Binding("text", "text"),
-        new go.Binding("stroke", "isHighlighted", (s) => (s ? "white" : TEXT_COLOR)).ofObject(),
-        new go.Binding("font", "isHighlighted", (s) => (s ? "bold 12px 'Inter'" : "12px 'Inter'")).ofObject(),
-      ),
-    );
-
-    diagramInstance.current.linkTemplate = $(
-      go.Link,
-      {
-        routing: go.Link.AvoidsNodes,
-        curve: go.Link.Bezier,
-        layerName: "Background",
-        corner: 10,
-        click: (_, link) => {
-          const data = link.data as LinkData | undefined;
-          if (!data) return;
-          const match = filteredEdges.find(
-            (edge) => edge.sourceNode === data.from && edge.targetNode === data.to,
-          );
-          if (match) {
-            setSelectedEdge(match);
-          }
-        },
-        mouseEnter: (_, link) => {
-          const highlight = link.findObject("HIGHLIGHT") as go.Shape | null;
-          if (highlight) highlight.stroke = "rgba(59,130,246,0.2)";
-        },
-        mouseLeave: (_, link) => {
-          const highlight = link.findObject("HIGHLIGHT") as go.Shape | null;
-          if (highlight) highlight.stroke = "transparent";
-        },
-      },
-      $(
-        go.Shape,
-        { isPanelMain: true, strokeWidth: 12, stroke: "transparent", name: "HIGHLIGHT" },
-      ),
-      $(
-        go.Shape,
-        { isPanelMain: true },
-        new go.Binding("stroke", "", (data, obj) => {
-          const isHighlighted = obj.part?.isHighlighted;
-          return isHighlighted ? "lightblue" : data.color || BASE_LINE_COLOR;
-        }).ofObject(),
-        new go.Binding("strokeWidth", "", (data, obj) => {
-          const isHighlighted = obj.part?.isHighlighted;
-          if (isHighlighted) return 8;
-          const weight = Math.max(1, Math.min(6, data.weight || 1));
-          return weight;
-        }).ofObject(),
-        new go.Binding("strokeDashArray", "avgLag", (lag) => (lag > 1 ? [4, 3] : null)),
-      ),
-      $(
-        go.Shape,
-        { toArrow: "Standard", stroke: null, fill: TEXT_COLOR, scale: 0.75 },
-      ),
-      $(
-        go.Panel,
-        "Auto",
-        { segmentFraction: 0.66 },
-        $(go.Shape, "RoundedRectangle", {
-          fill: "white",
-          stroke: "#e2e8f0",
-          strokeWidth: 1,
-        }),
-        $(
-          go.TextBlock,
-          {
-            margin: new go.Margin(2, 6, 2, 6),
-            font: "10px 'Inter'",
-            stroke: "#64748b",
-          },
-          new go.Binding("text", "avgLag", (lag) => {
-            if (!lag || lag < 0.5) return "Same day";
-            return `+ ${lag}d`;
-          }),
-        ),
-      ),
-    );
-
-    diagramInstance.current.model = new go.GraphLinksModel(
-      [...groupDataArray, ...nodeDataArray].map((node) => ({ ...node })),
-      linkDataArray.map((link) => ({ ...link })),
-    );
-
-    return () => {
-      if (diagramInstance.current) {
-        diagramInstance.current.div = null;
-        diagramInstance.current = null;
-      }
-    };
-  }, [filteredEdges, groupDataArray, handleNodeSelection, showAdvanced, nodeDataArray, linkDataArray]);
 
   useEffect(() => {
     const { primary, comparison } = selection;
@@ -441,6 +335,227 @@ const CyclesGraphPage = () => {
     setSelectedCycleIndex(null);
     setHoveredCycleIndex(null);
   }, [selection, adjacency]);
+
+  useEffect(() => {
+    if (!diagramRef.current || nodeDataArray.length === 0) {
+      return;
+    }
+
+    const $ = go.GraphObject.make;
+    diagramInstance.current = $(go.Diagram, diagramRef.current, {
+      "undoManager.isEnabled": true,
+      initialContentAlignment: go.Spot.Center,
+      autoScale: go.Diagram.None,
+      "toolManager.mouseWheelBehavior": go.ToolManager.WheelZoom,
+      layout: $(go.LayeredDigraphLayout, {
+        direction: 0,
+        layerSpacing: 60,
+        columnSpacing: 24,
+      }),
+      "toolManager.hoverDelay": 100,
+    });
+
+    diagramInstance.current.groupTemplate = $(
+      go.Group,
+      "Auto",
+      {
+        layout: $(go.LayeredDigraphLayout, {
+          direction: 90,
+          layerSpacing: 12,
+          columnSpacing: 8,
+        }),
+        selectable: false,
+        computesBoundsAfterDrag: true,
+        handlesDragDropForMembers: true,
+        layerName: "Background",
+      },
+      $(
+        go.Shape,
+        "RoundedRectangle",
+        {
+          strokeWidth: 1,
+          stroke: "#e2e8f0",
+          fill: "#ffffff",
+        },
+        new go.Binding("fill", "color"),
+      ),
+      $(
+        go.Panel,
+        "Vertical",
+        {
+          padding: new go.Margin(8, 12, 12, 12),
+        },
+        $(
+          go.TextBlock,
+          {
+            font: "600 12px 'Inter'",
+            stroke: "#475569",
+            margin: new go.Margin(0, 0, 8, 0),
+          },
+          new go.Binding("text", "text"),
+        ),
+        $(go.Placeholder, { padding: 4 }),
+      ),
+    );
+
+    diagramInstance.current.nodeTemplate = $(
+      go.Node,
+      "Auto",
+      {
+        cursor: "pointer",
+        click: (_, obj) => {
+          const nodeKey = obj.part?.data.key;
+          if (nodeKey) {
+            handleNodeSelection(nodeKey);
+          }
+        },
+        mouseEnter: (_, obj) => (obj.part!.isShadowed = true),
+        mouseLeave: (_, obj) => (obj.part!.isShadowed = false),
+      },
+      $(
+        go.Shape,
+        "RoundedRectangle",
+        {
+          strokeWidth: 1,
+          fill: "#dad9d9",
+          portId: "",
+          fromLinkable: true,
+          toLinkable: true,
+          fromSpot: go.Spot.AllSides,
+          toSpot: go.Spot.AllSides,
+        },
+        new go.Binding("figure", "kind", (kind) => (kind === "context" ? "Rectangle" : "RoundedRectangle")),
+        new go.Binding("fill", "", (data, obj) => {
+          if (obj.part?.isHighlighted) return "#122F41";
+          if (data.kind === "context") return "#f1f5f9";
+          if (data.kind === "impact") return "#f8fafc";
+          return "#dad9d9";
+        }),
+        new go.Binding("stroke", "kind", (kind) => {
+          if (kind === "context") return "#94a3b8";
+          if (kind === "impact") return "#475569";
+          return "transparent";
+        }),
+        new go.Binding("strokeDashArray", "kind", (kind) => (kind === "context" ? [4, 3] : null)),
+        new go.Binding("stroke", "data.isIntermediateHighlighted", (h) => (h ? "lightblue" : "transparent")).ofObject(),
+        new go.Binding("strokeWidth", "data.isIntermediateHighlighted", (h) => (h ? 5 : 0)).ofObject(),
+      ),
+      $(
+        go.TextBlock,
+        {
+          font: "bold 12px 'Inter'",
+          stroke: "#122F41",
+          margin: 8,
+          wrap: go.TextBlock.WrapFit,
+          width: 120,
+        },
+        new go.Binding("text", "text"),
+        new go.Binding("stroke", "isHighlighted", (s) => (s ? "white" : "#122F41")).ofObject(),
+        new go.Binding("font", "isHighlighted", (s) => (s ? "bold 12px 'Inter'" : "12px 'Inter'")).ofObject(),
+      ),
+    );
+
+    diagramInstance.current.linkTemplate = $(
+      go.Link,
+      {
+        routing: go.Link.AvoidsNodes,
+        curve: go.Link.Bezier,
+        layerName: "Foreground",
+        corner: 10,
+        click: (_, link) => {
+          const data = link.data as LinkData | undefined;
+          if (!data) return;
+          const match = mergedEdges.find(
+            (edge) => edge.sourceNode === data.from && edge.targetNode === data.to,
+          );
+          if (match) {
+            setSelectedEdge(match);
+          }
+        },
+        mouseEnter: (_, link) => {
+          const highlight = link.findObject("HIGHLIGHT") as go.Shape | null;
+          if (highlight) highlight.stroke = "rgba(59,130,246,0.2)";
+        },
+        mouseLeave: (_, link) => {
+          const highlight = link.findObject("HIGHLIGHT") as go.Shape | null;
+          if (highlight) highlight.stroke = "transparent";
+        },
+      },
+      $(
+        go.Shape,
+        { isPanelMain: true, strokeWidth: 12, stroke: "transparent", name: "HIGHLIGHT" },
+      ),
+      $(
+        go.Shape,
+        { isPanelMain: true },
+        new go.Binding("stroke", "", (data, obj) => {
+          const isHighlighted = obj.part?.isHighlighted;
+          return isHighlighted ? "lightblue" : data.color || BASE_LINE_COLOR;
+        }).ofObject(),
+        new go.Binding("strokeWidth", "", (data, obj) => {
+          const isHighlighted = obj.part?.isHighlighted;
+          if (isHighlighted) return 8;
+          const weight = Math.max(1, Math.min(6, data.weight || 1));
+          return weight;
+        }).ofObject(),
+        new go.Binding("strokeDashArray", "avgLag", (lag) => (lag > 1 ? [4, 3] : null)),
+      ),
+      $(
+        go.Shape,
+        { toArrow: "Standard", stroke: null, fill: "#122F41", scale: 0.75 },
+      ),
+      $(
+        go.Panel,
+        "Auto",
+        { segmentFraction: 0.66 },
+        $(go.Shape, "RoundedRectangle", {
+          fill: "white",
+          stroke: "#e2e8f0",
+          strokeWidth: 1,
+        }),
+        $(
+          go.TextBlock,
+          {
+            margin: new go.Margin(2, 6, 2, 6),
+            font: "10px 'Inter'",
+            stroke: "#64748b",
+          },
+          new go.Binding("text", "avgLag", (lag) => {
+            if (!lag || lag < 0.5) return "Same day";
+            return `+ ${lag}d`;
+          }),
+        ),
+      ),
+    );
+
+    diagramInstance.current.model = new go.GraphLinksModel(
+      [...groupDataArray, ...nodeDataArray].map((node) => ({ ...node })),
+      linkDataArray.map((link) => ({ ...link })),
+    );
+    diagramInstance.current.zoomToFit();
+
+    const handleWheel = (event: WheelEvent) => {
+      const diagram = diagramInstance.current;
+      if (!diagram) return;
+      event.preventDefault();
+      const delta = Math.sign(event.deltaY);
+      if (delta > 0) {
+        diagram.commandHandler.decreaseZoom();
+      } else if (delta < 0) {
+        diagram.commandHandler.increaseZoom();
+      }
+    };
+
+    diagramRef.current.addEventListener("wheel", handleWheel, { passive: false });
+
+    return () => {
+      diagramRef.current?.removeEventListener("wheel", handleWheel);
+      if (diagramInstance.current) {
+        diagramInstance.current.div = null;
+        diagramInstance.current = null;
+      }
+    };
+  }, [filteredEdges, groupDataArray, handleNodeSelection, linkDataArray, mergedEdges, nodeDataArray]);
 
   const primaryNode = nodeDataArray.find((node) => node.key === selection.primary);
   const comparisonNode = nodeDataArray.find((node) => node.key === selection.comparison);
@@ -504,49 +619,95 @@ const CyclesGraphPage = () => {
     };
   }, [cycles, nodeDataArray]);
 
-  const highlightGraph = useCallback(() => {
-    const diagram = diagramInstance.current;
-    if (!diagram) return;
-
+  const highlightState = useMemo(() => {
     const nodeKeysToHighlight = new Set<string>();
     const linkKeysToHighlight = new Set<string>();
+    const focusNodes = new Set<string>();
+    const focusLinks = new Set<string>();
 
-    if (selection.primary) nodeKeysToHighlight.add(selection.primary);
-    if (selection.comparison) nodeKeysToHighlight.add(selection.comparison);
+    if (selection.primary) {
+      nodeKeysToHighlight.add(selection.primary);
+      focusNodes.add(selection.primary);
+    }
+    if (selection.comparison) {
+      nodeKeysToHighlight.add(selection.comparison);
+      focusNodes.add(selection.comparison);
+    }
+    if (selectedEdge) {
+      nodeKeysToHighlight.add(selectedEdge.sourceNode);
+      nodeKeysToHighlight.add(selectedEdge.targetNode);
+      linkKeysToHighlight.add(`${selectedEdge.sourceNode}->${selectedEdge.targetNode}`);
+      focusNodes.add(selectedEdge.sourceNode);
+      focusNodes.add(selectedEdge.targetNode);
+      focusLinks.add(`${selectedEdge.sourceNode}->${selectedEdge.targetNode}`);
+    }
 
     const activeIndex = hoveredCycleIndex ?? selectedCycleIndex;
-
     if (activeIndex !== null && cycles[activeIndex]) {
       const cycle = cycles[activeIndex];
       cycle.forEach((key, idx) => {
         nodeKeysToHighlight.add(key);
+        focusNodes.add(key);
         if (idx < cycle.length - 1) {
           const from = cycle[idx];
           const to = cycle[idx + 1];
           linkKeysToHighlight.add(`${from}->${to}`);
+          focusLinks.add(`${from}->${to}`);
         }
       });
     }
 
+    if (selection.primary || selection.comparison) {
+      linkDataArray.forEach((link) => {
+        const isConnectedToPrimary =
+          selection.primary && (link.from === selection.primary || link.to === selection.primary);
+        const isConnectedToComparison =
+          selection.comparison && (link.from === selection.comparison || link.to === selection.comparison);
+        if (isConnectedToPrimary || isConnectedToComparison) {
+          focusLinks.add(`${link.from}->${link.to}`);
+          focusNodes.add(link.from);
+          focusNodes.add(link.to);
+        }
+      });
+    }
+
+    return {
+      highlightedNodes: nodeKeysToHighlight,
+      highlightedEdges: linkKeysToHighlight,
+      focusNodes,
+      focusLinks,
+    };
+  }, [cycles, hoveredCycleIndex, linkDataArray, selectedCycleIndex, selectedEdge, selection]);
+
+  useEffect(() => {
+    const diagram = diagramInstance.current;
+    if (!diagram) return;
+    const { highlightedNodes, highlightedEdges, focusNodes, focusLinks } = highlightState;
+
     diagram.startTransaction("highlight");
     diagram.clearHighlighteds();
 
-    nodeKeysToHighlight.forEach((key) => {
+    highlightedNodes.forEach((key) => {
       const node = diagram.findNodeForKey(key);
       if (node) node.isHighlighted = true;
     });
 
     diagram.links.each((link) => {
       const key = `${link.data.from}->${link.data.to}`;
-      link.isHighlighted = linkKeysToHighlight.has(key);
+      link.isHighlighted = highlightedEdges.has(key);
+    });
+
+    diagram.nodes.each((node) => {
+      const key = node.data?.key;
+      node.opacity = focusNodes.size ? (focusNodes.has(key) ? 1 : 0.2) : 1;
+    });
+    diagram.links.each((link) => {
+      const key = `${link.data.from}->${link.data.to}`;
+      link.opacity = focusLinks.size ? (focusLinks.has(key) ? 1 : 0.15) : 1;
     });
 
     diagram.commitTransaction("highlight");
-  }, [selection, cycles, selectedCycleIndex, hoveredCycleIndex]);
-
-  useEffect(() => {
-    highlightGraph();
-  }, [highlightGraph]);
+  }, [highlightState]);
 
   const helperMessage = useMemo(() => {
     if (!selection.primary) return "Click any box in the graph to get started.";
@@ -560,6 +721,67 @@ const CyclesGraphPage = () => {
     () => Object.fromEntries(nodeDataArray.map((node) => [node.key, node.text])),
     [nodeDataArray],
   );
+
+  const circuitEdges = useMemo(
+    () => linkDataArray.map((link) => ({ from: link.from, to: link.to, weight: link.weight })),
+    [linkDataArray],
+  );
+  const nodeKindById = useMemo(
+    () => new Map(nodeDataArray.map((node) => [node.key, node.kind])),
+    [nodeDataArray],
+  );
+  const edgeWeightByKey = useMemo(() => {
+    const map = new Map<string, number>();
+    linkDataArray.forEach((link) => {
+      map.set(`${link.from}->${link.to}`, link.weight);
+    });
+    return map;
+  }, [linkDataArray]);
+  const circuitCycles = useMemo(() => findSimpleCycles(circuitEdges), [circuitEdges]);
+  const rankedCircuitCycles = useMemo(() => {
+    const scored = circuitCycles.map((cycle) => {
+      const weights = cycle.map((nodeId, idx) => {
+        const nextId = cycle[(idx + 1) % cycle.length];
+        return edgeWeightByKey.get(`${nodeId}->${nextId}`) ?? 0;
+      });
+      const strength = weights.length ? Math.min(...weights) : 0;
+      return { cycle, strength };
+    });
+    scored.sort((a, b) => b.strength - a.strength);
+    return scored;
+  }, [circuitCycles, edgeWeightByKey]);
+  const storyCycles = useMemo(() => {
+    const filtered = circuitCycles.filter((cycle) => {
+      if (cycle.length < 2) return false;
+      let hasContext = false;
+      let hasSymptom = false;
+      let hasImpact = false;
+      cycle.forEach((nodeId) => {
+        const kind = nodeKindById.get(nodeId);
+        if (kind === "context") hasContext = true;
+        if (kind === "symptom") hasSymptom = true;
+        if (kind === "impact") hasImpact = true;
+      });
+      return hasSymptom && (hasContext || hasImpact || cycle.length >= 3);
+    });
+
+    const scored = filtered.map((cycle) => {
+      const weights = cycle.map((nodeId, idx) => {
+        const nextId = cycle[(idx + 1) % cycle.length];
+        return edgeWeightByKey.get(`${nodeId}->${nextId}`) ?? 0;
+      });
+      const strength = weights.length ? Math.min(...weights) : 0;
+      return { cycle, strength };
+    });
+
+    scored.sort((a, b) => b.strength - a.strength);
+    return scored.slice(0, 5);
+  }, [circuitCycles, edgeWeightByKey, nodeKindById]);
+
+  const consolidatedGroups = useMemo(() => {
+    const validCycles = circuitCycles.filter((cycle) => cycle.length >= 3);
+    return consolidateCycles(validCycles);
+  }, [circuitCycles]);
 
   useEffect(() => {
     if (!pairFrom) return;
@@ -604,158 +826,328 @@ const CyclesGraphPage = () => {
     };
   }, [selectedEdge, nodeKeyToText]);
 
+  const flowNodes = useMemo<FlowNode[]>(
+    () =>
+      nodeDataArray.map((node) => ({
+        id: node.key,
+        label: node.text,
+        type: node.kind,
+      })),
+    [nodeDataArray],
+  );
+
+  const flowEdges = useMemo<FlowEdge[]>(
+    () =>
+      linkDataArray.map((link) => ({
+        from: link.from,
+        to: link.to,
+        weight: link.weight,
+        color: link.color ?? BASE_LINE_COLOR,
+        avgLag: link.avgLag,
+        sourcePairs: link.sourcePairs,
+      })),
+    [linkDataArray],
+  );
+
   return (
     <div className="w-full space-y-10 pb-20 text-slate-900">
       <PageHeader
         eyebrow="Quick intel"
         title="Issue Pair Explorer"
         description="Compare two issues at a glance. We’ll surface how often they appear together, show common paths, and prompt an intervention."
-        actions={(
-          <div className="flex flex-wrap items-center gap-3 text-sm text-slate-500">
-            <Button variant="secondary" size="sm" onClick={() => setShowAdvanced((prev) => !prev)}>
-              {showAdvanced ? "Hide deeper analysis" : "Open deeper analysis"}
-            </Button>
-            <div className="flex flex-wrap gap-3">
-              <div>
-                <p className="text-xs uppercase tracking-[0.4em] text-slate-400">From</p>
-                <select
-                  className="mt-1 rounded-2xl border border-slate-200 px-3 py-2 text-sm text-slate-700"
-                  value={pairFrom}
-                  onChange={(e) => setPairFrom(e.target.value)}
-                  disabled={!hasData}
-                >
-                  {nodeDataArray.map((node) => (
-                    <option key={node.key} value={node.key}>
-                      {node.text}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <p className="text-xs uppercase tracking-[0.4em] text-slate-400">To</p>
-                <select
-                  className="mt-1 rounded-2xl border border-slate-200 px-3 py-2 text-sm text-slate-700"
-                  value={pairTo}
-                  onChange={(e) => setPairTo(e.target.value)}
-                  disabled={!hasData}
-                >
-                  {nodeDataArray
-                    .filter((node) => node.key !== pairFrom)
-                    .map((node) => (
+      >
+        <details className="group rounded-3xl border border-slate-200 bg-white/70 p-5">
+          <summary className="cursor-pointer text-xs uppercase tracking-[0.4em] text-slate-400">
+            Show analysis tools
+          </summary>
+          <div className="mt-4 space-y-6">
+            {loading ? (
+              <Card className="p-4 text-sm text-slate-500">Loading cycles…</Card>
+            ) : error ? (
+              <Card className="p-4 text-sm text-rose-600">{error}</Card>
+            ) : !hasData ? (
+              <Card className="p-4 text-sm text-slate-500">
+                No cycles detected yet. Generate more entries or rebuild derived data.
+              </Card>
+            ) : null}
+            <details className="rounded-3xl border border-slate-200 bg-white/70 p-5">
+              <summary className="cursor-pointer text-xs uppercase tracking-[0.4em] text-slate-400">
+                Advanced filters
+              </summary>
+              <div className="mt-4 grid gap-4 md:grid-cols-3">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.4em] text-slate-400">From</p>
+                  <select
+                    className="mt-1 w-full rounded-2xl border border-slate-200 px-3 py-2 text-sm text-slate-700"
+                    value={pairFrom}
+                    onChange={(e) => setPairFrom(e.target.value)}
+                    disabled={!hasData}
+                  >
+                    {nodeDataArray.map((node) => (
                       <option key={node.key} value={node.key}>
                         {node.text}
                       </option>
                     ))}
-                </select>
-              </div>
-            </div>
-          </div>
-        )}
-      >
-        {loading ? (
-          <Card className="mb-4 p-4 text-sm text-slate-500">Loading cycles…</Card>
-        ) : error ? (
-          <Card className="mb-4 p-4 text-sm text-rose-600">{error}</Card>
-        ) : !hasData ? (
-          <Card className="mb-4 p-4 text-sm text-slate-500">
-            No cycles detected yet. Generate more entries or rebuild derived data.
-          </Card>
-        ) : null}
-        <div className="grid gap-6 lg:grid-cols-3">
-          <Card className="p-5">
-            <p className="text-xs uppercase tracking-[0.4em] text-slate-400">Cycle detail</p>
-            {selectedEdgeSummary ? (
-              <>
-                <h3 className="mt-3 text-lg font-semibold text-brand">{selectedEdgeSummary.title}</h3>
-                <p className="mt-2 text-sm text-slate-500">
-                  Happened {selectedEdgeSummary.frequency} times · {selectedEdgeSummary.lagText}
-                </p>
-                <p className="mt-1 text-xs text-slate-400">
-                  Evidence entries: {selectedEdgeSummary.evidenceCount}
-                </p>
-              </>
-            ) : (
-              <>
-                <h3 className="mt-3 text-lg font-semibold text-brand">Select a connection</h3>
-                <p className="mt-2 text-sm text-slate-500">
-                  Tap a line in the graph to see strength, lag, and evidence counts.
-                </p>
-              </>
-            )}
-          </Card>
-          <Card className="p-5 lg:col-span-2">
-            <p className="text-xs uppercase tracking-[0.4em] text-slate-400">Top paths</p>
-            {pairPaths.length ? (
-              <div className="mt-3 flex flex-wrap gap-2">
-                {pairPaths.slice(0, 3).map((path, idx) => (
-                  <div
-                    key={`${path.join("-")}-${idx}`}
-                    className="flex max-w-full flex-wrap items-center rounded-full bg-slate-100 px-4 py-2 text-sm text-brand"
+                  </select>
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-[0.4em] text-slate-400">To</p>
+                  <select
+                    className="mt-1 w-full rounded-2xl border border-slate-200 px-3 py-2 text-sm text-slate-700"
+                    value={pairTo}
+                    onChange={(e) => setPairTo(e.target.value)}
+                    disabled={!hasData}
                   >
-                    {path.map((nodeKey, i) => (
-                      <span key={`${nodeKey}-${i}`} className="flex items-center">
-                        {nodeKeyToText[nodeKey] ?? nodeKey}
-                        {i < path.length - 1 && <span className="px-1 text-slate-400">→</span>}
-                      </span>
+                    {nodeDataArray
+                      .filter((node) => node.key !== pairFrom)
+                      .map((node) => (
+                        <option key={node.key} value={node.key}>
+                          {node.text}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-[0.4em] text-slate-400">Confidence</p>
+                  <div className="mt-2 flex items-center gap-3">
+                    <input
+                      type="range"
+                      min="0"
+                      max="1"
+                      step="0.05"
+                      value={minConfidence}
+                      onChange={(e) => setMinConfidence(Number(e.target.value))}
+                      className="w-full"
+                    />
+                    <span className="text-xs font-semibold text-slate-500">
+                      {Math.round(minConfidence * 100)}%
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </details>
+
+            <div className="grid gap-6 lg:grid-cols-3">
+              <Card className="p-5">
+                <p className="text-xs uppercase tracking-[0.4em] text-slate-400">Cycle detail</p>
+                {selectedEdgeSummary ? (
+                  <>
+                    <h3 className="mt-3 text-lg font-semibold text-brand">{selectedEdgeSummary.title}</h3>
+                    <p className="mt-2 text-sm text-slate-500">
+                      Happened {selectedEdgeSummary.frequency} times · {selectedEdgeSummary.lagText}
+                    </p>
+                    <p className="mt-1 text-xs text-slate-400">
+                      Evidence entries: {selectedEdgeSummary.evidenceCount}
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <h3 className="mt-3 text-lg font-semibold text-brand">Select a connection</h3>
+                    <p className="mt-2 text-sm text-slate-500">
+                      Tap a line in the graph to see strength, lag, and evidence counts.
+                    </p>
+                  </>
+                )}
+              </Card>
+              <Card className="p-5 lg:col-span-2">
+                <p className="text-xs uppercase tracking-[0.4em] text-slate-400">Top paths</p>
+                {pairPaths.length ? (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {pairPaths.slice(0, 3).map((path, idx) => (
+                      <div
+                        key={`${path.join("-")}-${idx}`}
+                        className="flex max-w-full flex-wrap items-center rounded-full bg-slate-100 px-4 py-2 text-sm text-brand"
+                      >
+                        {path.map((nodeKey, i) => (
+                          <span key={`${nodeKey}-${i}`} className="flex items-center">
+                            {nodeKeyToText[nodeKey] ?? nodeKey}
+                            {i < path.length - 1 && <span className="px-1 text-slate-400">→</span>}
+                          </span>
+                        ))}
+                      </div>
                     ))}
                   </div>
-                ))}
-              </div>
-            ) : (
-              <p className="mt-3 text-sm text-slate-500">We haven’t seen this pair connect yet. Try another combination.</p>
-            )}
-          </Card>
-        </div>
-
-        <div className="mt-6 rounded-3xl border border-brand/10 bg-brand/5 p-5">
-          <p className="text-xs uppercase tracking-[0.4em] text-brand/70">Suggested intervention</p>
-          <p className="mt-2 text-sm text-slate-600">{activeSuggestion}</p>
-        </div>
-        <div className="mt-4 rounded-3xl border border-slate-200 bg-white p-4">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <p className="text-xs uppercase tracking-[0.4em] text-slate-400">Confidence filter</p>
-              <p className="text-sm text-slate-500">Show patterns at or above {Math.round(minConfidence * 100)}% confidence.</p>
+                ) : (
+                  <p className="mt-3 text-sm text-slate-500">
+                    We haven’t seen this pair connect yet. Try another combination.
+                  </p>
+                )}
+              </Card>
             </div>
-            <div className="flex w-full max-w-xs items-center gap-3">
-              <input
-                type="range"
-                min="0"
-                max="1"
-                step="0.05"
-                value={minConfidence}
-                onChange={(e) => setMinConfidence(Number(e.target.value))}
-                className="w-full"
-              />
-              <span className="text-xs font-semibold text-slate-500">{Math.round(minConfidence * 100)}%</span>
+
+            <div className="rounded-3xl border border-brand/10 bg-brand/5 p-5">
+              <p className="text-xs uppercase tracking-[0.4em] text-brand/70">Suggested intervention</p>
+              <p className="mt-2 text-sm text-slate-600">{activeSuggestion}</p>
             </div>
           </div>
-        </div>
+        </details>
       </PageHeader>
 
-      {showAdvanced && (
-        <>
-          <section className="rounded-3xl border border-brand/15 bg-gradient-to-br from-white via-white to-brand/5 p-6">
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <div>
-                <p className="text-xs uppercase tracking-[0.4em] text-brand/60">MindStorm network</p>
-                <h1 className="mt-2 text-3xl font-semibold text-brand">Cycles tracker</h1>
-                <p className="mt-2 text-sm text-slate-500">
-                  Tap a box to set the starting point. Tap another to compare loops between them—every connection mirrors the original MindStorm map.
-                </p>
-              </div>
-              <Button variant="secondary" onClick={() => diagramInstance.current?.zoomToFit()}>
-                Fit to screen
-              </Button>
-            </div>
-            <div className="mt-6 rounded-3xl border border-slate-100 p-4">
-              <div ref={diagramRef} className="h-[460px] w-full" />
-            </div>
-          </section>
+      <section className="rounded-3xl border border-brand/15 bg-gradient-to-br from-white via-white to-brand/5 p-6">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <p className="text-xs uppercase tracking-[0.4em] text-brand/60">MindStorm network</p>
+            <h1 className="mt-2 text-3xl font-semibold text-brand">Cycles tracker</h1>
+            <p className="mt-2 text-sm text-slate-500">
+              Tap a box to set the starting point. Tap another to compare loops between them—every connection mirrors the original MindStorm map.
+            </p>
+          </div>
+        </div>
+        <div className="mt-6 rounded-3xl border border-slate-100 bg-slate-50/60 p-6">
+          <FlowGraph
+            nodes={flowNodes}
+            edges={flowEdges}
+            highlightedNodeIds={highlightState.highlightedNodes}
+            highlightedEdgeIds={highlightState.highlightedEdges}
+            focusNodeIds={highlightState.focusNodes}
+            focusEdgeIds={highlightState.focusLinks}
+            onNodeClick={handleNodeSelection}
+            onEdgeClick={(edge) => {
+              const match = mergedEdges.find(
+                (item) => item.sourceNode === edge.from && item.targetNode === edge.to,
+              );
+              if (match) {
+                setSelectedEdge(match);
+              }
+            }}
+            className="w-full"
+          />
+        </div>
+      </section>
 
-          <section className="space-y-6 rounded-3xl border border-brand/15 p-6">
-            <div className="ms-glass-surface rounded-2xl border p-4 text-sm text-slate-600">
-              <p className="font-semibold text-brand">How to use this map</p>
+      <section className="rounded-3xl border border-slate-200 bg-white p-6">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <p className="text-xs uppercase tracking-[0.4em] text-slate-400">Legacy view</p>
+            <h2 className="mt-2 text-2xl font-semibold text-slate-700">GoJS graph</h2>
+            <p className="mt-2 text-sm text-slate-500">
+              Reference layout for development parity while the new flow graph is tuned.
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <Button variant="secondary" size="sm" onClick={() => diagramInstance.current?.commandHandler.increaseZoom()}>
+              Zoom in
+            </Button>
+            <Button variant="secondary" size="sm" onClick={() => diagramInstance.current?.commandHandler.decreaseZoom()}>
+              Zoom out
+            </Button>
+            <Button variant="secondary" size="sm" onClick={() => diagramInstance.current?.zoomToFit()}>
+              Fit to screen
+            </Button>
+          </div>
+        </div>
+        <div className="mt-6 rounded-3xl border border-slate-100 p-4">
+          <div ref={diagramRef} className="h-[70vh] w-full min-h-[460px]" />
+        </div>
+      </section>
+
+      <section className="rounded-3xl border border-slate-200 bg-white p-6">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <p className="text-xs uppercase tracking-[0.4em] text-slate-400">Cycle circuits</p>
+            <h2 className="mt-2 text-2xl font-semibold text-slate-700">Linked cycles & chains</h2>
+            <p className="mt-2 text-sm text-slate-500">
+              Each circuit highlights a loop with its incoming triggers and outgoing impacts.
+            </p>
+          </div>
+        </div>
+        <div className="mt-6 flex flex-col gap-6">
+          {circuitCycles.length === 0 ? (
+            <Card className="p-4 text-sm text-slate-500">
+              No cycles found yet. Add more entries or adjust the filters above.
+            </Card>
+          ) : (
+            rankedCircuitCycles.slice(0, 3).map(({ cycle }, idx) => {
+              const attachments = findAttachments(cycle, circuitEdges);
+              const cycleNodes = cycle.map((id) => ({
+                id,
+                label: nodeKeyToText[id] ?? id,
+              }));
+              const inputs = attachments.inputs.map((id) => ({
+                id,
+                label: nodeKeyToText[id] ?? id,
+              }));
+              const outputs = attachments.outputs.map((id) => ({
+                id,
+                label: nodeKeyToText[id] ?? id,
+              }));
+              return (
+                <CycleCircuit
+                  key={`${cycle.join("-")}-${idx}`}
+                  cycleNodes={cycleNodes}
+                  inputs={inputs}
+                  outputs={outputs}
+                  onBreakCycle={(source, target) => {
+                    setSelectedCycleIndex(idx);
+                    setSelection({ primary: source, comparison: target });
+                  }}
+                />
+              );
+            })
+          )}
+        </div>
+      </section>
+
+      <section className="rounded-3xl border border-slate-200 bg-white p-6">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <p className="text-xs uppercase tracking-[0.4em] text-slate-400">Cycle stories</p>
+            <h2 className="mt-2 text-2xl font-semibold text-slate-700">Narrative strips</h2>
+            <p className="mt-2 text-sm text-slate-500">
+              Focused loops with a clear trigger-to-experience story and a gentle return.
+            </p>
+          </div>
+        </div>
+        <div className="mt-6 flex flex-col gap-6">
+          {storyCycles.length === 0 ? (
+            <Card className="p-4 text-sm text-slate-500">
+              No narrative loops met the filter yet. Try lowering the confidence filter above.
+            </Card>
+          ) : (
+            storyCycles.map(({ cycle, strength }, idx) => {
+              const nodes = cycle.map((id) => ({
+                id,
+                label: nodeKeyToText[id] ?? id,
+                type: nodeKindById.get(id) ?? "symptom",
+              }));
+              return <CycleStory key={`${cycle.join("-")}-${idx}`} nodes={nodes} frequency={strength} />;
+            })
+          )}
+        </div>
+      </section>
+
+      <section className="rounded-3xl border border-slate-200 bg-white p-6">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <p className="text-xs uppercase tracking-[0.4em] text-slate-400">Nested patterns</p>
+            <h2 className="mt-2 text-2xl font-semibold text-slate-700">Consolidated cycles</h2>
+            <p className="mt-2 text-sm text-slate-500">
+              Longer loops with their internal shortcut cycles grouped beneath.
+            </p>
+          </div>
+        </div>
+        <div className="mt-6 flex flex-col gap-6">
+          {consolidatedGroups.length === 0 ? (
+            <Card className="p-4 text-sm text-slate-500">
+              No consolidated cycles detected yet.
+            </Card>
+          ) : (
+            consolidatedGroups.map((group, idx) => (
+              <NestedCycleCard
+                key={`${group.parent.join("-")}-${idx}`}
+                parentCycle={group.parent}
+                subLoops={group.subLoops}
+                nodeLabels={nodeKeyToText}
+                nodeKinds={Object.fromEntries(nodeKindById.entries())}
+              />
+            ))
+          )}
+        </div>
+      </section>
+
+      <section className="space-y-6 rounded-3xl border border-brand/15 p-6">
+        <div className="ms-glass-surface rounded-2xl border p-4 text-sm text-slate-600">
+          <p className="font-semibold text-brand">How to use this map</p>
               <p className="mt-2 leading-relaxed">
                 Select one issue to explore its internal loops. Select a second to surface every path between the two. Hover or click any path in the list to
                 highlight it on the graph, just like the legacy MindStorm experience.
@@ -894,8 +1286,6 @@ const CyclesGraphPage = () => {
               )}
             </div>
           </section>
-        </>
-      )}
     </div>
   );
 };

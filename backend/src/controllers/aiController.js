@@ -441,7 +441,15 @@ const normalizeEmotions = (emotions) => {
       const label = typeof emotion.label === "string" ? emotion.label.trim() : "";
       if (!label) return null;
       const intensity = Number.isFinite(emotion.intensity) ? emotion.intensity : 0;
-      const tone = typeof emotion.tone === "string" && emotion.tone.trim() ? emotion.tone : "neutral";
+      const toneKey = typeof emotion.tone === "string" ? emotion.tone.trim().toLowerCase() : "";
+      const tone = (
+        {
+          positive: "positive",
+          neutral: "neutral",
+          negative: "negative",
+          heavy: "negative",
+        }[toneKey] || "neutral"
+      );
       return {
         label,
         intensity,

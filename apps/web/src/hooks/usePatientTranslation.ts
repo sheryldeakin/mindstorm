@@ -1,3 +1,4 @@
+import { useCallback, useMemo } from "react";
 import patientView from "@criteria/depressive_disorders_patient_view.json";
 import type { EvidenceUnit as SignalEvidenceUnit } from "@mindstorm/signal-schema";
 
@@ -33,8 +34,15 @@ export type PatientEvidenceUnit = SignalEvidenceUnit & {
   attributes?: EvidenceAttributes | null;
 };
 
+const normalizeCode = (rawLabel: string) => {
+  if (!rawLabel) return "";
+  const candidate = rawLabel.includes(":") ? rawLabel.split(":")[0] : rawLabel;
+  return candidate.trim();
+};
+
 const humanizeLabel = (value: string) => {
-  const cleaned = value
+  const code = normalizeCode(value);
+  const cleaned = code
     .replace(/^SYMPTOM_/, "")
     .replace(/^IMPACT_/, "")
     .replace(/^CONTEXT_/, "")
@@ -52,40 +60,45 @@ const mapping = patientView as PatientViewMapping;
 const normalizeSeverityKey = (value: string) => value.trim().toUpperCase();
 
 export const usePatientTranslation = () => {
-  const labelMappings = mapping.evidence_label_mappings || {};
-  const severityLevels = mapping.node_mappings?.severity_levels || {};
+  const labelMappings = useMemo(() => mapping.evidence_label_mappings || {}, []);
+  const severityLevels = useMemo(() => mapping.node_mappings?.severity_levels || {}, []);
 
-  const getPatientLabel = (clinicalLabel: string) =>
-    labelMappings[clinicalLabel]?.patient_label || humanizeLabel(clinicalLabel);
+  const getPatientLabel = useCallback((clinicalLabel: string) => {
+    const code = normalizeCode(clinicalLabel);
+    return labelMappings[code]?.patient_label || humanizeLabel(code);
+  }, [labelMappings]);
 
-  const getReflectionPrompt = (clinicalLabel: string) =>
-    labelMappings[clinicalLabel]?.reflection_prompt;
+  const getReflectionPrompt = useCallback((clinicalLabel: string) => {
+    const code = normalizeCode(clinicalLabel);
+    return labelMappings[code]?.reflection_prompt;
+  }, [labelMappings]);
 
-  const getIntensityLabel = (severity: string) => {
+  const getIntensityLabel = useCallback((severity: string) => {
     const normalized = normalizeSeverityKey(severity);
     return severityLevels[normalized]?.label || humanizeLabel(normalized);
-  };
+  }, [severityLevels]);
 
-  const groupEvidenceByPatientLabel = (units: PatientEvidenceUnit[]) => {
+  const groupEvidenceByPatientLabel = useCallback((units: PatientEvidenceUnit[]) => {
     const groups = new Map<
       string,
       { label: string; patientLabel: string; prompt?: string; units: PatientEvidenceUnit[] }
     >();
     units.forEach((unit) => {
-      const patientLabel = getPatientLabel(unit.label);
-      const prompt = getReflectionPrompt(unit.label);
-      if (!groups.has(unit.label)) {
-        groups.set(unit.label, {
-          label: unit.label,
+      const normalizedKey = normalizeCode(unit.label);
+      const patientLabel = getPatientLabel(normalizedKey);
+      const prompt = getReflectionPrompt(normalizedKey);
+      if (!groups.has(normalizedKey)) {
+        groups.set(normalizedKey, {
+          label: normalizedKey,
           patientLabel,
           prompt,
           units: [],
         });
       }
-      groups.get(unit.label)?.units.push(unit);
+      groups.get(normalizedKey)?.units.push(unit);
     });
     return Array.from(groups.values());
-  };
+  }, [getPatientLabel, getReflectionPrompt]);
 
   return {
     getPatientLabel,

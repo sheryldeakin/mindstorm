@@ -168,7 +168,15 @@ const normalizeEmotions = (emotions) => {
       const label = typeof emotion.label === "string" ? emotion.label.trim() : "";
       if (!label) return null;
       const intensity = Number.isFinite(emotion.intensity) ? emotion.intensity : 0;
-      const tone = typeof emotion.tone === "string" && emotion.tone.trim() ? emotion.tone : "neutral";
+      const toneKey = typeof emotion.tone === "string" ? emotion.tone.trim().toLowerCase() : "";
+      const tone = (
+        {
+          positive: "positive",
+          neutral: "neutral",
+          negative: "negative",
+          heavy: "negative",
+        }[toneKey] || "neutral"
+      );
       return {
         label,
         intensity,
@@ -193,6 +201,15 @@ const loadFailures = (source) => {
   });
   const failures = Array.from(failuresByFile.values()).flat();
   return { failuresByFile, failures };
+};
+
+const removeResolvedEntry = (failuresByFile, entryId) => {
+  failuresByFile.forEach((rows, filePath) => {
+    const remaining = rows.filter((row) => row.entryId !== entryId);
+    if (remaining.length === rows.length) return;
+    failuresByFile.set(filePath, remaining);
+    writeFailures(filePath, remaining);
+  });
 };
 
 const runOnce = async ({ source, maxRetries }) => {
@@ -294,7 +311,9 @@ const runOnce = async ({ source, maxRetries }) => {
     }
     entry.meta = { ...(entry.meta || {}), source: "llm" };
     await entry.save();
-    resolvedEntryIds.add(entry._id.toString());
+    const entryId = entry._id.toString();
+    resolvedEntryIds.add(entryId);
+    removeResolvedEntry(failuresByFile, entryId);
 
     staleUserIds.add(entry.userId.toString());
 
@@ -329,14 +348,7 @@ const runOnce = async ({ source, maxRetries }) => {
     });
   }
 
-  failuresByFile.forEach((rows, filePath) => {
-    const remaining = rows.filter((row) => !resolvedEntryIds.has(row.entryId));
-    writeFailures(filePath, remaining);
-  });
-
-  const remainingCount = Array.from(failuresByFile.values())
-    .flat()
-    .filter((row) => !resolvedEntryIds.has(row.entryId)).length;
+  const remainingCount = Array.from(failuresByFile.values()).flat().length;
 
   console.log(`Retry complete. Processed ${entries.length} entries.`);
   if (!remainingCount) {

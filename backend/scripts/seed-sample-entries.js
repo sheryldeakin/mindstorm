@@ -71,6 +71,13 @@ const logFailure = ({ entryId, userId, step, error }) => {
 const createProgress = (total, label) => {
   const start = Date.now();
   const safeTotal = total > 0 ? total : 1;
+  const formatDuration = (seconds) => {
+    const totalSeconds = Math.max(0, Math.round(seconds));
+    const hrs = Math.floor(totalSeconds / 3600);
+    const mins = Math.floor((totalSeconds % 3600) / 60);
+    const secs = totalSeconds % 60;
+    return `${String(hrs).padStart(2, "0")}:${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+  };
   const render = (current) => {
     const percent = Math.min(current / safeTotal, 1);
     const width = 24;
@@ -78,7 +85,7 @@ const createProgress = (total, label) => {
     const bar = `${"█".repeat(filled)}${"░".repeat(width - filled)}`;
     const elapsed = (Date.now() - start) / 1000;
     const eta = current > 0 ? ((elapsed / current) * (safeTotal - current)) : 0;
-    const line = `${label} [${bar}] ${(percent * 100).toFixed(1)}% (${current}/${safeTotal}) ETA ${eta.toFixed(0)}s`;
+    const line = `${label} [${bar}] ${(percent * 100).toFixed(1)}% (${current}/${safeTotal}) ETA ${formatDuration(eta)}`;
     process.stdout.write(`\r${line}`);
   };
   const done = () => {

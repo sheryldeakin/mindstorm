@@ -15,6 +15,11 @@
     "concurrently": "^9.1.0"
   },
   "dependencies": {
-    "pdfplumber": "^0.0.1-security"
+    "@types/dagre": "^0.7.53",
+    "clsx": "^2.1.1",
+    "dagre": "^0.8.5",
+    "framer-motion": "^12.29.0",
+    "pdfplumber": "^0.0.1-security",
+    "react-zoom-pan-pinch": "^3.7.0"
   }
 }

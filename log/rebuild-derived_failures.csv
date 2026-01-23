@@ -1,1 +1,4 @@
 script,entryId,userId,step,error,timestamp
+"rebuild-derived","6972a808db72dbfc35fbaa52","6972792d392038e8a52e70d1","evidence_units","Failed to parse JSON response.","2026-01-23T02:16:52.635Z"
+"rebuild-derived","6972a808db72dbfc35fbaa61","6972792d392038e8a52e70d1","evidence_units","LLM request timed out.","2026-01-23T02:28:56.431Z"
+"rebuild-derived","6972a808db72dbfc35fbaa62","6972792d392038e8a52e70d1","evidence_units","LLM request timed out.","2026-01-23T02:29:44.023Z"
