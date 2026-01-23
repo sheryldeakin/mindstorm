@@ -7,9 +7,11 @@ import PatternCard from "../patterns/PatternCard";
  */
 interface PatternCardGridProps {
   patterns: HomePatternCard[];
+  onSelect?: (pattern: HomePatternCard) => void;
+  selectedTitle?: string | null;
 }
 
-const PatternCardGrid = ({ patterns }: PatternCardGridProps) => {
+const PatternCardGrid = ({ patterns, onSelect, selectedTitle }: PatternCardGridProps) => {
   if (!patterns.length) {
     return (
       <div className="rounded-2xl border border-dashed border-slate-200 bg-white/60 p-6 text-sm text-slate-500">
@@ -28,6 +30,8 @@ const PatternCardGrid = ({ patterns }: PatternCardGridProps) => {
           trend={pattern.trend}
           confidence={pattern.confidence}
           series={pattern.sparkline}
+          isActive={selectedTitle ? pattern.title === selectedTitle : false}
+          onClick={onSelect ? () => onSelect(pattern) : undefined}
         />
       ))}
     </div>

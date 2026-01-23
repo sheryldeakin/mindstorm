@@ -102,34 +102,50 @@ const PatternStream = ({
         </div>
         <div className="min-w-0 flex-1">
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={data} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
-              <XAxis
-                dataKey="dateISO"
-                tickFormatter={formatDateLabel}
-                axisLine={false}
-                tickLine={false}
-                tick={{ fontSize: 11, fill: "#64748b" }}
-              />
-              <Tooltip content={<CustomTooltip />} />
+          <AreaChart data={data} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+            <defs>
               {keys.map((theme, index) => (
-                <Area
-                  key={theme}
-                  dataKey={theme}
-                  type="monotone"
-                  stackId="1"
-                  stroke={palette[index % palette.length]}
-                  fill={palette[index % palette.length]}
-                  fillOpacity={activeTheme && activeTheme !== theme ? 0.2 : 0.6}
-                  strokeOpacity={activeTheme && activeTheme !== theme ? 0.4 : 1}
-                  dot={false}
-                  name={theme}
-                  cursor={onSelectTheme ? "pointer" : "default"}
-                  onClick={(event) => {
-                    const selected = String(event?.dataKey ?? theme);
-                    onSelectTheme?.(selected);
-                  }}
-                />
+                <linearGradient
+                  key={`stream-gradient-${theme}`}
+                  id={`stream-gradient-${index}`}
+                  x1="0"
+                  y1="0"
+                  x2="0"
+                  y2="1"
+                >
+                  <stop offset="5%" stopColor={palette[index % palette.length]} stopOpacity={0.8} />
+                  <stop offset="95%" stopColor={palette[index % palette.length]} stopOpacity={0.1} />
+                </linearGradient>
               ))}
+            </defs>
+            <XAxis
+              dataKey="dateISO"
+              tickFormatter={formatDateLabel}
+              axisLine={false}
+              tickLine={false}
+              tick={{ fontSize: 11, fill: "#64748b" }}
+            />
+            <Tooltip content={<CustomTooltip />} />
+            {keys.map((theme, index) => (
+              <Area
+                key={theme}
+                dataKey={theme}
+                type="basis"
+                stackId="1"
+                stroke={activeTheme === theme ? "#ffffff" : "none"}
+                strokeWidth={activeTheme === theme ? 1.5 : 0}
+                fill={`url(#stream-gradient-${index})`}
+                fillOpacity={activeTheme && activeTheme !== theme ? 0.2 : 0.6}
+                strokeOpacity={activeTheme && activeTheme !== theme ? 0.4 : 1}
+                dot={false}
+                name={theme}
+                cursor={onSelectTheme ? "pointer" : "default"}
+                onClick={(event) => {
+                  const selected = String(event?.dataKey ?? theme);
+                  onSelectTheme?.(selected);
+                }}
+              />
+            ))}
             </AreaChart>
           </ResponsiveContainer>
         </div>

@@ -9,6 +9,8 @@ export type PatternCardProps = {
   confidence: "high" | "medium" | "low";
   series?: number[];
   tags?: string[];
+  onClick?: () => void;
+  isActive?: boolean;
 };
 
 const trendGlyph: Record<PatternCardProps["trend"], string> = {
@@ -47,15 +49,28 @@ const SignalMeter = ({ level }: { level: number }) => (
   </div>
 );
 
-const PatternCard = ({ title, description, trend, confidence, series, tags = [] }: PatternCardProps) => {
+const PatternCard = ({
+  title,
+  description,
+  trend,
+  confidence,
+  series,
+  tags = [],
+  onClick,
+  isActive = false,
+}: PatternCardProps) => {
   const meterLevel = Math.max(
     2,
     Math.min(5, (trend === "up" ? 4 : trend === "down" ? 2 : 3) + (confidence === "high" ? 1 : 0)),
   );
   const visibleTags = tags.slice(0, 2);
 
-  return (
-    <Card className="relative overflow-hidden rounded-2xl p-6 text-slate-900">
+  const card = (
+    <Card
+      className={`relative overflow-hidden rounded-2xl p-6 text-slate-900 transition-shadow ${
+        isActive ? "ring-2 ring-brand/40 shadow-md" : "hover:shadow-md"
+      }`}
+    >
       <div className="ms-card-overlay" />
       <div className="absolute right-4 top-4 h-6 w-10 rounded-full bg-white/50" />
       <div className="relative z-10 flex items-start justify-between gap-4">
@@ -83,6 +98,14 @@ const PatternCard = ({ title, description, trend, confidence, series, tags = [] 
         ))}
       </div>
     </Card>
+  );
+
+  if (!onClick) return card;
+
+  return (
+    <button type="button" onClick={onClick} className="w-full text-left">
+      {card}
+    </button>
   );
 };
 

@@ -1,47 +1,25 @@
 import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { Activity, GitGraph, LayoutGrid } from "lucide-react";
+import clsx from "clsx";
 import type { ThemeSeries } from "@mindstorm/derived-spec";
 import PageHeader from "../components/layout/PageHeader";
 import PatternStream from "../components/features/PatternStream";
 import { Card } from "../components/ui/Card";
-import InsightCard from "../components/features/InsightCard";
 import CopingStrategiesPanel from "../components/features/CopingStrategiesPanel";
 import ExploreQuestionsPanel from "../components/features/ExploreQuestionsPanel";
 import InfluencesPanel from "../components/features/InfluencesPanel";
 import LifeAreasImpactPanel from "../components/features/LifeAreasImpactPanel";
 import PatternDetailHeader from "../components/features/PatternDetailHeader";
-import PatternHighlights from "../components/features/PatternHighlights";
 import PatternTimelineChart from "../components/features/PatternTimelineChart";
-import PatternCardGrid from "../components/features/PatternCardGrid";
 import Tabs from "../components/ui/Tabs";
 import useEntries from "../hooks/useEntries";
-import useInsights from "../hooks/useInsights";
 import { usePatientTranslation } from "../hooks/usePatientTranslation";
 import { buildStreamData } from "../lib/vizUtils";
 import { apiFetch } from "../lib/apiClient";
 import { useAuth } from "../contexts/AuthContext";
-import type { EvidenceUnit, PatternMetric } from "../types/journal";
+import type { PatternMetric } from "../types/journal";
 import type { PatternDetail, PatternSummary } from "../types/patterns";
-
-type EvidenceSnippet = {
-  span: string;
-  dateISO: string;
-};
-
-type PatternPoint = {
-  dateISO: string;
-  intensity: number;
-};
-
-type PatternDetailData = {
-  label: string;
-  trend: "up" | "down" | "steady";
-  description: string;
-  points: PatternPoint[];
-  coping: string[];
-  question: string;
-  source: string;
-};
 
 const tabOptions = [
   { id: "week", label: "This week" },
@@ -62,130 +40,8 @@ const timelineOptions = [
   { id: "month", label: "Month" },
 ];
 
-const PatternDetailView = ({
-  pattern,
-  evidence,
-}: {
-  pattern: PatternDetailData | null;
-  evidence: EvidenceSnippet[];
-}) => {
-  if (!pattern) return null;
-
-  const maxIntensity = Math.max(
-    ...pattern.points.map((point) => point.intensity),
-    0,
-  );
-  const trendLabel =
-    pattern.trend === "up"
-      ? "Rising"
-      : pattern.trend === "down"
-        ? "Easing"
-        : "Steady";
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
-      className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6"
-    >
-      <div className="lg:col-span-2 space-y-6">
-        <Card className="p-6 bg-white/60 backdrop-blur-md border-indigo-50">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-display font-bold text-slate-800">
-              {pattern.label}
-            </h3>
-            <span className="text-xs font-semibold px-2 py-1 bg-indigo-100 text-indigo-700 rounded-full">
-              {trendLabel} Pattern
-            </span>
-          </div>
-          <p className="text-slate-600 leading-relaxed mb-6">
-            {pattern.description}
-          </p>
-
-          {pattern.points.length ? (
-            <div className="h-32 w-full bg-slate-50 rounded-xl flex items-end p-4 gap-1 relative overflow-hidden">
-              <div className="absolute top-2 left-4 text-[10px] uppercase text-slate-400 font-bold">
-                Intensity over last 30 days
-              </div>
-              {pattern.points.map((point, index) => {
-                const height = maxIntensity
-                  ? (point.intensity / maxIntensity) * 100
-                  : 0;
-                return (
-                  <div
-                    key={`${point.dateISO}-${index}`}
-                    className="flex-1 bg-indigo-300/50 rounded-t-sm hover:bg-indigo-400 transition-colors"
-                    style={{ height: `${height}%` }}
-                    title={point.dateISO}
-                  />
-                );
-              })}
-            </div>
-          ) : (
-            <div className="h-32 w-full rounded-xl bg-slate-50 flex items-center justify-center text-xs text-slate-400">
-              No intensity data yet.
-            </div>
-          )}
-        </Card>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Card className="p-5 bg-emerald-50/50 border-emerald-100">
-            <h4 className="text-xs font-bold uppercase text-emerald-800 mb-3">
-              What Helps
-            </h4>
-            <ul className="space-y-2">
-              {pattern.coping.map((item) => (
-                <li
-                  key={item}
-                  className="text-sm text-emerald-900 flex items-center gap-2"
-                >
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                  {item}
-                </li>
-              ))}
-            </ul>
-          </Card>
-          <Card className="p-5 bg-amber-50/50 border-amber-100">
-            <h4 className="text-xs font-bold uppercase text-amber-800 mb-3">
-              Explore This
-            </h4>
-            <p className="text-sm text-amber-900 italic">
-              "{pattern.question}"
-            </p>
-          </Card>
-        </div>
-      </div>
-
-      <div className="space-y-6">
-        <div className="bg-slate-50/80 rounded-3xl p-6 border border-slate-200">
-          <h4 className="text-xs font-bold uppercase text-slate-400 mb-4 tracking-wider">
-            Evidence Drawer
-          </h4>
-          <div className="space-y-4">
-            {evidence.length ? (
-              evidence.map((item, index) => (
-                <div
-                  key={`${item.dateISO}-${index}`}
-                  className="bg-white p-4 rounded-xl shadow-sm border border-slate-100 text-sm text-slate-600 italic"
-                >
-                  "{item.span}"
-                  <div className="mt-2 text-[10px] text-slate-400 font-normal not-italic">
-                    {new Date(item.dateISO).toLocaleDateString()}
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="text-slate-400 text-sm text-center py-8">
-                Tap a stream to see journal excerpts.
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </motion.div>
-  );
-};
+const normalizeThemeLabel = (value: string) =>
+  value.toLowerCase().replace(/[_-]/g, " ").trim();
 
 const PatternsPage = () => {
   const { status } = useAuth();
@@ -199,13 +55,11 @@ const PatternsPage = () => {
   const [patternError, setPatternError] = useState<string | null>(null);
   const [selectedPatternId, setSelectedPatternId] = useState<string>("");
   const { data: entries, loading: entriesLoading } = useEntries({ limit: 200 });
-  const { data: insights, loading: insightsLoading, error: insightsError, empty: insightsEmpty } = useInsights({
-    limit: 6,
-  });
   const [series, setSeries] = useState<ThemeSeries[]>([]);
   const [seriesLoading, setSeriesLoading] = useState(false);
   const [seriesError, setSeriesError] = useState<string | null>(null);
   const [selectedTheme, setSelectedTheme] = useState<string | null>(null);
+  const [detailTab, setDetailTab] = useState<"overview" | "factors" | "impact">("overview");
   const streamRangeKey = patternRange;
 
   const rangeDays = range === "week" ? 7 : range === "month" ? 30 : 90;
@@ -402,46 +256,56 @@ const PatternsPage = () => {
 
   const activeTheme = selectedTheme || themes[0] || null;
 
-  const activeEvidence = useMemo(() => {
-    if (!activeTheme) return [];
-    const needle = activeTheme.toLowerCase();
-
-    return entries
-      .flatMap((entry) => {
-        const entryDate = entry.dateISO || entry.date;
-        return (entry.evidenceUnits || []).flatMap((unit: EvidenceUnit) => {
-          const label = getPatientLabel(unit.label).toLowerCase();
-          if (!unit.span || label !== needle || !entryDate) return [];
-          return [{ span: unit.span, dateISO: entryDate }];
-        });
-      })
-      .slice(0, 3);
-  }, [activeTheme, entries, getPatientLabel]);
-
-  const activePatternData = useMemo<PatternDetailData | null>(() => {
+  const matchedPattern = useMemo(() => {
     if (!activeTheme) return null;
+    const normalized = normalizeThemeLabel(activeTheme);
+    return patternList.find(
+      (pattern) => normalizeThemeLabel(pattern.title) === normalized,
+    );
+  }, [activeTheme, patternList]);
 
-    const points = streamData.data.map((datum) => ({
-      dateISO: datum.dateISO as string,
-      intensity: Number(datum[activeTheme] || 0),
-    }));
+  useEffect(() => {
+    if (matchedPattern && matchedPattern.id !== selectedPatternId) {
+      setSelectedPatternId(matchedPattern.id);
+    }
+  }, [matchedPattern, selectedPatternId]);
 
-    const start = points[0]?.intensity ?? 0;
-    const end = points[points.length - 1]?.intensity ?? 0;
-    const delta = end - start;
-    const trend: PatternDetailData["trend"] =
-      Math.abs(delta) < 0.15 ? "steady" : delta > 0 ? "up" : "down";
+  const activePatternDetail =
+    matchedPattern && patternDetail?.id === matchedPattern.id ? patternDetail : null;
 
-    return {
-      label: activeTheme,
-      trend,
-      description: `We've detected a consistent pattern of ${activeTheme.toLowerCase()} over the last ${entries.length} entries.`,
-      points,
-      coping: ["Rest", "Talking to friends"],
-      question: "Is there a specific time of day this feels strongest?",
-      source: "journal",
-    };
-  }, [activeTheme, entries.length, streamData.data]);
+  const overviewTimeline = activePatternDetail?.timeline?.[timelineScale];
+  const overviewPoints = overviewTimeline?.points || [];
+  const overviewMaxIntensity = Math.max(
+    ...overviewPoints.map((point) => point.intensity),
+    0,
+  );
+
+  const overviewEvidence = matchedPattern?.evidence || [];
+  const hasEvidence = overviewEvidence.length > 0;
+  const hasInfluences = (activePatternDetail?.influences || []).length > 0;
+  const hasImpact = (activePatternDetail?.lifeAreas || []).length > 0;
+  const hasCoping =
+    (activePatternDetail?.copingStrategies?.userTagged || []).length > 0 ||
+    (activePatternDetail?.copingStrategies?.suggested || []).length > 0;
+  const hasQuestions = (activePatternDetail?.exploreQuestions || []).length > 0;
+  const isMature =
+    [hasEvidence, hasInfluences, hasImpact].filter(Boolean).length >= 2;
+
+  const availableTabs = useMemo(
+    () =>
+      [
+        { id: "overview", label: "Overview", icon: Activity, show: true },
+        { id: "factors", label: "Connected", icon: GitGraph, show: hasInfluences },
+        { id: "impact", label: "Life Impact", icon: LayoutGrid, show: hasImpact },
+      ].filter((tab) => tab.show),
+    [hasInfluences, hasImpact],
+  );
+
+  useEffect(() => {
+    if (!availableTabs.find((tab) => tab.id === detailTab)) {
+      setDetailTab("overview");
+    }
+  }, [availableTabs, detailTab]);
 
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-8">
@@ -457,7 +321,7 @@ const PatternsPage = () => {
             Select a flow to explore
           </h3>
         </div>
-        <div className="h-64 w-full">
+        <div className="w-full">
           {seriesLoading ? (
             <div className="h-full flex items-center justify-center text-sm text-slate-400">
               Reading the weather...
@@ -482,15 +346,155 @@ const PatternsPage = () => {
         </div>
       </div>
 
-      <div className="pt-8">
-        <AnimatePresence mode="wait">
-          <PatternDetailView
-            key={activeTheme || "empty"}
-            pattern={activePatternData}
-            evidence={activeEvidence}
-          />
-        </AnimatePresence>
-      </div>
+      <AnimatePresence mode="wait">
+        {(activeTheme || matchedPattern || activePatternDetail) && (
+          <motion.div
+            key={`explorer-${activeTheme || matchedPattern?.id || "empty"}`}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="rounded-3xl border border-slate-200 bg-slate-50/50 overflow-hidden mb-10"
+          >
+            {!isMature ? (
+              <div className="p-8">
+                <Card className="p-8 bg-white/60 backdrop-blur-md border-indigo-50 text-center">
+                  <div className="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center mx-auto mb-4 text-xl">
+                    🌱
+                  </div>
+                  <h3 className="text-xl font-display font-bold text-slate-800">
+                    {(matchedPattern?.title || activePatternDetail?.title || activeTheme || "This pattern") + " is emerging"}
+                  </h3>
+                  <p className="text-slate-600 mt-2 max-w-md mx-auto">
+                    We are starting to see this theme, but we need a bit more journaling to understand what connects to it.
+                  </p>
+                  <div className="mt-8 p-4 bg-slate-50 rounded-xl border border-slate-100 inline-block text-left">
+                    <h4 className="text-xs font-bold uppercase text-slate-400 mb-2">
+                      How to unlock insights
+                    </h4>
+                    <ul className="text-sm text-slate-600 space-y-2">
+                      <li className="flex items-center gap-2">
+                        <span className="text-slate-400">○</span>
+                        Write about where you feel this (for example, at work or at home).
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <span className="text-slate-400">○</span>
+                        Note what seems to influence it (sleep, stress, social time).
+                      </li>
+                    </ul>
+                  </div>
+                </Card>
+              </div>
+            ) : (
+              <>
+                <div className="bg-white px-8 py-6 border-b border-slate-100 flex flex-wrap justify-between items-start gap-4">
+                  <div>
+                    <h2 className="text-2xl font-display font-bold text-slate-900">
+                      {matchedPattern?.title || activePatternDetail?.title || activeTheme || "Pattern"}
+                    </h2>
+                    <p className="text-slate-500 mt-1">
+                      {activePatternDetail?.summary || "Pattern detail available."}
+                    </p>
+                  </div>
+                  {availableTabs.length > 1 && (
+                    <div className="flex gap-1 bg-slate-100 p-1 rounded-xl">
+                      {availableTabs.map((tab) => (
+                        <button
+                          key={tab.id}
+                          type="button"
+                          onClick={() => setDetailTab(tab.id as typeof detailTab)}
+                          className={clsx(
+                            "px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-all",
+                            detailTab === tab.id
+                              ? "bg-white text-brand shadow-sm"
+                              : "text-slate-500 hover:text-slate-700",
+                          )}
+                        >
+                          <tab.icon size={14} />
+                          {tab.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="p-8">
+                  {detailTab === "overview" && (
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                      {overviewPoints.length > 0 && (
+                        <Card className="p-6">
+                          <div className="mb-4">
+                            <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
+                              {overviewTimeline?.scaleLabel || "Intensity over time"}
+                            </p>
+                            <h3 className="mt-2 text-lg font-semibold text-slate-800">
+                              Recent pattern movement
+                            </h3>
+                          </div>
+                          <div className="h-32 w-full bg-slate-50 rounded-xl flex items-end p-4 gap-1 relative overflow-hidden">
+                            {overviewPoints.map((point, index) => {
+                              const height = overviewMaxIntensity
+                                ? (point.intensity / overviewMaxIntensity) * 100
+                                : 0;
+                              return (
+                                <div
+                                  key={`${point.id}-${index}`}
+                                  className="flex-1 bg-indigo-300/50 rounded-t-sm hover:bg-indigo-400 transition-colors"
+                                  style={{ height: `${height}%` }}
+                                  title={point.label}
+                                />
+                              );
+                            })}
+                          </div>
+                        </Card>
+                      )}
+                      <div className="space-y-4">
+                        {hasCoping && activePatternDetail?.copingStrategies && (
+                          <CopingStrategiesPanel strategies={activePatternDetail.copingStrategies} />
+                        )}
+                        {hasEvidence && (
+                          <Card className="p-6">
+                            <div className="flex items-center justify-between">
+                              <h3 className="text-lg font-semibold text-slate-800">Evidence drawer</h3>
+                              <span className="text-xs uppercase tracking-[0.3em] text-slate-400">
+                                {overviewEvidence.length} snippets
+                              </span>
+                            </div>
+                            <div className="mt-4 space-y-3">
+                              {overviewEvidence.map((quote, index) => (
+                                <div
+                                  key={`${quote}-${index}`}
+                                  className="ms-glass-surface rounded-2xl border p-4 text-sm text-slate-600"
+                                >
+                                  “{quote}”
+                                </div>
+                              ))}
+                            </div>
+                          </Card>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {detailTab === "factors" && hasInfluences && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <InfluencesPanel influences={activePatternDetail?.influences || []} />
+                      {hasQuestions && (
+                        <ExploreQuestionsPanel questions={activePatternDetail?.exploreQuestions || []} />
+                      )}
+                    </div>
+                  )}
+
+                  {detailTab === "impact" && hasImpact && (
+                    <div>
+                      <LifeAreasImpactPanel areas={activePatternDetail?.lifeAreas || []} />
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <div className="flex items-center gap-4 pt-10">
         <span className="h-px flex-1 bg-slate-200" />
@@ -542,7 +546,6 @@ const PatternsPage = () => {
           </div>
           {patternList.length ? (
             <div className="space-y-4">
-              <PatternCardGrid patterns={patternList} />
               <Card className="p-5 text-slate-900">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
@@ -603,70 +606,6 @@ const PatternsPage = () => {
             <Card className="p-6 text-sm text-slate-500">
               {patternLoading ? "Building your pattern detail..." : "No pattern detail available yet."}
             </Card>
-          )}
-        </section>
-        <PageHeader
-          pageId="patterns"
-          description={`Soft gradients call out when emotions spike, soften, or correlate with habits over the last ${range}.`}
-          actions={<Tabs options={tabOptions} activeId={range} onValueChange={setRange} />}
-        >
-          <PatternHighlights metrics={patternMetrics} />
-        </PageHeader>
-        <section className="grid gap-6 lg:grid-cols-2">
-          <Card className="p-6">
-            <h3 className="text-xl font-semibold">Signals frequency</h3>
-            <div className="mt-6 space-y-4">
-              {entriesLoading ? (
-                <div className="h-20 animate-pulse rounded-2xl bg-slate-100" />
-              ) : emotionFrequency.length ? (
-                emotionFrequency.map((emotion) => (
-                  <div key={emotion.label}>
-                    <div className="flex items-center justify-between text-sm text-slate-500">
-                      <span>{emotion.label}</span>
-                      <span>{emotion.value}%</span>
-                    </div>
-                    <div className="mt-2 h-2 rounded-full bg-slate-100">
-                      <div
-                        className="h-full rounded-full bg-gradient-to-r from-sky-400 to-indigo-500"
-                        style={{ width: `${emotion.value}%` }}
-                      />
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <p className="text-sm text-slate-500">Add entries with emotions to see frequency trends.</p>
-              )}
-            </div>
-          </Card>
-          <Card className="p-6">
-            <h3 className="text-xl font-semibold">Context categories</h3>
-            <div className="mt-6 space-y-4">
-              {entriesLoading ? (
-                <div className="h-20 animate-pulse rounded-2xl bg-slate-100" />
-              ) : triggerBreakdown.length ? (
-                triggerBreakdown.map((trigger) => (
-                  <div key={trigger.label} className="flex items-center justify-between">
-                    <p className="text-sm text-slate-500">{trigger.label}</p>
-                    <p className="text-sm text-slate-900">{trigger.percent}%</p>
-                  </div>
-                ))
-              ) : (
-                <p className="text-sm text-slate-500">Track triggers to see what is showing up most.</p>
-              )}
-            </div>
-          </Card>
-        </section>
-        <section className="grid gap-4 md:grid-cols-3">
-          {insightsLoading ? (
-            <Card className="h-40 animate-pulse" />
-          ) : insightsError ? (
-            <Card className="bg-rose-50 p-4 text-sm text-rose-700">{insightsError}</Card>
-          ) : insightsEmpty ? (
-            <Card className="p-4 text-sm text-slate-600">
-              Add more entries to surface insights here.
-            </Card>
-          ) : (
-            insights.map((insight) => <InsightCard key={insight.id} insight={insight} />)
           )}
         </section>
       </div>
