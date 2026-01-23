@@ -230,7 +230,7 @@ const DemoGraphsPage = () => {
             <ImpactFlow nodes={filteredImpactFlow.nodes} edges={filteredImpactFlow.edges} />
           )}
           {selection.domain === "symptom" && (
-            <PatternStream series={filteredSeries} entries={filteredEntries} />
+            <PatternStream series={filteredSeries} />
           )}
           {selection.domain === "impact" && (
             <LifeBalanceCompass entries={filteredEntries} />

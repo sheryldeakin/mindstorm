@@ -18,8 +18,9 @@ import PatternHighlights from "../components/features/PatternHighlights";
 import useEntries from "../hooks/useEntries";
 import { usePatientTranslation } from "../hooks/usePatientTranslation";
 import type { PatternMetric } from "../types/journal";
-import InsightCard from "../components/features/InsightCard";
-import useInsights from "../hooks/useInsights";
+import RecentEmotionsPulse from "../components/features/RecentEmotionsPulse";
+import Sparkline from "../components/charts/Sparkline";
+import type { CheckInRecord } from "../types/checkIn";
 
 const LIFE_AREA_DOMAINS = [
   "Work/School",
@@ -184,6 +185,12 @@ const rangeOptions = [
   { id: "all", label: "All of your patterns" },
 ];
 
+const rangeOptionMinimumDays: Record<string, number> = {
+  week: 7,
+  month: 30,
+  year: 365,
+};
+
 const HomeDashboardPage = () => {
   const { status } = useAuth();
   const [range, setRange] = useState("week");
@@ -231,12 +238,10 @@ const HomeDashboardPage = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const { data: entries, loading: entriesLoading } = useEntries({ limit: 200 });
   const { getPatientLabel, getIntensityLabel } = usePatientTranslation();
-  const {
-    data: insights,
-    loading: insightsLoading,
-    error: insightsError,
-    empty: insightsEmpty,
-  } = useInsights({ limit: 6 });
+  const [checkInSeries, setCheckInSeries] = useState<
+    Array<{ id: string; label: string; values: number[]; points: number }>
+  >([]);
+  const [checkInLoading, setCheckInLoading] = useState(false);
   const rangeKey =
     range === "week"
       ? "last_7_days"
@@ -246,6 +251,33 @@ const HomeDashboardPage = () => {
           ? "last_365_days"
           : "all_time";
   const headingLabel = rangeOptions.find((option) => option.id === range)?.label || "Your week in patterns";
+  const rangeCoverage = snapshot?.rangeCoverage;
+  const availableRangeOptions = useMemo(() => {
+    if (!rangeCoverage?.historySpanDays) return rangeOptions;
+    return rangeOptions.filter((option) => {
+      if (option.id === "all") return true;
+      const requiredDays = rangeOptionMinimumDays[option.id];
+      if (!requiredDays) return true;
+      return rangeCoverage.historySpanDays >= requiredDays;
+    });
+  }, [rangeCoverage?.historySpanDays]);
+
+  useEffect(() => {
+    if (!availableRangeOptions.length) return;
+    if (!availableRangeOptions.some((option) => option.id === range)) {
+      setRange(availableRangeOptions[availableRangeOptions.length - 1].id);
+    }
+  }, [availableRangeOptions, range]);
+  const effectiveRangeKey = rangeCoverage?.effectiveRangeKey || rangeKey;
+  const trendRangeKey = effectiveRangeKey || rangeKey;
+  const rangeDays =
+    trendRangeKey === "last_7_days"
+      ? 7
+      : trendRangeKey === "last_30_days"
+        ? 30
+        : trendRangeKey === "last_365_days"
+          ? 365
+          : null;
 
   useEffect(() => {
     if (status !== "authed") {
@@ -330,6 +362,86 @@ const HomeDashboardPage = () => {
   }, [rangeKey, selectedPatternId, status]);
 
   useEffect(() => {
+    if (status !== "authed") {
+      setCheckInSeries([]);
+      setCheckInLoading(false);
+      return;
+    }
+    const resolvedRangeKey = snapshot?.rangeCoverage?.effectiveRangeKey || rangeKey;
+    const today = new Date();
+    const days =
+      resolvedRangeKey === "last_7_days"
+        ? 7
+        : resolvedRangeKey === "last_30_days"
+          ? 30
+          : resolvedRangeKey === "last_365_days"
+            ? 365
+            : 7;
+    const dates = Array.from({ length: days }, (_, index) => {
+      const date = new Date(today.getFullYear(), today.getMonth(), today.getDate() - (days - 1 - index));
+      return date.toISOString().slice(0, 10);
+    });
+    let active = true;
+    setCheckInLoading(true);
+    Promise.all(
+      dates.map((dateISO) =>
+        apiFetch<{ checkIn: CheckInRecord | null }>(`/check-ins/${dateISO}`)
+          .then((response) => response.checkIn)
+          .catch(() => null),
+      ),
+    )
+      .then((checkIns) => {
+        if (!active) return;
+        const seriesMap = new Map<
+          string,
+          { id: string; label: string; values: number[]; points: number; lastValue: number | null }
+        >();
+
+        checkIns.forEach((record) => {
+          if (!record) return;
+          record.metrics.forEach((metric) => {
+            if (!seriesMap.has(metric.id)) {
+              seriesMap.set(metric.id, {
+                id: metric.id,
+                label: metric.label,
+                values: [],
+                points: 0,
+                lastValue: null,
+              });
+            }
+          });
+        });
+
+        dates.forEach((dateISO, index) => {
+          const dayMetrics = checkIns[index]?.metrics || [];
+          const dayMap = new Map(dayMetrics.map((metric) => [metric.id, metric.value]));
+          seriesMap.forEach((series) => {
+            if (dayMap.has(series.id)) {
+              const value = dayMap.get(series.id) as number;
+              series.values.push(value);
+              series.lastValue = value;
+              series.points += 1;
+            } else if (series.lastValue !== null) {
+              series.values.push(series.lastValue);
+            } else {
+              series.values.push(0);
+            }
+          });
+        });
+
+        const nextSeries = Array.from(seriesMap.values()).filter((series) => series.points > 0);
+        setCheckInSeries(nextSeries);
+      })
+      .finally(() => {
+        if (active) setCheckInLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [rangeKey, snapshot?.rangeCoverage?.effectiveRangeKey, status]);
+
+  useEffect(() => {
     if (!selectedPatternTitle || selectedPatternId || !patternList.length) return;
     const matched = patternList.find(
       (pattern) => normalizeLabel(pattern.title) === normalizeLabel(selectedPatternTitle),
@@ -345,8 +457,6 @@ const HomeDashboardPage = () => {
   const timeRangeSummary = snapshot?.timeRangeSummary || null;
   const helpedHighlights = snapshot?.whatHelped?.length ? snapshot.whatHelped : emptyHelpedHighlights;
   const gentlePrompts = snapshot?.prompts?.length ? snapshot.prompts : emptyPrompts;
-  const rangeCoverage = snapshot?.rangeCoverage;
-  const effectiveRangeKey = rangeCoverage?.effectiveRangeKey || rangeKey;
   const rangeLabel =
     effectiveRangeKey === "last_7_days"
       ? "this week"
@@ -394,16 +504,20 @@ const HomeDashboardPage = () => {
     (activePatternDetail?.copingStrategies?.suggested || []).length ||
     (activePatternDetail?.exploreQuestions || []).length;
 
-  const trendRangeKey = effectiveRangeKey || rangeKey;
-  const rangeDays =
-    trendRangeKey === "last_7_days"
-      ? 7
-      : trendRangeKey === "last_30_days"
-        ? 30
-        : trendRangeKey === "last_365_days"
-          ? 365
-          : null;
   const entriesInRange = useMemo(() => {
+    if (!rangeDays) return entries;
+    const today = new Date();
+    const start = new Date(today.getFullYear(), today.getMonth(), today.getDate() - (rangeDays - 1));
+    return entries.filter((entry) => {
+      if (!entry.dateISO) return false;
+      const [year, month, day] = entry.dateISO.split("-").map((value) => Number(value));
+      if (!year || !month || !day) return false;
+      const entryDate = new Date(year, month - 1, day);
+      return entryDate >= start && entryDate <= today;
+    });
+  }, [entries, rangeDays]);
+
+  const pulseEntries = useMemo(() => {
     if (!rangeDays) return entries;
     const today = new Date();
     const start = new Date(today.getFullYear(), today.getMonth(), today.getDate() - (rangeDays - 1));
@@ -428,28 +542,6 @@ const HomeDashboardPage = () => {
     if (normalized.includes("mild")) return 1;
     return null;
   };
-
-  const emotionFrequency = useMemo(() => {
-    const counts = new Map<string, number>();
-    evidenceUnitsInRange.forEach((unit) => {
-      if (!unit.label.startsWith("SYMPTOM_")) return;
-      if (unit.label === "SYMPTOM_RISK") return;
-      const patientLabel = getPatientLabel(unit.label);
-      counts.set(patientLabel, (counts.get(patientLabel) || 0) + 1);
-    });
-    const riskCount = evidenceUnitsInRange.filter((unit) => unit.label === "SYMPTOM_RISK").length;
-    if (riskCount > 0) {
-      counts.set("Safety Support", (counts.get("Safety Support") || 0) + riskCount);
-    }
-    const total = Array.from(counts.values()).reduce((sum, value) => sum + value, 0);
-    return Array.from(counts.entries())
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 4)
-      .map(([label, count]) => ({
-        label,
-        value: total ? Math.round((count / total) * 100) : 0,
-      }));
-  }, [evidenceUnitsInRange, getPatientLabel]);
 
   const triggerBreakdown = useMemo(() => {
     const counts = new Map<string, number>();
@@ -535,7 +627,7 @@ const HomeDashboardPage = () => {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          <Tabs options={rangeOptions} activeId={range} onValueChange={setRange} />
+          <Tabs options={availableRangeOptions} activeId={range} onValueChange={setRange} />
           {(loading || stale) && <span className="small-label text-slate-400">Updating your snapshot...</span>}
         </div>
       </section>
@@ -556,70 +648,62 @@ const HomeDashboardPage = () => {
         <PatternHighlights metrics={patternMetrics} />
         <div className="grid gap-6 lg:grid-cols-2">
           <Card className="p-6">
-            <h3 className="text-xl font-semibold">Signals frequency</h3>
-            <div className="mt-6 space-y-4">
+            <h3 className="text-xl font-semibold">Recent pulse</h3>
+            <p className="mt-2 text-sm text-slate-500">
+              Emotions you logged over {rangeLabel}.
+            </p>
+            <div className="mt-4">
               {entriesLoading ? (
                 <div className="h-20 animate-pulse rounded-2xl bg-slate-100" />
-              ) : emotionFrequency.length ? (
-                emotionFrequency.map((emotion) => (
-                  <div key={emotion.label}>
-                    <div className="flex items-center justify-between text-sm text-slate-500">
-                      <span>{emotion.label}</span>
-                      <span>{emotion.value}%</span>
+              ) : (
+                <RecentEmotionsPulse entries={pulseEntries} />
+              )}
+            </div>
+          </Card>
+          <div className="space-y-6">
+            <Card className="p-6">
+              <h3 className="text-xl font-semibold">Your tracked stats</h3>
+              <p className="mt-2 text-sm text-slate-500">
+                Check-in sliders from this range.
+              </p>
+              <div className="mt-4 space-y-3">
+                {checkInLoading ? (
+                  <div className="h-20 animate-pulse rounded-2xl bg-slate-100" />
+                ) : checkInSeries.length ? (
+                  checkInSeries.map((metric) => (
+                    <div key={metric.id} className="rounded-2xl border border-slate-100 bg-white/70 p-3">
+                      <div className="flex items-center justify-between text-xs text-slate-500">
+                        <span className="font-semibold text-slate-700">{metric.label}</span>
+                        <span>Last 7 days</span>
+                      </div>
+                      <div className="mt-2">
+                        <Sparkline data={metric.values} width={200} height={56} showPoints={false} />
+                      </div>
                     </div>
-                    <div className="mt-2 h-2 rounded-full bg-slate-100">
-                      <div
-                        className="h-full rounded-full bg-gradient-to-r from-sky-400 to-indigo-500"
-                        style={{ width: `${emotion.value}%` }}
-                      />
+                  ))
+                ) : (
+                  <p className="text-sm text-slate-500">Log a check-in to see your tracked stats.</p>
+                )}
+              </div>
+            </Card>
+            <Card className="p-6">
+              <h3 className="text-xl font-semibold">Context categories</h3>
+              <div className="mt-6 space-y-4">
+                {entriesLoading ? (
+                  <div className="h-20 animate-pulse rounded-2xl bg-slate-100" />
+                ) : triggerBreakdown.length ? (
+                  triggerBreakdown.map((trigger) => (
+                    <div key={trigger.label} className="flex items-center justify-between">
+                      <p className="text-sm text-slate-500">{trigger.label}</p>
+                      <p className="text-sm text-slate-900">{trigger.percent}%</p>
                     </div>
-                  </div>
-                ))
-              ) : (
-                <p className="text-sm text-slate-500">Add entries with emotions to see frequency trends.</p>
-              )}
-            </div>
-          </Card>
-          <Card className="p-6">
-            <h3 className="text-xl font-semibold">Context categories</h3>
-            <div className="mt-6 space-y-4">
-              {entriesLoading ? (
-                <div className="h-20 animate-pulse rounded-2xl bg-slate-100" />
-              ) : triggerBreakdown.length ? (
-                triggerBreakdown.map((trigger) => (
-                  <div key={trigger.label} className="flex items-center justify-between">
-                    <p className="text-sm text-slate-500">{trigger.label}</p>
-                    <p className="text-sm text-slate-900">{trigger.percent}%</p>
-                  </div>
-                ))
-              ) : (
-                <p className="text-sm text-slate-500">Track triggers to see what is showing up most.</p>
-              )}
-            </div>
-          </Card>
-          <Card className="p-6">
-            <div className="flex items-center justify-between">
-              <h3 className="text-xl font-semibold">Insights</h3>
-              <span className="text-xs uppercase tracking-[0.3em] text-slate-400">Highlights</span>
-            </div>
-            <div className="mt-4 space-y-3">
-              {insightsLoading ? (
-                <div className="h-24 animate-pulse rounded-2xl bg-slate-100" />
-              ) : insightsError ? (
-                <div className="rounded-2xl border border-rose-100 bg-rose-50/60 p-3 text-sm text-rose-700">
-                  {insightsError}
-                </div>
-              ) : insightsEmpty ? (
-                <div className="rounded-2xl border border-dashed border-slate-200 bg-white/60 p-3 text-sm text-slate-500">
-                  Add a few entries to surface insights here.
-                </div>
-              ) : (
-                insights.map((insight) => (
-                  <InsightCard key={insight.id} insight={insight} />
-                ))
-              )}
-            </div>
-          </Card>
+                  ))
+                ) : (
+                  <p className="text-sm text-slate-500">Track triggers to see what is showing up most.</p>
+                )}
+              </div>
+            </Card>
+          </div>
         </div>
       </section>
 

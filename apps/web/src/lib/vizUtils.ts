@@ -178,7 +178,6 @@ export const buildImpactDomainCountsFromEntries = (entries: JournalEntry[] = [])
 
 export const buildStreamData = (
   series: ThemeSeries[] = [],
-  entries: JournalEntry[] = [],
   labelMapper: (value: string) => string,
   rangeKey?: string,
 ) => {
@@ -216,31 +215,6 @@ export const buildStreamData = (
       if (!dataMap.has(dateISO)) dataMap.set(dateISO, { dateISO });
       const record = dataMap.get(dateISO)!;
       record[key] = (record[key] || 0) + (point.intensity || 0);
-    });
-  });
-
-  entries.forEach((entry) => {
-    if (!entry.dateISO) return;
-    if (!isInRange(entry.dateISO)) return;
-    const dateISO = entry.dateISO;
-    if (!dataMap.has(dateISO)) dataMap.set(dateISO, { dateISO });
-    const record = dataMap.get(dateISO)!;
-
-    (entry.evidenceUnits || []).forEach((unit) => {
-      if (unit.attributes?.polarity === "ABSENT") return;
-      const code = normalizeCode(unit.label);
-      if (!code.startsWith("SYMPTOM_")) return;
-      if (restrictedCodes.has(code)) return;
-      const key = labelMapper(code);
-      keys.add(key);
-      record[key] = (record[key] || 0) + 0.5;
-    });
-
-    (entry.emotions || []).forEach((emotion) => {
-      const key = labelMapper(emotion.label);
-      keys.add(key);
-      const scaled = (emotion.intensity ?? 50) / 100;
-      record[key] = (record[key] || 0) + scaled;
     });
   });
 

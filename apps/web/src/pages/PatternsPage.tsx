@@ -241,8 +241,8 @@ const PatternsPage = () => {
   const selectedEvidence = selectedPattern?.evidence || [];
 
   const streamData = useMemo(
-    () => buildStreamData(series, entries, getPatientLabel, streamRangeKey),
-    [entries, getPatientLabel, series, streamRangeKey],
+    () => buildStreamData(series, getPatientLabel, streamRangeKey),
+    [getPatientLabel, series, streamRangeKey],
   );
 
   const themes = streamData.keys;
@@ -333,7 +333,6 @@ const PatternsPage = () => {
           ) : streamData.data.length ? (
             <PatternStream
               series={series}
-              entries={entries}
               onSelectTheme={setSelectedTheme}
               activeTheme={activeTheme}
               rangeKey={streamRangeKey}

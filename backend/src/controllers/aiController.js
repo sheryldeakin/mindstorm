@@ -141,6 +141,11 @@ const buildClinicalSignalPrompt = () =>
     "- CONTEXT_STRESSOR: Grief, job loss, breakup/relationship conflict, specific life events.",
     "**Distinguish 'Grief' (emptiness/loss focused on the deceased) from 'Depression' (self-critical/worthlessness). If the focus is missing someone, tag STRESSOR. If the focus is self-loathing, tag SYMPTOM_COGNITIVE.**",  
     
+    "5. Life Context (Reflective Only - Not Clinical):",
+    "- CONTEXT_ROUTINE: Mention of daily habits (chores, commute, meals).",
+    "- CONTEXT_ENVIRONMENT: Sensory details (noise, weather, clutter, light).",
+    "- CONTEXT_SOCIAL_INTERACTION: Casual interactions (chatting, texting, meeting).",
+
     "Task B: Attribute Extraction (The How)",
     
     "For every extracted span, determine the following attributes. If an attribute is not explicitly stated, mark it as null.",

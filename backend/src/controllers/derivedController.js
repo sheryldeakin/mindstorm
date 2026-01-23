@@ -513,6 +513,9 @@ const mapLabelToTheme = (label) => {
     CONTEXT_STRESSOR: "Life stressors",
     CONTEXT_MEDICAL: "Physical health changes",
     CONTEXT_SUBSTANCE: "Substance or medication changes",
+    CONTEXT_ROUTINE: "Daily routine",
+    CONTEXT_ENVIRONMENT: "Environment",
+    CONTEXT_SOCIAL_INTERACTION: "Social interaction",
   };
   if (map[label]) return map[label];
   return String(label || "")

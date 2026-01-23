@@ -8,13 +8,11 @@ import {
   XAxis,
 } from "recharts";
 import type { ThemeSeries } from "@mindstorm/derived-spec";
-import type { JournalEntry } from "../../types/journal";
 import { buildStreamData } from "../../lib/vizUtils";
 import { usePatientTranslation } from "../../hooks/usePatientTranslation";
 
 type PatternStreamProps = {
   series: ThemeSeries[];
-  entries: JournalEntry[];
   onSelectTheme?: (theme: string) => void;
   activeTheme?: string | null;
   rangeKey?: string;
@@ -48,15 +46,14 @@ const CustomTooltip = ({
 
 const PatternStream = ({
   series,
-  entries,
   onSelectTheme,
   activeTheme,
   rangeKey,
 }: PatternStreamProps) => {
   const { getPatientLabel } = usePatientTranslation();
   const { data, keys } = useMemo(
-    () => buildStreamData(series, entries, getPatientLabel, rangeKey),
-    [entries, getPatientLabel, rangeKey, series],
+    () => buildStreamData(series, getPatientLabel, rangeKey),
+    [getPatientLabel, rangeKey, series],
   );
 
   return (
