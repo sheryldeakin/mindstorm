@@ -30,6 +30,11 @@ export const pageHeaders: Record<string, PageHeaderConfig> = {
     title: "Cycles tracker",
     description: "Track cyclical patterns alongside your entries.",
   },
+  "demo-graphs": {
+    eyebrow: "Demo Graphs",
+    title: "Patient-friendly visuals",
+    description: "Exploratory views to help you notice patterns, influences, and life balance.",
+  },
   prepare: {
     eyebrow: "Prepare",
     title: "Bring this to your clinician",

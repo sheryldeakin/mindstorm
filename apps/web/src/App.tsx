@@ -27,6 +27,7 @@ import HomePage from "./pages/HomePage";
 import JournalDashboard from "./pages/JournalDashboard";
 import PatternsPage from "./pages/PatternsPage";
 import CyclesGraphPage from "./pages/CyclesGraphPage";
+import DemoGraphsPage from "./pages/DemoGraphsPage";
 import LoginPage from "./pages/LoginPage";
 import PortalPage from "./pages/PortalPage";
 import ClinicianDashboardPage from "./pages/ClinicianDashboardPage";
@@ -105,6 +106,7 @@ const App = () => {
             <Route path="settings/ai-insights" element={<SettingsAiInsightsPage />} />
             <Route path="patterns" element={<PatternsPage />} />
             <Route path="cycles" element={<CyclesGraphPage />} />
+            <Route path="demo-graphs" element={<DemoGraphsPage />} />
           </Route>
         </Route>
         <Route
@@ -155,6 +157,7 @@ const App = () => {
         <Route path="/settings" element={<Navigate to="/patient/settings" replace />} />
         <Route path="/patterns" element={<Navigate to="/patient/patterns" replace />} />
         <Route path="/cycles" element={<Navigate to="/patient/cycles" replace />} />
+        <Route path="/demo-graphs" element={<Navigate to="/patient/demo-graphs" replace />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </div>

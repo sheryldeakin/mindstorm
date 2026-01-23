@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowRight, RefreshCcw } from "lucide-react";
 import clsx from "clsx";
 
@@ -16,6 +16,10 @@ const NestedCycleCard = ({ parentCycle, subLoops, nodeLabels, nodeKinds }: Neste
   const [arcWidth, setArcWidth] = useState(1000);
   const topArcHeight = 140;
   const bottomArcHeight = 120;
+  const visibleSubLoops = useMemo(
+    () => [...subLoops].sort((a, b) => a.length - b.length).slice(0, 3),
+    [subLoops],
+  );
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -87,7 +91,7 @@ const NestedCycleCard = ({ parentCycle, subLoops, nodeLabels, nodeKinds }: Neste
         preserveAspectRatio="none"
       >
         <path
-          d={`M ${arcWidth - 48} 48 C ${arcWidth - 48} -40, 48 -40, 48 48`}
+          d={`M ${arcWidth - 60} 40 C ${arcWidth - 60} -25, 60 -25, 60 40`}
           fill="none"
           stroke="#e2e8f0"
           strokeWidth="2"
@@ -103,7 +107,7 @@ const NestedCycleCard = ({ parentCycle, subLoops, nodeLabels, nodeKinds }: Neste
         </text>
       </svg>
 
-      {subLoops.map((loop, idx) => {
+      {visibleSubLoops.map((loop, idx) => {
         const firstNode = loop[0];
         const lastNode = loop[loop.length - 1];
         const startIndex = getNodeIndex(firstNode);
@@ -116,45 +120,41 @@ const NestedCycleCard = ({ parentCycle, subLoops, nodeLabels, nodeKinds }: Neste
         const leftX = ((leftIndex + 0.5) / parentCycle.length) * arcWidth;
         const rightX = ((rightIndex + 0.5) / parentCycle.length) * arcWidth;
         const midX = (leftX + rightX) / 2;
-        const stackOffset = Math.max(0, (loop.length - 2) * 12) + idx * 10;
-        const arcHeight = bottomArcHeight + stackOffset;
-        const arcBottomOffset = -stackOffset;
+        const arcHeight = 30 + idx * 18 + Math.max(0, loop.length - 2) * 6;
+        const arcBottomOffset = -arcHeight + 24;
 
         return (
-          <div
-            key={`${loop.join("-")}-${idx}`}
-            className="pointer-events-none absolute left-0 w-full"
-            style={{ height: arcHeight, bottom: arcBottomOffset }}
-          >
-            <svg
-              className="h-full w-full overflow-visible"
-              viewBox={`0 0 ${arcWidth} ${arcHeight}`}
-              preserveAspectRatio="none"
-            >
+          <div key={`${loop.join("-")}-${idx}`} className="pointer-events-none absolute left-0 w-full" style={{ height: arcHeight, bottom: arcBottomOffset }}>
+            <svg className="h-full w-full overflow-visible" viewBox={`0 0 ${arcWidth} ${arcHeight}`} preserveAspectRatio="none">
               <path
-                d={`M ${rightX} 10 Q ${midX} ${arcHeight}, ${leftX} 10`}
+                d={`M ${rightX} 8 Q ${midX} ${arcHeight}, ${leftX} 8`}
                 fill="none"
                 stroke="#f43f5e"
                 strokeWidth="2"
                 markerEnd="url(#arrowhead-rose)"
+                className="opacity-80"
               />
-              <rect
-                x={midX - 40}
-                y={arcHeight - 28}
-                width="80"
-                height="20"
-                rx="10"
-                fill="white"
-                stroke="#ffe4e6"
-              />
-              <text
-                x={midX}
-                y={arcHeight - 14}
-                textAnchor="middle"
-                className="fill-rose-600 text-[9px] font-bold uppercase"
-              >
-                Rapid cycle
-              </text>
+              {idx === 0 && (
+                <>
+                  <rect
+                    x={midX - 35}
+                    y={Math.max(8, arcHeight - 26)}
+                    width="70"
+                    height="20"
+                    rx="10"
+                    fill="white"
+                    stroke="#ffe4e6"
+                  />
+                  <text
+                    x={midX}
+                    y={Math.max(22, arcHeight - 12)}
+                    textAnchor="middle"
+                    className="fill-rose-600 text-[10px] font-bold uppercase"
+                  >
+                    Rapid spin
+                  </text>
+                </>
+              )}
             </svg>
           </div>
         );

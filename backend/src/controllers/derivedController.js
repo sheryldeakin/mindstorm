@@ -681,6 +681,22 @@ const getConnectionsGraph = asyncHandler(async (req, res) => {
 });
 
 /**
+ * Fetch theme series for the selected range key.
+ * @param {import("express").Request} req
+ * @param {import("express").Response} res
+ * @returns {Promise<void>} Responds with { series }.
+ */
+const getThemeSeries = asyncHandler(async (req, res) => {
+  const rangeKey = req.query.rangeKey || "last_30_days";
+  const series = await ThemeSeries.find({ userId: req.user._id, rangeKey, stale: false }).lean();
+  if (series.length) {
+    return res.json({ series });
+  }
+  const fallback = await ThemeSeries.find({ userId: req.user._id, rangeKey }).lean();
+  return res.json({ series: fallback || [] });
+});
+
+/**
  * Evaluate diagnostic gating status for a patient using server-side logic.
  * @param {import("express").Request} req
  * @param {import("express").Response} res
@@ -886,4 +902,12 @@ const getCycles = asyncHandler(async (req, res) => {
   });
 });
 
-module.exports = { getSnapshot, getWeeklySummaries, getConnectionsGraph, getCycles, getPatterns, getClinicalStatus };
+module.exports = {
+  getSnapshot,
+  getWeeklySummaries,
+  getConnectionsGraph,
+  getThemeSeries,
+  getCycles,
+  getPatterns,
+  getClinicalStatus,
+};

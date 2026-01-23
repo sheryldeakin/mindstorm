@@ -4,6 +4,7 @@ const {
   getSnapshot,
   getWeeklySummaries,
   getConnectionsGraph,
+  getThemeSeries,
   getCycles,
   getPatterns,
   getClinicalStatus,
@@ -16,6 +17,7 @@ router.use(protect);
 router.get("/snapshot", getSnapshot);
 router.get("/weekly-summaries", getWeeklySummaries);
 router.get("/connections", getConnectionsGraph);
+router.get("/theme-series", getThemeSeries);
 router.get("/cycles", getCycles);
 router.get("/patterns", getPatterns);
 router.get("/clinical-status/:patientId", getClinicalStatus);

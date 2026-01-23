@@ -737,7 +737,10 @@ const CyclesGraphPage = () => {
     });
     return map;
   }, [linkDataArray]);
-  const circuitCycles = useMemo(() => findSimpleCycles(circuitEdges), [circuitEdges]);
+  const circuitCycles = useMemo(
+    () => findSimpleCycles(circuitEdges).filter((cycle) => cycle.length >= 3),
+    [circuitEdges],
+  );
   const rankedCircuitCycles = useMemo(() => {
     const scored = circuitCycles.map((cycle) => {
       const weights = cycle.map((nodeId, idx) => {
@@ -765,17 +768,28 @@ const CyclesGraphPage = () => {
       return hasSymptom && (hasContext || hasImpact || cycle.length >= 3);
     });
 
-    const scored = filtered.map((cycle) => {
-      const weights = cycle.map((nodeId, idx) => {
-        const nextId = cycle[(idx + 1) % cycle.length];
-        return edgeWeightByKey.get(`${nodeId}->${nextId}`) ?? 0;
-      });
-      const strength = weights.length ? Math.min(...weights) : 0;
-      return { cycle, strength };
+    const scored = filtered
+      .map((cycle) => {
+        const weight = cycle.reduce((sum, nodeId, idx) => {
+          const nextId = cycle[(idx + 1) % cycle.length];
+          return sum + (edgeWeightByKey.get(`${nodeId}->${nextId}`) ?? 0);
+        }, 0);
+        return { cycle, strength: weight };
+      })
+      .sort((a, b) => b.strength - a.strength);
+
+    const uniqueStories: typeof scored = [];
+    const seenNodes = new Set<string>();
+    scored.forEach((item) => {
+      const overlap = item.cycle.filter((node) => seenNodes.has(node)).length;
+      const overlapRatio = overlap / item.cycle.length;
+      if (uniqueStories.length === 0 || overlapRatio < 0.6) {
+        uniqueStories.push(item);
+        item.cycle.forEach((node) => seenNodes.add(node));
+      }
     });
 
-    scored.sort((a, b) => b.strength - a.strength);
-    return scored.slice(0, 5);
+    return uniqueStories.slice(0, 4);
   }, [circuitCycles, edgeWeightByKey, nodeKindById]);
 
   const consolidatedGroups = useMemo(() => {

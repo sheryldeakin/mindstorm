@@ -4,6 +4,7 @@ const {
   getSnapshot,
   getWeeklySummaries,
   getConnectionsGraph,
+  getThemeSeries,
   getPatterns,
 } = require("../../controllers/derivedController");
 const {
@@ -25,6 +26,7 @@ router.use(protect);
 router.get("/snapshot", getSnapshot);
 router.get("/weekly-summaries", getWeeklySummaries);
 router.get("/connections", getConnectionsGraph);
+router.get("/theme-series", getThemeSeries);
 router.get("/patterns", getPatterns);
 router.get("/settings", getSettings);
 router.put("/settings", updateSettings);

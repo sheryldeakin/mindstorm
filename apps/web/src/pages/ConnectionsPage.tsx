@@ -1,235 +1,273 @@
-import { useEffect, useState } from "react";
-import CausalityDisclaimer from "../components/features/CausalityDisclaimer";
-import ConnectionsGraph from "../components/features/ConnectionsGraph";
-import Sparkline from "../components/charts/Sparkline";
-import type { ConnectionEdge, ConnectionNode } from "../types/connections";
+import { useEffect, useMemo, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { ArrowRight, ArrowRightLeft, SlidersHorizontal } from "lucide-react";
 import { apiFetch } from "../lib/apiClient";
 import { useAuth } from "../contexts/AuthContext";
 import PageHeader from "../components/layout/PageHeader";
-import { usePatientTranslation } from "../hooks/usePatientTranslation";
+import ConnectionsGraph from "../components/features/ConnectionsGraph";
+import { Card } from "../components/ui/Card";
+import Badge from "../components/ui/Badge";
+import type { ConnectionEdge, ConnectionNode } from "../types/connections";
 
-const CoMovementChart = ({ fromSeries, toSeries }: { fromSeries: number[]; toSeries: number[] }) => (
-  <div className="relative h-16 w-full">
-    <div className="absolute inset-0 rounded-2xl bg-white/40" />
-    <Sparkline
-      data={fromSeries}
-      variant="up"
-      width={240}
-      height={64}
-      showPoints={false}
-      showArea
-    />
-    <div className="absolute inset-0">
-      <Sparkline
-        data={toSeries}
-        variant="steady"
-        width={240}
-        height={64}
-        showPoints={false}
-        showArea={false}
-      />
-    </div>
-  </div>
-);
+const NORMALIZE_MAP: Record<string, string> = {
+  job: "work",
+  school: "work",
+  career: "work",
+  impact_work: "work",
+  symptom_mood: "low mood",
+  mood: "low mood",
+  tension: "anxiety",
+  symptom_anxiety: "anxiety",
+};
+
+const normalizeLabel = (label: string) => {
+  const clean = label.toLowerCase().replace(/_/g, " ").trim();
+  if (NORMALIZE_MAP[clean]) return NORMALIZE_MAP[clean];
+  if (clean.includes("sleep")) return "sleep";
+  return clean;
+};
 
 const ConnectionsPage = () => {
   const { status } = useAuth();
-  const [nodes, setNodes] = useState<ConnectionNode[]>([]);
-  const [edges, setEdges] = useState<ConnectionEdge[]>([]);
-  const [selectedEdge, setSelectedEdge] = useState<ConnectionEdge | undefined>(undefined);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const { getPatientLabel } = usePatientTranslation();
+  const [rawNodes, setRawNodes] = useState<ConnectionNode[]>([]);
+  const [rawEdges, setRawEdges] = useState<ConnectionEdge[]>([]);
+  const [selectedEdgeId, setSelectedEdgeId] = useState<string | undefined>();
+  const [minStrength, setMinStrength] = useState(15);
 
   useEffect(() => {
-    if (status !== "authed") {
-      setNodes([]);
-      setEdges([]);
-      setSelectedEdge(undefined);
-      return;
-    }
+    if (status !== "authed") return;
     setLoading(true);
-    setError(null);
+
     apiFetch<{ graph: { nodes: ConnectionNode[]; edges: ConnectionEdge[] } }>(
-      "/derived/connections?rangeKey=all_time",
+      "/derived/connections?rangeKey=all_time"
     )
       .then(({ graph }) => {
-        setNodes(graph.nodes || []);
-        setEdges(graph.edges || []);
-        setSelectedEdge(undefined);
-      })
-      .catch((err) => {
-        setError(err instanceof Error ? err.message : "Failed to load connections.");
-        setNodes([]);
-        setEdges([]);
-        setSelectedEdge(undefined);
+        setRawNodes(graph.nodes || []);
+        setRawEdges(graph.edges || []);
       })
       .finally(() => setLoading(false));
   }, [status]);
 
-  const mapConnectionLabel = (label: string) => {
-    const raw = String(label || "").trim();
-    if (!raw) return "";
-    if (raw.includes("<->")) {
-      return raw
-        .split("<->")
-        .map((chunk) => mapConnectionLabel(chunk.trim()))
-        .filter(Boolean)
-        .join(" <-> ");
-    }
-    if (raw === "CONTEXT_STRESSOR") return "Life Stressors";
-    if (raw === "CONTEXT_MEDICAL") return "Physical Health";
-    if (raw === "CONTEXT_SUBSTANCE") return "Substance or medication changes";
-    const base = raw.includes(":") ? raw.split(":")[0].trim() : raw;
-    const normalized = base.replace(/\s+/g, "_").toUpperCase();
-    if (normalized === "SYMPTOM_MOOD") return "Low mood";
-    if (normalized === "SYMPTOM_ANHEDONIA") return "Loss of interest";
-    if (
-      normalized.startsWith("SYMPTOM_") ||
-      normalized.startsWith("IMPACT_") ||
-      normalized.startsWith("CONTEXT_")
-    ) {
-      return getPatientLabel(normalized);
-    }
-    return getPatientLabel(raw);
-  };
+  const { cleanNodes, cleanEdges, categorizedEdges } = useMemo(() => {
+    const nodeMap = new Map<string, ConnectionNode>();
+    const edgeMap = new Map<string, ConnectionEdge>();
 
-  const normalizeKey = (value: string) =>
-    value
-      .toLowerCase()
-      .replace(/\s+/g, " ")
-      .replace(/[.:]+$/g, "")
-      .trim();
+    rawNodes.forEach((node) => {
+      const normalizedLabel = normalizeLabel(node.label);
+      if (!nodeMap.has(normalizedLabel)) {
+        nodeMap.set(normalizedLabel, {
+          ...node,
+          label: normalizedLabel,
+          id: normalizedLabel,
+        });
+      }
+    });
 
-  const mappedNodes = nodes.map((node) => ({
-    ...node,
-    label: mapConnectionLabel(node.label),
-  }));
+    rawEdges.forEach((edge) => {
+      const fromLabel = normalizeLabel(edge.from);
+      const toLabel = normalizeLabel(edge.to);
 
-  const nodeMap = new Map<string, ConnectionNode>();
-  const nodeKeyById = new Map<string, string>();
-  mappedNodes.forEach((node) => {
-    const key = normalizeKey(node.label);
-    if (!nodeMap.has(key)) {
-      nodeMap.set(key, { ...node, id: key, label: node.label });
-    }
-    nodeKeyById.set(node.id, key);
-  });
+      if (fromLabel === toLabel) return;
 
-  const mergedEdges = new Map<string, ConnectionEdge>();
-  mappedNodes.forEach((node) => {
-    if (!nodeKeyById.has(node.id)) {
-      nodeKeyById.set(node.id, normalizeKey(node.label));
-    }
-  });
+      const key = [fromLabel, toLabel].sort().join("::");
+      const existing = edgeMap.get(key);
+      const weight = existing
+        ? Math.max(existing.strength, edge.strength)
+        : edge.strength;
 
-  edges.forEach((edge) => {
-    const fromKey = nodeKeyById.get(edge.from) || normalizeKey(mapConnectionLabel(edge.from));
-    const toKey = nodeKeyById.get(edge.to) || normalizeKey(mapConnectionLabel(edge.to));
-    if (!fromKey || !toKey || fromKey === toKey) return;
-    const pairKey = [fromKey, toKey].sort().join("__");
-    const existing = mergedEdges.get(pairKey);
-    const fromLabel = nodeMap.get(fromKey)?.label || mapConnectionLabel(edge.from);
-    const toLabel = nodeMap.get(toKey)?.label || mapConnectionLabel(edge.to);
-    const next = {
-      ...edge,
-      id: pairKey,
-      from: fromKey,
-      to: toKey,
-      label: `${fromLabel} <-> ${toLabel}`,
-      strength: existing ? Math.max(existing.strength, edge.strength) : edge.strength,
-      evidence: existing
-        ? [...existing.evidence, ...(edge.evidence || [])].filter(
-            (item, index, self) =>
-              index === self.findIndex((other) => other.quote === item.quote && other.source === item.source),
-          )
-        : edge.evidence || [],
+      if (weight >= minStrength) {
+        edgeMap.set(key, {
+          ...edge,
+          id: key,
+          from: fromLabel,
+          to: toLabel,
+          label: `${fromLabel} ↔ ${toLabel}`,
+          strength: weight,
+        });
+      }
+    });
+
+    const finalEdges = Array.from(edgeMap.values());
+
+    const influences = finalEdges.filter(
+      (edge) =>
+        ["work", "family", "stress", "alcohol"].includes(edge.from) ||
+        ["work", "family", "stress", "alcohol"].includes(edge.to)
+    );
+
+    const symptoms = finalEdges.filter((edge) => !influences.includes(edge));
+
+    return {
+      cleanNodes: Array.from(nodeMap.values()),
+      cleanEdges: finalEdges,
+      categorizedEdges: { influences, symptoms },
     };
-    mergedEdges.set(pairKey, next);
-  });
+  }, [rawNodes, rawEdges, minStrength]);
 
-  const mappedEdges = Array.from(mergedEdges.values());
-  const selectedMappedEdge = selectedEdge
-    ? mappedEdges.find((edge) => edge.id === selectedEdge.id)
-    : mappedEdges[0];
-  const mappedNodeList = Array.from(nodeMap.values());
+  const selectedEdge = cleanEdges.find((edge) => edge.id === selectedEdgeId);
 
   return (
-    <div className="space-y-8 text-slate-900">
-      <PageHeader pageId="connections" />
-      <CausalityDisclaimer />
-      <ConnectionsGraph
-        nodes={mappedNodeList}
-        edges={mappedEdges}
-        selectedEdgeId={selectedMappedEdge?.id}
-        onEdgeSelect={(edge) => {
-          setSelectedEdge(edge);
-        }}
-        loading={loading}
-        emptyState={!!error || (!loading && mappedNodeList.length === 0)}
+    <div className="max-w-5xl mx-auto p-6 space-y-8 pb-24">
+      <PageHeader
+        pageId="connections"
+        title="Connections"
+        description="Explore how different parts of your experience link together."
       />
-      <section className="ms-card ms-elev-2 rounded-3xl p-6">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h3 className="text-xl font-semibold">Supporting evidence</h3>
-            <p className="mt-1 text-sm text-slate-500">
-              {error
-                ? "Unable to load evidence yet."
-                : selectedMappedEdge
-                ? `These often appear together in your writing.`
-                : "Select a connection to view quotes."}
-            </p>
-          </div>
-          {selectedMappedEdge && (
-            <button
-              type="button"
-              onClick={() => setSelectedEdge(undefined)}
-              className="text-sm font-medium text-brand hover:text-brandLight"
-            >
-              Clear
-            </button>
-          )}
+
+      <div className="flex items-center gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+        <div className="p-2 bg-slate-100 rounded-full text-slate-500">
+          <SlidersHorizontal size={18} />
         </div>
-        {selectedMappedEdge?.movement ? (
-          <div className="mt-6 space-y-3">
-            <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Movement</p>
-            {selectedMappedEdge.movement.fromSeries.length && selectedMappedEdge.movement.toSeries.length ? (
-              <>
-                <CoMovementChart
-                  fromSeries={selectedMappedEdge.movement.fromSeries || []}
-                  toSeries={selectedMappedEdge.movement.toSeries || []}
-                />
-                <p className="text-sm text-slate-500">{selectedMappedEdge.movement.summary}</p>
-              </>
+        <div className="flex-1">
+          <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+            Signal Strength Filter: {minStrength}%
+          </label>
+          <input
+            type="range"
+            min="5"
+            max="50"
+            value={minStrength}
+            onChange={(event) => setMinStrength(Number(event.target.value))}
+            className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-brand"
+          />
+        </div>
+        <div className="text-xs text-slate-400 w-32 text-right">
+          {cleanEdges.length} connections visible
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+        <div className="lg:col-span-2 relative">
+          <Card className="min-h-[500px] flex items-center justify-center bg-slate-50/50 overflow-hidden">
+            {loading ? (
+              <div className="text-slate-400 animate-pulse">
+                Mapping connections...
+              </div>
+            ) : cleanEdges.length > 0 ? (
+              <ConnectionsGraph
+                nodes={cleanNodes}
+                edges={cleanEdges}
+                selectedEdgeId={selectedEdgeId}
+                onEdgeSelect={(edge) =>
+                  setSelectedEdgeId(
+                    edge.id === selectedEdgeId ? undefined : edge.id
+                  )
+                }
+              />
             ) : (
-              <p className="text-sm text-slate-500">No co-movement data available yet.</p>
-            )}
-          </div>
-        ) : null}
-        {loading ? (
-          <p className="mt-4 text-sm text-slate-500">Loading evidence...</p>
-        ) : error ? (
-          <p className="mt-4 text-sm text-rose-600">{error}</p>
-        ) : selectedMappedEdge ? (
-          <div className="mt-6 space-y-4">
-            {selectedMappedEdge.evidence.length ? (
-              selectedMappedEdge.evidence.map((evidence, index) => (
-                <div
-                  key={`${evidence.id}-${evidence.source}-${index}`}
-                  className="ms-glass-surface rounded-2xl border p-4"
+              <div className="text-center p-8">
+                <p className="text-slate-500">
+                  No strong connections found at this filter level.
+                </p>
+                <button
+                  onClick={() => setMinStrength(5)}
+                  className="mt-4 text-brand text-sm font-semibold hover:underline"
                 >
-                  <p className="text-sm text-slate-700">“{evidence.quote}”</p>
-                  <p className="mt-2 text-xs text-slate-400">{evidence.source}</p>
-                </div>
-              ))
+                  Show weaker signals
+                </button>
+              </div>
+            )}
+          </Card>
+        </div>
+
+        <div className="space-y-6">
+          <AnimatePresence mode="wait">
+            {selectedEdge ? (
+              <motion.div
+                key={selectedEdge.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+              >
+                <Card className="border-brand/30 bg-brand/5">
+                  <div className="p-4">
+                    <div className="text-xs font-bold text-brand uppercase tracking-wider mb-2">
+                      Selected Link
+                    </div>
+                    <div className="flex items-center gap-2 text-lg font-semibold text-slate-800 capitalize">
+                      {selectedEdge.from}{" "}
+                      <ArrowRightLeft size={16} className="text-slate-400" />{" "}
+                      {selectedEdge.to}
+                    </div>
+                    <div className="mt-3 text-sm text-slate-600">
+                      These appear together in{" "}
+                      <strong>{selectedEdge.strength}%</strong> of your entries.
+                    </div>
+                    {selectedEdge.evidence && selectedEdge.evidence.length > 0 && (
+                      <div className="mt-4 pt-4 border-t border-brand/10 space-y-2">
+                        {selectedEdge.evidence.slice(0, 2).map((ev, index) => (
+                          <div
+                            key={index}
+                            className="text-xs italic text-slate-500 bg-white/60 p-2 rounded-lg border border-brand/5"
+                          >
+                            "{ev.quote}"
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </Card>
+              </motion.div>
             ) : (
-              <p className="text-sm text-slate-500">No quotes attached to this connection yet.</p>
+              <div className="p-6 text-center border-2 border-dashed border-slate-200 rounded-3xl text-slate-400 text-sm">
+                Tap a line on the graph to see details.
+              </div>
+            )}
+          </AnimatePresence>
+
+          <div className="space-y-2">
+            <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider px-2">
+              Top Influences
+            </h3>
+            {categorizedEdges.influences.slice(0, 3).map((edge) => (
+              <button
+                key={edge.id}
+                onClick={() => setSelectedEdgeId(edge.id)}
+                className="w-full flex items-center justify-between p-3 bg-white border border-slate-100 rounded-xl shadow-sm hover:border-indigo-200 transition-colors group"
+              >
+                <div className="flex items-center gap-2 text-sm font-medium text-slate-700 capitalize">
+                  {edge.from}{" "}
+                  <ArrowRight
+                    size={14}
+                    className="text-slate-300 group-hover:text-indigo-400"
+                  />{" "}
+                  {edge.to}
+                </div>
+                <Badge variant="neutral">{edge.strength}%</Badge>
+              </button>
+            ))}
+            {categorizedEdges.influences.length === 0 && (
+              <p className="text-xs text-slate-400 px-2">
+                No influences detected yet.
+              </p>
             )}
           </div>
-        ) : (
-          <p className="mt-4 text-sm text-slate-500">Tap an edge to surface the most relevant quotes.</p>
-        )}
-      </section>
+
+          <div className="space-y-2">
+            <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider px-2 pt-4">
+              Symptom Patterns
+            </h3>
+            {categorizedEdges.symptoms.slice(0, 3).map((edge) => (
+              <button
+                key={edge.id}
+                onClick={() => setSelectedEdgeId(edge.id)}
+                className="w-full flex items-center justify-between p-3 bg-white border border-slate-100 rounded-xl shadow-sm hover:border-rose-200 transition-colors group"
+              >
+                <div className="flex items-center gap-2 text-sm font-medium text-slate-700 capitalize">
+                  {edge.from}{" "}
+                  <ArrowRightLeft
+                    size={14}
+                    className="text-slate-300 group-hover:text-rose-400"
+                  />{" "}
+                  {edge.to}
+                </div>
+                <Badge variant="neutral">{edge.strength}%</Badge>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
