@@ -6,6 +6,11 @@ const WeeklySummary = require("../../models/WeeklySummary");
 const { PIPELINE_VERSION } = require("../pipelineVersion");
 const { computeSourceVersionForRange } = require("../versioning");
 const { mergeSummaries } = require("../../utils/ai/summaryMerger");
+const path = require("path");
+const patientView = require(path.join(
+  __dirname,
+  "../../../../packages/criteria-graph/criteria_specs/v1/depressive_disorders_patient_view.json"
+));
 
 const parseStringList = (value) => {
   const trimmed = value.trim();
@@ -223,6 +228,54 @@ const formatList = (items) => {
   if (filtered.length === 1) return filtered[0];
   if (filtered.length === 2) return `${filtered[0]} and ${filtered[1]}`;
   return `${filtered[0]}, ${filtered[1]}, and ${filtered[2]}`;
+};
+
+const buildPatientLabelMap = () => {
+  const map = new Map();
+  const evidenceMappings = patientView?.evidence_label_mappings || {};
+  Object.entries(evidenceMappings).forEach(([code, entry]) => {
+    if (entry?.patient_label) {
+      map.set(code, entry.patient_label);
+    }
+  });
+  const nodeMappings = patientView?.node_mappings || {};
+  const symptomMappings = nodeMappings?.symptoms || {};
+  Object.entries(symptomMappings).forEach(([code, value]) => {
+    if (value?.patient_label) {
+      map.set(code, value.patient_label);
+    }
+  });
+  const impactMappings = nodeMappings?.impact_domains || {};
+  Object.entries(impactMappings).forEach(([code, value]) => {
+    if (value?.patient_label) {
+      map.set(code, value.patient_label);
+    }
+  });
+  return map;
+};
+
+const patientLabelMap = buildPatientLabelMap();
+
+const mapLabelToTheme = (label) => {
+  const overrides = {
+    SYMPTOM_MOOD: "Low mood",
+    SYMPTOM_ANHEDONIA: "Reduced enjoyment",
+    SYMPTOM_ANXIETY: "Anxiety",
+    SYMPTOM_SLEEP: "Sleep changes",
+    SYMPTOM_SOMATIC: "Body/energy changes",
+    SYMPTOM_COGNITIVE: "Self-critical thoughts",
+    SYMPTOM_MANIA: "High energy shifts",
+    SYMPTOM_PSYCHOSIS: "Unusual perceptions",
+    SYMPTOM_TRAUMA: "Trauma responses",
+    IMPAIRMENT: "Life impact",
+  };
+  if (overrides[label]) return overrides[label];
+  if (patientLabelMap.has(label)) return patientLabelMap.get(label);
+  return String(label || "")
+    .replace(/^(SYMPTOM_|IMPACT_|CONTEXT_|IMPAIRMENT_)/, "")
+    .replace(/_/g, " ")
+    .trim()
+    .toLowerCase();
 };
 
 /**
@@ -480,11 +533,12 @@ const buildSnapshot = ({ entries, rangeKey, weeklySummaries, seriesDocs, signals
     const sparkline = compressed.map((point) => point.intensity);
     const trend = computeTrend(rawPoints.map((point) => point.intensity));
     const confidence = computeConfidence(rawPoints);
+    const label = mapLabelToTheme(theme);
 
     return {
       id: `theme-${index}`,
-      title: toTitleCase(theme),
-      description: `Patterns around ${theme} show up across recent entries.`,
+      title: toTitleCase(label),
+      description: `Patterns around ${label} show up across recent entries.`,
       trend,
       confidence,
       sparkline,
@@ -523,7 +577,10 @@ const buildSnapshot = ({ entries, rangeKey, weeklySummaries, seriesDocs, signals
 
   const snapshotParts = [];
   if (topThemes.length) {
-    snapshotParts.push(`${rangeIntro} your writing often touches on ${formatList(topThemes.slice(0, 3))}.`);
+    const topThemeLabels = topThemes.map((theme) => mapLabelToTheme(theme));
+    snapshotParts.push(
+      `${rangeIntro} your writing often touches on ${formatList(topThemeLabels.slice(0, 3))}.`
+    );
   }
   if (finalImpactAreas.length) {
     snapshotParts.push(`These experiences seem to affect ${formatList(finalImpactAreas)}.`);

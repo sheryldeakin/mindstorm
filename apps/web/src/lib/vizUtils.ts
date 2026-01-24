@@ -1,5 +1,6 @@
 import type { ThemeSeries } from "@mindstorm/derived-spec";
 import type { EvidenceUnit, JournalEntry } from "../types/journal";
+import { getPatientLabel } from "./patientSignals";
 
 export type ConnectionNode = {
   id: string;
@@ -229,7 +230,7 @@ export const buildImpactFlowFromSignals = (signals: EntrySignal[]) => {
   const registerNode = (code: string, type: ConnectionNode["type"]) => {
     if (!code || isRestrictedLabel(code)) return;
     if (!nodes.has(code)) {
-      nodes.set(code, { id: code, label: code, type });
+      nodes.set(code, { id: code, label: getPatientLabel(code), type });
     }
   };
 

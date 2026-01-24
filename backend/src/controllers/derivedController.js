@@ -490,6 +490,27 @@ const toLabel = (value) =>
     .map((part) => part[0].toUpperCase() + part.slice(1))
     .join(" ");
 
+const patientView = require("../../../packages/criteria-graph/criteria_specs/v1/depressive_disorders_patient_view.json");
+
+const buildPatientLabelMap = () => {
+  const map = new Map();
+  const evidenceMappings = patientView?.evidence_label_mappings || {};
+  Object.entries(evidenceMappings).forEach(([key, value]) => {
+    if (value?.patient_label) map.set(key, value.patient_label);
+  });
+  const impactMappings = patientView?.node_mappings?.impact_domains || {};
+  Object.entries(impactMappings).forEach(([key, value]) => {
+    if (value) map.set(key, value);
+  });
+  const symptomMappings = patientView?.node_mappings?.symptoms || {};
+  Object.entries(symptomMappings).forEach(([key, value]) => {
+    if (value?.patient_label) map.set(key, value.patient_label);
+  });
+  return map;
+};
+
+const patientLabelMap = buildPatientLabelMap();
+
 /**
  * Maps evidence labels to patient-facing theme labels.
  * @param {string} label
@@ -498,6 +519,7 @@ const toLabel = (value) =>
 const mapLabelToTheme = (label) => {
   const map = {
     SYMPTOM_MOOD: "Low mood",
+    SYMPTOM_ANHEDONIA: "Reduced enjoyment",
     SYMPTOM_ANXIETY: "Anxiety",
     SYMPTOM_SLEEP: "Sleep changes",
     SYMPTOM_SOMATIC: "Body/energy changes",
@@ -519,7 +541,9 @@ const mapLabelToTheme = (label) => {
     CONTEXT_LOCATION: "Places",
   };
   if (map[label]) return map[label];
+  if (patientLabelMap.has(label)) return patientLabelMap.get(label);
   return String(label || "")
+    .replace(/^(SYMPTOM_|IMPACT_|CONTEXT_|IMPAIRMENT_)/, "")
     .replace(/_/g, " ")
     .trim()
     .toLowerCase();

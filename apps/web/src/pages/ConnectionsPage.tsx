@@ -8,20 +8,25 @@ import ConnectionsGraph from "../components/features/ConnectionsGraph";
 import { Card } from "../components/ui/Card";
 import Badge from "../components/ui/Badge";
 import type { ConnectionEdge, ConnectionNode } from "../types/connections";
+import { getPatientLabel } from "../lib/patientSignals";
 
 const NORMALIZE_MAP: Record<string, string> = {
   job: "work",
   school: "work",
   career: "work",
   impact_work: "work",
+  "work/school": "work",
   symptom_mood: "low mood",
   mood: "low mood",
   tension: "anxiety",
   symptom_anxiety: "anxiety",
 };
 
+const isCodeLabel = (label: string) => /^(SYMPTOM|IMPACT|CONTEXT|IMPAIRMENT)_/i.test(label);
+
 const normalizeLabel = (label: string) => {
-  const clean = label.toLowerCase().replace(/_/g, " ").trim();
+  const baseLabel = isCodeLabel(label) ? getPatientLabel(label.toUpperCase()) : label;
+  const clean = baseLabel.toLowerCase().replace(/_/g, " ").trim();
   if (NORMALIZE_MAP[clean]) return NORMALIZE_MAP[clean];
   if (clean.includes("sleep")) return "sleep";
   return clean;

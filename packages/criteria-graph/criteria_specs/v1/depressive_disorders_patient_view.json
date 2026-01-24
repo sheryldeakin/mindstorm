@@ -124,6 +124,10 @@
       "patient_label": "Body and energy changes",
       "reflection_prompt": "You described changes in energy, appetite, movement, or physical restlessness."
     },
+    "SYMPTOM_FATIGUE": {
+      "patient_label": "Low energy or fatigue",
+      "reflection_prompt": "You mentioned feeling drained, low energy, or exhausted."
+    },
     "SYMPTOM_SLEEP": {
       "patient_label": "Sleep changes",
       "reflection_prompt": "You mentioned sleeping more or less than usual."
@@ -159,6 +163,10 @@
     "IMPACT_SOCIAL": {
       "patient_label": "Connection with others",
       "reflection_prompt": "You mentioned pulling away from friends or conflict with people."
+    },
+    "IMPACT_SAFETY": {
+      "patient_label": "Safety concerns",
+      "reflection_prompt": "You mentioned situations where your safety felt at risk."
     },
     "IMPACT_SELF_CARE": {
       "patient_label": "Taking care of yourself",

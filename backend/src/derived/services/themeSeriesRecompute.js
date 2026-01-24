@@ -2,6 +2,11 @@ const EntrySignals = require("../models/EntrySignals");
 const ThemeSeries = require("../models/ThemeSeries");
 const { PIPELINE_VERSION } = require("../pipelineVersion");
 const { computeSourceVersionForRange } = require("../versioning");
+const path = require("path");
+const patientView = require(path.join(
+  __dirname,
+  "../../../../packages/criteria-graph/criteria_specs/v1/depressive_disorders_patient_view.json"
+));
 
 const MAX_ALL_TIME_DAYS = 730;
 const DEFAULT_INTENSITY = 0.4;
@@ -25,9 +30,36 @@ const severityToIntensity = (severity) => {
  * @param {string} label
  * @returns {string}
  */
+const buildPatientLabelMap = () => {
+  const map = new Map();
+  const evidenceMappings = patientView?.evidence_label_mappings || {};
+  Object.entries(evidenceMappings).forEach(([code, entry]) => {
+    if (entry?.patient_label) {
+      map.set(code, entry.patient_label);
+    }
+  });
+  const nodeMappings = patientView?.node_mappings || {};
+  const symptomMappings = nodeMappings?.symptoms || {};
+  Object.entries(symptomMappings).forEach(([code, value]) => {
+    if (value?.patient_label) {
+      map.set(code, value.patient_label);
+    }
+  });
+  const impactMappings = nodeMappings?.impact_domains || {};
+  Object.entries(impactMappings).forEach(([code, value]) => {
+    if (value?.patient_label) {
+      map.set(code, value.patient_label);
+    }
+  });
+  return map;
+};
+
+const patientLabelMap = buildPatientLabelMap();
+
 const mapLabelToTheme = (label) => {
-  const map = {
+  const overrides = {
     SYMPTOM_MOOD: "Low mood",
+    SYMPTOM_ANHEDONIA: "Reduced enjoyment",
     SYMPTOM_ANXIETY: "Anxiety",
     SYMPTOM_SLEEP: "Sleep changes",
     SYMPTOM_SOMATIC: "Body/energy changes",
@@ -37,8 +69,10 @@ const mapLabelToTheme = (label) => {
     SYMPTOM_TRAUMA: "Trauma responses",
     IMPAIRMENT: "Life impact",
   };
-  if (map[label]) return map[label];
-  return String(label)
+  if (overrides[label]) return overrides[label];
+  if (patientLabelMap.has(label)) return patientLabelMap.get(label);
+  return String(label || "")
+    .replace(/^(SYMPTOM_|IMPACT_|CONTEXT_|IMPAIRMENT_)/, "")
     .replace(/_/g, " ")
     .trim()
     .toLowerCase();
