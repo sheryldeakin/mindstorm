@@ -1,4 +1,4 @@
-import type { JournalEntry } from "../../types/journal";
+import type { EvidenceUnit, JournalEntry } from "../../types/journal";
 import {
   buildLanguageReflection,
   buildEvidenceBadges,
@@ -19,16 +19,18 @@ interface EntrySummaryPanelProps {
 
 const EntrySummaryPanel = ({ entry }: EntrySummaryPanelProps) => {
   const { getPatientLabel, getIntensityLabel } = usePatientTranslation();
+  const mapLabelForUnit = (label: string, unit?: EvidenceUnit) =>
+    getPatientLabel(label, unit?.span);
   const evidenceUnits = entry.evidenceUnits || [];
   const hasEvidence = evidenceUnits.length > 0;
   const themes = hasEvidence
-    ? buildEvidenceThemes(evidenceUnits, getPatientLabel, ["SYMPTOM_", "IMPACT_", "CONTEXT_"])
+    ? buildEvidenceThemes(evidenceUnits, mapLabelForUnit, ["SYMPTOM_", "IMPACT_", "CONTEXT_"])
     : [];
   const touchesOn = hasEvidence
-    ? buildEvidenceTouchesOn(evidenceUnits, getPatientLabel, ["IMPACT_", "CONTEXT_"])
+    ? buildEvidenceTouchesOn(evidenceUnits, mapLabelForUnit, ["IMPACT_", "CONTEXT_"])
     : [];
   const overallEmotions = hasEvidence
-    ? buildEvidenceBadges(evidenceUnits, getPatientLabel, getIntensityLabel, ["SYMPTOM_"])
+    ? buildEvidenceBadges(evidenceUnits, mapLabelForUnit, getIntensityLabel, ["SYMPTOM_"])
     : [];
   const reflectionSource = entry.languageReflection || entry.timeReflection ? "" : entry.summary || entry.body || "";
   const languageReflection =

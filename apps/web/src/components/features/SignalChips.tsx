@@ -31,7 +31,7 @@ const SignalChips = ({ evidenceUnits, maxChips = 4 }: SignalChipsProps) => {
     .filter((unit) => unit.label && !unit.label.startsWith("DX_") && !unit.label.startsWith("THRESHOLD"))
     .sort((a, b) => orderForLabel(a.label) - orderForLabel(b.label))
     .forEach((unit) => {
-      const mapped = getPatientLabel(unit.label);
+      const mapped = getPatientLabel(unit.label, unit.span);
       if (!labels.includes(mapped)) labels.push(mapped);
     });
 

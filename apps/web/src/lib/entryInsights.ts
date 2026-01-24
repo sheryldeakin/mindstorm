@@ -60,14 +60,14 @@ const matchesPrefix = (label: string, prefixes?: string[]) =>
 
 const collectEvidenceLabels = (
   units: EvidenceUnit[],
-  mapLabel: (label: string) => string,
+  mapLabel: (label: string, unit?: EvidenceUnit) => string,
   prefixes?: string[],
 ) => {
   const labels: string[] = [];
   units.forEach((unit) => {
     if (!unit?.label || !isPresentUnit(unit)) return;
     if (!matchesPrefix(unit.label, prefixes)) return;
-    const mapped = mapLabel(unit.label);
+    const mapped = mapLabel(unit.label, unit);
     if (!labels.includes(mapped)) labels.push(mapped);
   });
   return labels;
@@ -75,7 +75,7 @@ const collectEvidenceLabels = (
 
 export const buildEvidenceBadges = (
   units: EvidenceUnit[],
-  mapLabel: (label: string) => string,
+  mapLabel: (label: string, unit?: EvidenceUnit) => string,
   mapSeverity: (severity: string) => string,
   prefixes?: string[],
 ): SignalBadge[] => {
@@ -83,7 +83,7 @@ export const buildEvidenceBadges = (
   units.forEach((unit) => {
     if (!unit?.label || !isPresentUnit(unit)) return;
     if (!matchesPrefix(unit.label, prefixes)) return;
-    const mapped = mapLabel(unit.label);
+    const mapped = mapLabel(unit.label, unit);
     const existing = badges.find((badge) => badge.label === mapped);
     if (existing) {
       if (existing.isDraft && unit.attributes?.type !== "draft") {
@@ -101,13 +101,13 @@ export const buildEvidenceBadges = (
 
 export const buildEvidenceThemes = (
   units: EvidenceUnit[],
-  mapLabel: (label: string) => string,
+  mapLabel: (label: string, unit?: EvidenceUnit) => string,
   prefixes?: string[],
 ) => collectEvidenceLabels(units, mapLabel, prefixes);
 
 export const buildEvidenceTouchesOn = (
   units: EvidenceUnit[],
-  mapLabel: (label: string) => string,
+  mapLabel: (label: string, unit?: EvidenceUnit) => string,
   prefixes?: string[],
 ) => collectEvidenceLabels(units, mapLabel, prefixes);
 

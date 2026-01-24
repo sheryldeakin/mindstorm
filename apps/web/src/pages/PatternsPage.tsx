@@ -98,7 +98,7 @@ const PatternsPage = () => {
     evidenceUnitsInRange.forEach((unit) => {
       if (!unit.label.startsWith("SYMPTOM_")) return;
       if (unit.label === "SYMPTOM_RISK") return;
-      const patientLabel = getPatientLabel(unit.label);
+      const patientLabel = getPatientLabel(unit.label, unit.span);
       counts.set(patientLabel, (counts.get(patientLabel) || 0) + 1);
     });
     const riskCount = evidenceUnitsInRange.filter((unit) => unit.label === "SYMPTOM_RISK").length;
@@ -119,7 +119,7 @@ const PatternsPage = () => {
     const counts = new Map<string, number>();
     evidenceUnitsInRange.forEach((unit) => {
       if (!unit.label.startsWith("CONTEXT_")) return;
-      const label = getPatientLabel(unit.label);
+      const label = getPatientLabel(unit.label, unit.span);
       counts.set(label, (counts.get(label) || 0) + 1);
     });
     const total = Array.from(counts.values()).reduce((sum, value) => sum + value, 0);
@@ -146,15 +146,15 @@ const PatternsPage = () => {
       : "—";
     const contextUnits = evidenceUnitsInRange.filter((unit) => unit.label.startsWith("CONTEXT_"));
     const topContext = contextUnits.length
-      ? getPatientLabel(
-          contextUnits
-            .map((unit) => unit.label)
-            .sort((a, b) => {
-              const countA = contextUnits.filter((unit) => unit.label === a).length;
-              const countB = contextUnits.filter((unit) => unit.label === b).length;
-              return countB - countA;
-            })[0],
-        )
+      ? (() => {
+          const labelCounts = new Map<string, number>();
+          contextUnits.forEach((unit) => {
+            const label = getPatientLabel(unit.label, unit.span);
+            labelCounts.set(label, (labelCounts.get(label) || 0) + 1);
+          });
+          return Array.from(labelCounts.entries())
+            .sort((a, b) => b[1] - a[1])[0]?.[0] || "—";
+        })()
       : "—";
 
     return [

@@ -1,5 +1,6 @@
 import patientView from "@criteria/depressive_disorders_patient_view.json";
 import type { JournalEntry } from "../types/journal";
+import { resolveImpactWorkLabel } from "./impactLabels";
 
 type EvidenceLabelMapping = {
   patient_label: string;
@@ -52,18 +53,24 @@ const buildLabelMap = () => {
 
 const labelMap = buildLabelMap();
 
-const mapPatientLabel = (label: string) => {
+const mapPatientLabel = (label: string, span?: string | null) => {
   if (label === "CONTEXT_MEDICAL") return "Physical Health";
   if (label === "CONTEXT_STRESSOR") return "Life Stressors";
   if (label === "CONTEXT_ROUTINE") return "Daily Routine";
   if (label === "CONTEXT_ENVIRONMENT") return "Sensory Environment";
   if (label === "CONTEXT_SOCIAL_INTERACTION") return "Social Moments";
   if (label === "CONTEXT_LOCATION") return "Places";
-  if (label === "IMPACT_WORK") return "Work/School";
+  if (label === "IMPACT_WORK") {
+    return resolveImpactWorkLabel(span, {
+      work: "Work",
+      school: "School",
+      fallback: "Work/School",
+    });
+  }
   return labelMap.get(label) || humanizeLabel(label);
 };
 
-export const getPatientLabel = (label: string) => mapPatientLabel(label);
+export const getPatientLabel = (label: string, span?: string | null) => mapPatientLabel(label, span);
 
 const truncateSummary = (summary: string, maxLength = 80) => {
   if (summary.length <= maxLength) return summary;
@@ -77,7 +84,7 @@ export const buildSignalPreview = (entry: JournalEntry, maxLabels = 2) => {
   units.forEach((unit) => {
     if (!unit.label) return;
     if (unit.label.startsWith("DX_") || unit.label.startsWith("THRESHOLD")) return;
-    const patientLabel = mapPatientLabel(unit.label);
+    const patientLabel = mapPatientLabel(unit.label, unit.span);
     if (!labels.includes(patientLabel)) labels.push(patientLabel);
   });
 
@@ -98,8 +105,8 @@ export const buildContextImpactTags = (entry: JournalEntry | null | undefined, m
   const tags: string[] = [];
   const seen = new Set<string>();
 
-  const addTag = (label: string) => {
-    const patientLabel = mapPatientLabel(label);
+  const addTag = (label: string, span?: string | null) => {
+    const patientLabel = mapPatientLabel(label, span);
     if (seen.has(patientLabel)) return;
     seen.add(patientLabel);
     tags.push(patientLabel);
@@ -110,7 +117,7 @@ export const buildContextImpactTags = (entry: JournalEntry | null | undefined, m
     if (!unit.label) return;
     if (unit.attributes?.polarity && unit.attributes.polarity !== "PRESENT") return;
     if (unit.label.startsWith("CONTEXT_") || unit.label.startsWith("IMPACT_")) {
-      addTag(unit.label);
+      addTag(unit.label, unit.span);
     }
   });
 

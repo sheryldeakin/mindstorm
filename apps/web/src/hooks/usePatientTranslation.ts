@@ -1,6 +1,7 @@
 import { useCallback, useMemo } from "react";
 import patientView from "@criteria/depressive_disorders_patient_view.json";
 import type { EvidenceUnit as SignalEvidenceUnit } from "@mindstorm/signal-schema";
+import { resolveImpactWorkLabel } from "../lib/impactLabels";
 
 type EvidenceLabelMapping = {
   patient_label: string;
@@ -63,8 +64,15 @@ export const usePatientTranslation = () => {
   const labelMappings = useMemo(() => mapping.evidence_label_mappings || {}, []);
   const severityLevels = useMemo(() => mapping.node_mappings?.severity_levels || {}, []);
 
-  const getPatientLabel = useCallback((clinicalLabel: string) => {
+  const getPatientLabel = useCallback((clinicalLabel: string, span?: string | null) => {
     const code = normalizeCode(clinicalLabel);
+    if (code === "IMPACT_WORK") {
+      return resolveImpactWorkLabel(span, {
+        work: "Work",
+        school: "School",
+        fallback: labelMappings[code]?.patient_label || humanizeLabel(code),
+      });
+    }
     return labelMappings[code]?.patient_label || humanizeLabel(code);
   }, [labelMappings]);
 
@@ -85,17 +93,18 @@ export const usePatientTranslation = () => {
     >();
     units.forEach((unit) => {
       const normalizedKey = normalizeCode(unit.label);
-      const patientLabel = getPatientLabel(normalizedKey);
+      const patientLabel = getPatientLabel(normalizedKey, unit.span);
       const prompt = getReflectionPrompt(normalizedKey);
-      if (!groups.has(normalizedKey)) {
-        groups.set(normalizedKey, {
+      const groupKey = normalizedKey === "IMPACT_WORK" ? `${normalizedKey}:${patientLabel}` : normalizedKey;
+      if (!groups.has(groupKey)) {
+        groups.set(groupKey, {
           label: normalizedKey,
           patientLabel,
           prompt,
           units: [],
         });
       }
-      groups.get(normalizedKey)?.units.push(unit);
+      groups.get(groupKey)?.units.push(unit);
     });
     return Array.from(groups.values());
   }, [getPatientLabel, getReflectionPrompt]);

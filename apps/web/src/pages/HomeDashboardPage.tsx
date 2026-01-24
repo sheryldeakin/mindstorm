@@ -547,7 +547,7 @@ const HomeDashboardPage = () => {
     const counts = new Map<string, number>();
     evidenceUnitsInRange.forEach((unit) => {
       if (!unit.label.startsWith("CONTEXT_") && !unit.label.startsWith("IMPACT_")) return;
-      const label = getPatientLabel(unit.label);
+      const label = getPatientLabel(unit.label, unit.span);
       counts.set(label, (counts.get(label) || 0) + 1);
     });
     const total = Array.from(counts.values()).reduce((sum, value) => sum + value, 0);
@@ -579,15 +579,15 @@ const HomeDashboardPage = () => {
       (unit) => unit.label.startsWith("CONTEXT_") || unit.label.startsWith("IMPACT_"),
     );
     const topContext = contextUnits.length
-      ? getPatientLabel(
-          contextUnits
-            .map((unit) => unit.label)
-            .sort((a, b) => {
-              const countA = contextUnits.filter((unit) => unit.label === a).length;
-              const countB = contextUnits.filter((unit) => unit.label === b).length;
-              return countB - countA;
-            })[0],
-        )
+      ? (() => {
+          const labelCounts = new Map<string, number>();
+          contextUnits.forEach((unit) => {
+            const label = getPatientLabel(unit.label, unit.span);
+            labelCounts.set(label, (labelCounts.get(label) || 0) + 1);
+          });
+          return Array.from(labelCounts.entries())
+            .sort((a, b) => b[1] - a[1])[0]?.[0] || "—";
+        })()
       : "—";
 
     return [

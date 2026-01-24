@@ -12,6 +12,7 @@ import type { CaseEntry, EvidenceUnit } from "../types/clinician";
 import { type DiagnosticStatus } from "../hooks/useDiagnosticLogic";
 import { DIAGNOSTIC_GRAPH_NODES } from "../lib/diagnosticGraphConfig";
 import { buildClarificationPrompts, buildInquiryItems } from "../lib/clinicianPrompts";
+import { resolveImpactWorkLabelFromUnits } from "../lib/impactLabels";
 import FunctionalImpactCard from "../components/clinician/FunctionalImpactCard";
 import SpecifierChips from "../components/clinician/SpecifierChips";
 import InquiryAssistant from "../components/clinician/InquiryAssistant";
@@ -147,6 +148,22 @@ const ClinicianCasePageContent = () => {
       return true;
     });
   }, [evidenceUnits, selectedNode]);
+
+  const drawerTitle = useMemo(() => {
+    if (!selectedNode) return "Evidence";
+    const isImpactWork =
+      selectedNode.id === "IMPACT_WORK" ||
+      selectedNode.label === "IMPACT_WORK" ||
+      selectedNode.labels?.includes("IMPACT_WORK");
+    if (isImpactWork) {
+      return resolveImpactWorkLabelFromUnits(drawerEvidence, {
+        work: "Work impact",
+        school: "School impact",
+        fallback: "Work/School impact",
+      });
+    }
+    return selectedNode.label || "Evidence";
+  }, [drawerEvidence, selectedNode]);
 
   const handleToggleReject = (item: EvidenceUnit & { dateISO: string }) => {
     const key = `${item.dateISO}::${item.span}`;
@@ -337,7 +354,7 @@ const ClinicianCasePageContent = () => {
 
       <EvidenceDrawer
         open={Boolean(selectedNode)}
-        title={selectedNode?.label || "Evidence"}
+        title={drawerTitle}
         evidence={drawerEvidence}
         entryLookup={entryLookup}
         overrideStatus={selectedNode ? nodeOverrides[selectedNode.id] : undefined}

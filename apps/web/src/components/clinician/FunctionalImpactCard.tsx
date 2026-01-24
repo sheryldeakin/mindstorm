@@ -1,5 +1,6 @@
 import { Card } from "../ui/Card";
 import type { CaseEntry, EvidenceUnit } from "../../types/clinician";
+import { resolveImpactWorkLabelFromUnits } from "../../lib/impactLabels";
 
 type ImpactDomain = "Work/School" | "Social" | "Self-Care" | "Safety";
 
@@ -37,8 +38,16 @@ const buildImpactSummary = (entries: CaseEntry[]): ImpactItem[] => {
 
   return Object.values(LABEL_MAP).map((domain) => {
     const matches = labeledUnits.filter((unit) => LABEL_MAP[unit.label] === domain);
+    const resolvedDomain =
+      domain === "Work/School"
+        ? resolveImpactWorkLabelFromUnits(matches, {
+            work: "Work",
+            school: "School",
+            fallback: domain,
+          })
+        : domain;
     return {
-      domain,
+      domain: resolvedDomain,
       count: matches.length,
       severity: hasAnyEvidence ? toSeverity(matches.length) : "None",
       examples: matches.slice(0, 2).map((item) => ({ span: item.span, dateISO: item.dateISO })),

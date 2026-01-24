@@ -225,6 +225,88 @@ const buildClinicalSignalPrompt = () =>
   ].join(" ");
 
 /**
+ * Builds the LLM prompt for high-recall span scanning.
+ * @returns {string}
+ */
+const buildScannerPrompt = () =>
+  [
+    "System Prompt: Clinical Signal Span Scanner",
+    "Role: You extract verbatim text spans and assign a label code. Do not infer attributes.",
+    "Return strict JSON with key candidates.",
+    "Extract spans for ANY of these categories using the exact label codes:",
+    "Symptoms:",
+    "- SYMPTOM_MOOD (low mood, sadness, emptiness)",
+    "- SYMPTOM_ANHEDONIA (loss of interest/pleasure)",
+    "- SYMPTOM_MANIA (high energy, racing thoughts, little sleep)",
+    "- SYMPTOM_ANXIETY (worry, tension, panic, overwhelmed)",
+    "- SYMPTOM_TRAUMA (flashbacks, dissociation)",
+    "- SYMPTOM_PSYCHOSIS (hallucinations, delusions)",
+    "- SYMPTOM_SLEEP (insomnia, hypersomnia)",
+    "- SYMPTOM_SOMATIC (energy, appetite, physical changes)",
+    "- SYMPTOM_COGNITIVE (focus, indecision, self-criticism)",
+    "- SYMPTOM_RISK (thoughts of death, self-harm)",
+    "Impact:",
+    "- IMPACT_WORK, IMPACT_SOCIAL, IMPACT_SELF_CARE, IMPACT_SAFETY",
+    "Context:",
+    "- CONTEXT_SUBSTANCE, CONTEXT_MEDICAL, CONTEXT_STRESSOR, CONTEXT_ROUTINE, CONTEXT_ENVIRONMENT,",
+    "- CONTEXT_SOCIAL_INTERACTION, CONTEXT_LOCATION",
+    "Constraints:",
+    "- Use exact substrings from the input.",
+    "- Do not assign polarity, severity, or attributes.",
+    "- Return at most 20 candidates. Keep each span under 260 characters.",
+    'Output JSON: { "candidates": [ { "span": "...", "label": "CODE" } ] }',
+  ].join(" ");
+
+/**
+ * Builds the LLM prompt for attribute analysis over candidate spans.
+ * @returns {string}
+ */
+const buildAnalyzerPrompt = () =>
+  [
+    "System Prompt: Clinical Signal Analyzer",
+    "Role: You analyze provided candidate spans and determine validity + attributes.",
+    "Use the original entry text to interpret each candidate.",
+    "If a candidate is not a real clinical signal, omit it from output.",
+    "Return strict JSON with key evidence_units only.",
+
+    "Attribute rules:",
+    "1. polarity: 'PRESENT' or 'ABSENT'.",
+    "   - Loss/deficit statements mean PRESENT (e.g., 'no energy', 'no focus', 'can't sleep').",
+    "   - ONLY use ABSENT if the user explicitly denies the symptom (e.g., 'sleep was fine').",
+    "   - For SYMPTOM_ANHEDONIA: 'no interest' => PRESENT; 'still enjoy' => ABSENT.",
+    "   - For SYMPTOM_SOMATIC (Energy/Fatigue): 'no energy', 'drained' => PRESENT; 'energetic' => ABSENT.",
+    "   - For SYMPTOM_SOMATIC (Appetite): 'no appetite' => PRESENT; 'eating normally' => ABSENT.",
+    "   - For SYMPTOM_SLEEP: 'didn't sleep', 'up all night' => PRESENT; 'slept fine' => ABSENT.",
+    "   - For SYMPTOM_COGNITIVE: 'no focus', 'can't think' => PRESENT; 'focus is sharp' => ABSENT.",
+    "   - For IMPACT_SOCIAL / SYMPTOM_ANHEDONIA (Withdrawal): 'ignoring everyone' => PRESENT; 'felt social' => ABSENT.",
+    "2. temporality: onset/duration if stated.",
+    "3. frequency: how often if stated.",
+    "4. severity: 'MILD' | 'MODERATE' | 'SEVERE' when possible; otherwise use exact descriptor.",
+    "   - For SYMPTOM_RISK: distinguish PASSIVE vs ACTIVE in severity.",
+    "5. attribution: stated cause if present (e.g., 'because of meds').",
+    "6. uncertainty: LOW for direct statements, HIGH for hedging.",
+
+    "Critical logic:",
+    "- Loss vs absence: 'no energy', 'no focus', 'can't sleep' => PRESENT.",
+    "- Impact vs symptom: behaviors/actions are IMPACT; internal feelings are SYMPTOM.",
+    "- Use candidate.label as the label unless it is clearly incorrect; do not invent new labels.",
+
+    "Output schema:",
+    "{",
+    '  "evidence_units": [',
+    '    { "span": "exact substring", "label": "CODE", "attributes": {',
+    '      "polarity": "PRESENT" | "ABSENT",',
+    '      "temporality": "string" | null,',
+    '      "frequency": "string" | null,',
+    '      "severity": "string" | null,',
+    '      "attribution": "string" | null,',
+    '      "uncertainty": "LOW" | "HIGH"',
+    "    } }",
+    "  ]",
+    "}",
+  ].join(" ");
+
+/**
  * Builds the LLM prompt for evidence snippet extraction.
  * @returns {string}
  */
@@ -685,13 +767,68 @@ const callLlmRawWithRetry = async ({ baseUrl, apiKey, model, messages, maxTokens
   return lastResult;
 };
 
+const normalizeCandidateUnits = (units) => {
+  if (!Array.isArray(units)) return [];
+  const normalized = units
+    .filter((unit) => unit && typeof unit === "object")
+    .map((unit) => ({
+      span: typeof unit.span === "string" ? unit.span.trim() : "",
+      label: typeof unit.label === "string" ? unit.label.trim() : "",
+    }))
+    .filter((unit) => unit.span && unit.label);
+
+  const seen = new Set();
+  return normalized.filter((unit) => {
+    const key = `${unit.label}::${unit.span}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+};
+
+const normalizeEvidenceUnits = (units) => {
+  if (!Array.isArray(units)) return [];
+  const normalized = units
+    .filter((unit) => unit && typeof unit === "object")
+    .map((unit) => ({
+      span: typeof unit.span === "string" ? unit.span.trim() : "",
+      label: typeof unit.label === "string" ? unit.label.trim() : "",
+      attributes: unit.attributes && typeof unit.attributes === "object" ? unit.attributes : {},
+    }))
+    .filter((unit) => unit.span && unit.label);
+
+  const seen = new Set();
+  return normalized.filter((unit) => {
+    const key = `${unit.label}::${unit.span}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+};
+
+const parseScannerPayload = (content) => {
+  const parsed = extractJson(content);
+  if (!parsed) return null;
+  if (Array.isArray(parsed)) return { candidates: parsed };
+  if (parsed && typeof parsed === "object" && Array.isArray(parsed.candidates)) return parsed;
+  return null;
+};
+
+const parseAnalyzerPayload = (content) => {
+  const parsed = extractJson(content);
+  if (!parsed) return null;
+  if (Array.isArray(parsed)) return { evidence_units: parsed };
+  if (parsed && typeof parsed === "object" && Array.isArray(parsed.evidence_units)) return parsed;
+  return null;
+};
+
 /**
- * Extract Evidence Units (clinical signals) from a single entry text.
- * Prompt strategy: span extraction + attribute labeling with strict schema.
+ * Legacy Evidence Unit extraction (single-pass prompt).
+ * Preserved for benchmarking comparisons.
  * @param {string} entryText
  * @returns {Promise<{evidenceUnits?: Array<object>, error?: string, details?: object}>}
  */
-const generateClinicalEvidenceUnits = async (entryText) => {
+const generateClinicalEvidenceUnitsLegacy = async (entryText) => {
   const baseUrl = process.env.OPENAI_API_URL || "https://api.openai.com/v1";
   const apiKey = process.env.OPENAI_API_KEY || "";
   const model = process.env.OPENAI_MODEL || "gpt-4o-mini";
@@ -810,30 +947,148 @@ const generateClinicalEvidenceUnits = async (entryText) => {
     };
   }
 
-  /**
-   * Normalizes evidence unit payloads from LLM output.
-   * @param {Array<Record<string, unknown>>} units
-   * @returns {Array<{ span: string, label: string, attributes: Record<string, unknown> }>}
-   */
-  const normalizeEvidenceUnits = (units) => {
-    if (!Array.isArray(units)) return [];
-    const normalized = units
-      .filter((unit) => unit && typeof unit === "object")
-      .map((unit) => ({
-        span: typeof unit.span === "string" ? unit.span.trim() : "",
-        label: typeof unit.label === "string" ? unit.label.trim() : "",
-        attributes: unit.attributes && typeof unit.attributes === "object" ? unit.attributes : {},
-      }))
-      .filter((unit) => unit.span && unit.label);
+  const evidenceUnits = normalizeEvidenceUnits(parsed.evidence_units);
+  if (Array.isArray(parsed.evidence_units) && parsed.evidence_units.length && !evidenceUnits.length) {
+    return {
+      error: "Invalid evidence_units format.",
+      details: { sampleTypes: parsed.evidence_units.slice(0, 3).map((unit) => typeof unit) },
+    };
+  }
 
-    const seen = new Set();
-    return normalized.filter((unit) => {
-      const key = `${unit.label}::${unit.span}`;
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
+  return { evidenceUnits };
+};
+
+const runScanner = async (entryText) => {
+  const baseUrl = process.env.OPENAI_API_URL || "https://api.openai.com/v1";
+  const apiKey = process.env.OPENAI_API_KEY || "";
+  const model = process.env.OPENAI_MODEL || "gpt-4o-mini";
+  const isLocal = baseUrl.includes("localhost") || baseUrl.includes("127.0.0.1");
+
+  if (!apiKey && !isLocal) {
+    return { error: "OPENAI_API_KEY is not set." };
+  }
+
+  const buildMessages = (retry) => [
+    { role: "system", content: buildScannerPrompt() },
+    {
+      role: "user",
+      content: [
+        `Patient narrative:\n${entryText}`,
+        "Return JSON only.",
+        retry ? "Your last response was not valid JSON. Return an object with key candidates only." : null,
+      ]
+        .filter(Boolean)
+        .join("\n"),
+    },
+  ];
+
+  const response = await callLlmRawWithRetry({
+    baseUrl,
+    apiKey,
+    model,
+    messages: buildMessages(false),
+    maxTokens: 900,
+  });
+
+  if (response.error) {
+    return { error: response.error, details: response.details };
+  }
+
+  let parsed = parseScannerPayload(response.content);
+  if (!parsed) {
+    const retry = await callLlmRawWithRetry({
+      baseUrl,
+      apiKey,
+      model,
+      messages: buildMessages(true),
+      maxTokens: 900,
     });
-  };
+    if (retry.error) {
+      return { error: retry.error, details: retry.details };
+    }
+    parsed = parseScannerPayload(retry.content);
+  }
+
+  if (!parsed) {
+    const debug = process.env.LLM_DEBUG_PARSE === "true";
+    return {
+      error: "Failed to parse JSON response.",
+      details: debug ? { contentSnippet: (response.content || "").slice(0, 800) } : undefined,
+    };
+  }
+
+  const candidates = normalizeCandidateUnits(parsed.candidates);
+  if (Array.isArray(parsed.candidates) && parsed.candidates.length && !candidates.length) {
+    return {
+      error: "Invalid candidates format.",
+      details: { sampleTypes: parsed.candidates.slice(0, 3).map((unit) => typeof unit) },
+    };
+  }
+
+  return { candidates };
+};
+
+const runAnalyzer = async (entryText, candidates) => {
+  const baseUrl = process.env.OPENAI_API_URL || "https://api.openai.com/v1";
+  const apiKey = process.env.OPENAI_API_KEY || "";
+  const model = process.env.OPENAI_MODEL || "gpt-4o-mini";
+  const isLocal = baseUrl.includes("localhost") || baseUrl.includes("127.0.0.1");
+
+  if (!apiKey && !isLocal) {
+    return { error: "OPENAI_API_KEY is not set." };
+  }
+
+  const buildMessages = (retry) => [
+    { role: "system", content: buildAnalyzerPrompt() },
+    {
+      role: "user",
+      content: [
+        `Patient narrative:\n${entryText}`,
+        `Candidates:\n${JSON.stringify(candidates, null, 2)}`,
+        "Return JSON only.",
+        retry
+          ? "Your last response was not valid JSON. Return an object with key evidence_units only."
+          : null,
+      ]
+        .filter(Boolean)
+        .join("\n"),
+    },
+  ];
+
+  const response = await callLlmRawWithRetry({
+    baseUrl,
+    apiKey,
+    model,
+    messages: buildMessages(false),
+    maxTokens: 1200,
+  });
+
+  if (response.error) {
+    return { error: response.error, details: response.details };
+  }
+
+  let parsed = parseAnalyzerPayload(response.content);
+  if (!parsed) {
+    const retry = await callLlmRawWithRetry({
+      baseUrl,
+      apiKey,
+      model,
+      messages: buildMessages(true),
+      maxTokens: 1200,
+    });
+    if (retry.error) {
+      return { error: retry.error, details: retry.details };
+    }
+    parsed = parseAnalyzerPayload(retry.content);
+  }
+
+  if (!parsed) {
+    const debug = process.env.LLM_DEBUG_PARSE === "true";
+    return {
+      error: "Failed to parse JSON response.",
+      details: debug ? { contentSnippet: (response.content || "").slice(0, 800) } : undefined,
+    };
+  }
 
   const evidenceUnits = normalizeEvidenceUnits(parsed.evidence_units);
   if (Array.isArray(parsed.evidence_units) && parsed.evidence_units.length && !evidenceUnits.length) {
@@ -845,6 +1100,28 @@ const generateClinicalEvidenceUnits = async (entryText) => {
 
   return { evidenceUnits };
 };
+
+/**
+ * Extract Evidence Units (clinical signals) using scanner/analyzer pipeline.
+ * @param {string} entryText
+ * @returns {Promise<{evidenceUnits?: Array<object>, error?: string, details?: object}>}
+ */
+const generateClinicalEvidenceUnitsV2 = async (entryText) => {
+  const scan = await runScanner(entryText);
+  if (scan.error) return scan;
+
+  const candidates = scan.candidates || [];
+  if (!candidates.length) {
+    return { evidenceUnits: [] };
+  }
+
+  const analysis = await runAnalyzer(entryText, candidates);
+  if (analysis.error) return analysis;
+  return { evidenceUnits: analysis.evidenceUnits || [] };
+};
+
+const generateClinicalEvidenceUnits = async (entryText) =>
+  generateClinicalEvidenceUnitsLegacy(entryText);
 
 /**
  * Extract patient-authored evidence snippets by section from a single entry.
@@ -1396,6 +1673,8 @@ module.exports = {
   prepareSummary,
   generateEntryEvidence,
   generateClinicalEvidenceUnits,
+  generateClinicalEvidenceUnitsLegacy,
+  generateClinicalEvidenceUnitsV2,
   generateWeeklySummary,
   generateLegacyEntryAnalysis,
 };

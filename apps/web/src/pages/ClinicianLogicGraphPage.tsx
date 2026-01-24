@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import PageHeader from "../components/layout/PageHeader";
 import DiagnosticLogicGraph from "../components/clinician/DiagnosticLogicGraph";
 import EvidenceDrawer from "../components/clinician/EvidenceDrawer";
+import { resolveImpactWorkLabelFromUnits } from "../lib/impactLabels";
 import { Card } from "../components/ui/Card";
 import { apiFetch } from "../lib/apiClient";
 import type { CaseEntry, ClinicianCase, ClinicianOverrideRecord, EvidenceUnit } from "../types/clinician";
@@ -134,6 +135,22 @@ const ClinicianLogicGraphPage = () => {
     if (!selectedNode?.labels?.length) return [];
     return evidenceUnits.filter((unit) => selectedNode.labels?.includes(unit.label));
   }, [evidenceUnits, selectedNode]);
+
+  const drawerTitle = useMemo(() => {
+    if (!selectedNode) return "Evidence";
+    const isImpactWork =
+      selectedNode.id === "IMPACT_WORK" ||
+      selectedNode.label === "IMPACT_WORK" ||
+      selectedNode.labels?.includes("IMPACT_WORK");
+    if (isImpactWork) {
+      return resolveImpactWorkLabelFromUnits(drawerEvidence, {
+        work: "Work impact",
+        school: "School impact",
+        fallback: "Work/School impact",
+      });
+    }
+    return selectedNode.label || "Evidence";
+  }, [drawerEvidence, selectedNode]);
 
   const saveOverride = async (
     nodeId: string,
@@ -285,7 +302,7 @@ const ClinicianLogicGraphPage = () => {
 
       <EvidenceDrawer
         open={Boolean(selectedNode)}
-        title={selectedNode?.label || "Evidence"}
+        title={drawerTitle}
         evidence={drawerEvidence as Array<EvidenceUnit & { dateISO: string; entryId: string }>}
         entryLookup={entryLookup}
         overrideStatus={selectedNode ? nodeOverrides[selectedNode.id] : undefined}
