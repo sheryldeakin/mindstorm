@@ -84,7 +84,8 @@ const LiveInsightPanel = ({
   }, [analysisKey, hasDraft, loading]);
 
   const typedLanguage = useTypewriter(languageReflection || "We're extracting language cues.", revealStep >= 4);
-  const typedTime = useTypewriter(timeReflection || "We're extracting timing cues.", revealStep >= 5);
+  const timingFallback = hasDraft && !loading ? "No reference to timing mentioned." : "We're extracting timing cues.";
+  const typedTime = useTypewriter(timeReflection || timingFallback, revealStep >= 5);
   const typedQuestionOne = useTypewriter(questions[0] || "Does anything make this feel lighter?", revealStep >= 6);
   const typedQuestionTwo = useTypewriter(questions[1] || "Is this something you've felt before?", revealStep >= 6, 16);
 

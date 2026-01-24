@@ -33,7 +33,7 @@ const ConnectionsPage = () => {
   const [rawNodes, setRawNodes] = useState<ConnectionNode[]>([]);
   const [rawEdges, setRawEdges] = useState<ConnectionEdge[]>([]);
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | undefined>();
-  const [minStrength, setMinStrength] = useState(15);
+  const [minStrength, setMinStrength] = useState(0);
 
   useEffect(() => {
     if (status !== "authed") return;
@@ -125,7 +125,7 @@ const ConnectionsPage = () => {
           </label>
           <input
             type="range"
-            min="5"
+            min="0"
             max="50"
             value={minStrength}
             onChange={(event) => setMinStrength(Number(event.target.value))}

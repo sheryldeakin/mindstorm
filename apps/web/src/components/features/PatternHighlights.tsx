@@ -10,7 +10,7 @@ const PatternHighlights = ({ metrics }: PatternHighlightsProps) => (
   <div className="grid gap-4 md:grid-cols-3">
     {metrics.map((metric) => (
       <Card key={metric.id} className="p-5 text-slate-900">
-        <p className="text-sm text-brand/60">{metric.label}</p>
+        <p className="small-label text-slate-400">{metric.label}</p>
         <p className="mt-3 text-3xl font-semibold">{metric.value}</p>
         <p className={`mt-1 text-sm ${metric.status === "up" ? "text-emerald-500" : "text-rose-500"}`}>
           {metric.delta}

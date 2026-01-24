@@ -546,7 +546,7 @@ const HomeDashboardPage = () => {
   const triggerBreakdown = useMemo(() => {
     const counts = new Map<string, number>();
     evidenceUnitsInRange.forEach((unit) => {
-      if (!unit.label.startsWith("CONTEXT_")) return;
+      if (!unit.label.startsWith("CONTEXT_") && !unit.label.startsWith("IMPACT_")) return;
       const label = getPatientLabel(unit.label);
       counts.set(label, (counts.get(label) || 0) + 1);
     });
@@ -569,10 +569,15 @@ const HomeDashboardPage = () => {
     const avgScore = intensityScores.length
       ? intensityScores.reduce((sum, value) => sum + value, 0) / intensityScores.length
       : 0;
-    const avgIntensityLabel = avgScore
-      ? getIntensityLabel(avgScore >= 2.5 ? "SEVERE" : avgScore >= 1.5 ? "MODERATE" : "MILD")
-      : "—";
-    const contextUnits = evidenceUnitsInRange.filter((unit) => unit.label.startsWith("CONTEXT_"));
+    let reflectiveLabel = "—";
+    if (avgScore > 0) {
+      if (avgScore >= 2.5) reflectiveLabel = "Overwhelming";
+      else if (avgScore >= 1.5) reflectiveLabel = "Heavy";
+      else reflectiveLabel = "Noticeable";
+    }
+    const contextUnits = evidenceUnitsInRange.filter(
+      (unit) => unit.label.startsWith("CONTEXT_") || unit.label.startsWith("IMPACT_"),
+    );
     const topContext = contextUnits.length
       ? getPatientLabel(
           contextUnits
@@ -600,10 +605,14 @@ const HomeDashboardPage = () => {
       },
       {
         id: "metric-emotion",
-        label: "Average signal intensity",
-        value: avgScore ? avgIntensityLabel : "—",
-        delta: avgScore ? "Across recent signals" : "Add more reflections",
-        status: avgScore >= 2 ? "up" : "down",
+        label: "Emotional Load",
+        value: reflectiveLabel,
+        delta: avgScore
+          ? avgScore >= 2
+            ? "Heavier than usual"
+            : "Manageable levels"
+          : "Add more reflections",
+        status: avgScore >= 2 ? "up" : "steady",
       },
       {
         id: "metric-trigger",

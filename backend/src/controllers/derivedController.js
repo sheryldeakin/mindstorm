@@ -516,6 +516,7 @@ const mapLabelToTheme = (label) => {
     CONTEXT_ROUTINE: "Daily routine",
     CONTEXT_ENVIRONMENT: "Environment",
     CONTEXT_SOCIAL_INTERACTION: "Social interaction",
+    CONTEXT_LOCATION: "Places",
   };
   if (map[label]) return map[label];
   return String(label || "")

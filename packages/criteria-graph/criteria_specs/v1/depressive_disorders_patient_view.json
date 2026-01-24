@@ -75,8 +75,8 @@
         "description": "This is present but you are mostly managing day-to-day."
       },
       "SEV_MODERATE": {
-        "label": "Disruptive",
-        "description": "This is making it hard to keep up with daily life."
+        "label": "Heavy",
+        "description": "This is making it harder to keep up with daily life."
       },
       "SEV_SEVERE": {
         "label": "Overwhelming",
@@ -187,6 +187,10 @@
     "CONTEXT_SOCIAL_INTERACTION": {
       "patient_label": "Social Moments",
       "reflection_prompt": "You mentioned interactions, conversations, or time with others."
+    },
+    "CONTEXT_LOCATION": {
+      "patient_label": "Places",
+      "reflection_prompt": "You mentioned a specific place where this happened."
     },
     "DURATION": {
       "patient_label": "Timing",

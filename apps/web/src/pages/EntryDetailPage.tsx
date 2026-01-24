@@ -431,11 +431,9 @@ const EntryDetailPage = () => {
                   ) : null}
                   <ul className="mt-3 space-y-2 text-sm text-slate-600">
                     {group.units.map((unit, index) => {
-                      const attributes = buildAttributesSummary(unit.attributes, getIntensityLabel);
                       return (
                         <li key={`${unit.label}-${index}`} className="rounded-xl bg-slate-50 px-3 py-2">
                           <p>• {unit.span || unit.quote}</p>
-                          {attributes ? <p className="mt-1 text-xs text-slate-400">{attributes}</p> : null}
                         </li>
                       );
                     })}

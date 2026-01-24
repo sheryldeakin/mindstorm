@@ -58,6 +58,7 @@ const mapPatientLabel = (label: string) => {
   if (label === "CONTEXT_ROUTINE") return "Daily Routine";
   if (label === "CONTEXT_ENVIRONMENT") return "Sensory Environment";
   if (label === "CONTEXT_SOCIAL_INTERACTION") return "Social Moments";
+  if (label === "CONTEXT_LOCATION") return "Places";
   if (label === "IMPACT_WORK") return "Work/School";
   if (label === "SYMPTOM_RISK") return "Safety Support";
   return labelMap.get(label) || humanizeLabel(label);
