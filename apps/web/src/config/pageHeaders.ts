@@ -35,6 +35,11 @@ export const pageHeaders: Record<string, PageHeaderConfig> = {
     title: "Patient-friendly visuals",
     description: "Exploratory views to help you notice patterns, influences, and life balance.",
   },
+  "demo-graphs-lab": {
+    eyebrow: "Demo Lab",
+    title: "Mind map prototype",
+    description: "Experimental mind map interactions in a clean sandbox.",
+  },
   "interactive-character": {
     eyebrow: "Interactive",
     title: "Interactive character",

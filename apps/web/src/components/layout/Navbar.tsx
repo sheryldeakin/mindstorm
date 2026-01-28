@@ -26,6 +26,7 @@ const appLinks = [
   { label: "Connections", to: "/patient/connections" },
   { label: "Cycles", to: "/patient/cycles" },
   { label: "Patterns", to: "/patient/patterns" },
+  { label: "Demo Lab", to: "/patient/demo-graphs-lab" },
   { label: "Character", to: "/patient/interactive-character" },
   { label: "Prepare", to: "/patient/prepare" },
 ];

@@ -28,6 +28,7 @@ import JournalDashboard from "./pages/JournalDashboard";
 import PatternsPage from "./pages/PatternsPage";
 import CyclesGraphPage from "./pages/CyclesGraphPage";
 import DemoGraphsPage from "./pages/DemoGraphsPage";
+import DemoGraphsLabPage from "./pages/DemoGraphsLabPage";
 import InteractiveCharacterPage from "./pages/InteractiveCharacterPage";
 import LoginPage from "./pages/LoginPage";
 import PortalPage from "./pages/PortalPage";
@@ -108,6 +109,7 @@ const App = () => {
             <Route path="patterns" element={<PatternsPage />} />
             <Route path="cycles" element={<CyclesGraphPage />} />
             <Route path="demo-graphs" element={<DemoGraphsPage />} />
+            <Route path="demo-graphs-lab" element={<DemoGraphsLabPage />} />
             <Route path="interactive-character" element={<InteractiveCharacterPage />} />
           </Route>
         </Route>

@@ -21,6 +21,7 @@ const navItems = [
   { label: "Cycles", to: "/patient/cycles", icon: Activity },
   { label: "Patterns", to: "/patient/patterns", icon: Activity },
   { label: "Demo Graphs", to: "/patient/demo-graphs", icon: LayoutGrid },
+  { label: "Demo Graphs Lab", to: "/patient/demo-graphs-lab", icon: LayoutGrid },
   { label: "Interactive Character", to: "/patient/interactive-character", icon: UserRound },
   { label: "Prepare", to: "/patient/prepare", icon: FileText },
 ];
