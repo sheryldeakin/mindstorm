@@ -281,6 +281,15 @@ const MindstormScene = () => {
     window.setTimeout(() => setWave(false), 120);
   };
 
+  useEffect(() => {
+    if (!USE_FIXED_CAMERA || !modelReady || !characterRef.current) return;
+    const box = buildMeshBounds(characterRef.current) ?? new THREE.Box3().setFromObject(characterRef.current);
+    if (box.isEmpty()) return;
+    const center = box.getCenter(new THREE.Vector3());
+    characterRef.current.position.set(-center.x, -box.min.y, -center.z);
+    characterRef.current.updateWorldMatrix(true, true);
+  }, [modelReady]);
+
   return (
     <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
       <div className="flex flex-wrap items-center justify-between gap-3">
