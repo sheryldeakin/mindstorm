@@ -133,17 +133,25 @@ const MindMapOverlayLab = ({
               </h3>
               <div className="grid gap-3 md:grid-cols-3">
                 {items.length ? (
-                  items.map((item) => (
-                    <button
-                      key={item.id}
+                  (() => {
+                    const seen = new Map<string, number>();
+                    return items.map((item) => {
+                      const count = seen.get(item.id) ?? 0;
+                      seen.set(item.id, count + 1);
+                      const key = count === 0 ? item.id : `${item.id}-${count}`;
+                      return (
+                        <button
+                          key={key}
                       type="button"
                       onClick={() => onSelectMetric(activeDomain as Exclude<DomainKey, "root">, item)}
                       className="rounded-2xl border border-white/60 bg-white/70 p-4 text-left text-sm text-slate-700 shadow-sm transition hover:shadow-md"
                     >
                       <div className="font-semibold">{item.label}</div>
                       {item.subtext && <div className="mt-1 text-xs text-slate-500">{item.subtext}</div>}
-                    </button>
-                  ))
+                        </button>
+                      );
+                    });
+                  })()
                 ) : (
                   <div className="text-sm text-slate-500">No insights yet.</div>
                 )}

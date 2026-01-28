@@ -157,9 +157,15 @@ const MindMapNav = ({ contextItems, symptomItems, impactItems, onSelectMetric, o
             className="absolute inset-x-0 top-1/2 px-10"
           >
             <div className="grid gap-4 md:grid-cols-3">
-              {(itemsByDomain[activeDomain] || []).map((item) => (
-                <motion.button
-                  key={item.id}
+              {(() => {
+                const seen = new Map<string, number>();
+                return (itemsByDomain[activeDomain] || []).map((item) => {
+                  const count = seen.get(item.id) ?? 0;
+                  seen.set(item.id, count + 1);
+                  const key = count === 0 ? item.id : `${item.id}-${count}`;
+                  return (
+                    <motion.button
+                      key={key}
                   type="button"
                   whileHover={{ scale: 1.03 }}
                   onClick={() => onSelectMetric(activeDomain, item)}
@@ -167,8 +173,10 @@ const MindMapNav = ({ contextItems, symptomItems, impactItems, onSelectMetric, o
                 >
                   <div className="text-sm font-semibold text-slate-700">{item.label}</div>
                   {item.subtext && <div className="mt-1 text-xs text-slate-400">{item.subtext}</div>}
-                </motion.button>
-              ))}
+                    </motion.button>
+                  );
+                });
+              })()}
             </div>
           </motion.div>
         )}

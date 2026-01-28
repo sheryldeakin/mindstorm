@@ -93,3 +93,16 @@ export const findAttachments = (cycleNodes: string[], edges: Edge[]) => {
     outputs: Array.from(outputs),
   };
 };
+
+export const findAnchoredAttachments = (cycleNodes: string[], edges: Edge[]) => {
+  const cycleSet = new Set(cycleNodes);
+  const inputs = edges
+    .filter((edge) => cycleSet.has(edge.to) && !cycleSet.has(edge.from))
+    .map((edge) => ({ id: edge.from, targetId: edge.to }));
+
+  const outputs = edges
+    .filter((edge) => cycleSet.has(edge.from) && !cycleSet.has(edge.to))
+    .map((edge) => ({ id: edge.to, sourceId: edge.from }));
+
+  return { inputs, outputs };
+};

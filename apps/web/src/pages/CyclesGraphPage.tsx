@@ -8,9 +8,16 @@ import { useAuth } from "../contexts/AuthContext";
 import { usePatientTranslation } from "../hooks/usePatientTranslation";
 import FlowGraph, { type FlowEdge, type FlowNode } from "../components/features/FlowGraph";
 import CycleCircuit from "../components/features/CycleCircuit";
+import OrbitalCycle from "../components/features/OrbitalCycle";
 import CycleStory from "../components/features/CycleStory";
 import NestedCycleCard from "../components/features/NestedCycleCard";
-import { consolidateCycles, findAttachments, findSimpleCycles } from "../lib/graphUtils";
+import RichCycleCircuit, { type CycleEdgeDetail } from "../components/features/RichCycleCircuit";
+import NeuralCircuit, {
+  type NeuralCircuitEdge,
+  type NeuralCircuitNode,
+} from "../components/features/NeuralCircuit";
+import { consolidateCycles, findAnchoredAttachments, findAttachments, findSimpleCycles } from "../lib/graphUtils";
+import { useNeuralPathfinding } from "../hooks/useNeuralPathfinding";
 
 type NodeData = {
   key: string;
@@ -86,6 +93,19 @@ const gatherPaths = (start: string, adjacency: Map<string, string[]>, depth = 6)
   dfs(start, [start]);
   return results;
 };
+
+const filterMeaningfulCycles = (
+  cycles: string[][],
+  nodeKindById: Map<string, NodeData["kind"]>,
+  minLength = 3,
+) =>
+  cycles.filter((cycle) => {
+    if (cycle.length < minLength) return false;
+    const kinds = cycle.map((id) => nodeKindById.get(id));
+    const hasExternal = kinds.includes("context") || kinds.includes("impact");
+    const hasSymptom = kinds.includes("symptom");
+    return hasExternal && hasSymptom;
+  });
 
 const CyclesGraphPage = () => {
   const { status } = useAuth();
@@ -244,6 +264,11 @@ const CyclesGraphPage = () => {
   const [pairTo, setPairTo] = useState<string>("");
   const [pairPaths, setPairPaths] = useState<string[][]>([]);
   const [fromTotals, setFromTotals] = useState<number>(0);
+  const [orbitalSelection, setOrbitalSelection] = useState<{ start: string | null; end: string | null }>({
+    start: null,
+    end: null,
+  });
+  const [orbitalPath, setOrbitalPath] = useState<string[]>([]);
 
   useEffect(() => {
     if (status !== "authed") {
@@ -284,7 +309,6 @@ const CyclesGraphPage = () => {
 
   const handleNodeSelection = useCallback((nodeKey: string) => {
     setSelectedEdge(null);
-    setCycles([]);
     setSelection((prev) => {
       const { primary, comparison } = prev;
       if (!primary || comparison) {
@@ -741,6 +765,10 @@ const CyclesGraphPage = () => {
     () => findSimpleCycles(circuitEdges).filter((cycle) => cycle.length >= 3),
     [circuitEdges],
   );
+  const meaningfulCycles = useMemo(
+    () => filterMeaningfulCycles(circuitCycles, nodeKindById, 3),
+    [circuitCycles, nodeKindById],
+  );
   const rankedCircuitCycles = useMemo(() => {
     const scored = circuitCycles.map((cycle) => {
       const weights = cycle.map((nodeId, idx) => {
@@ -753,22 +781,79 @@ const CyclesGraphPage = () => {
     scored.sort((a, b) => b.strength - a.strength);
     return scored;
   }, [circuitCycles, edgeWeightByKey]);
-  const storyCycles = useMemo(() => {
-    const filtered = circuitCycles.filter((cycle) => {
-      if (cycle.length < 2) return false;
-      let hasContext = false;
-      let hasSymptom = false;
-      let hasImpact = false;
-      cycle.forEach((nodeId) => {
-        const kind = nodeKindById.get(nodeId);
-        if (kind === "context") hasContext = true;
-        if (kind === "symptom") hasSymptom = true;
-        if (kind === "impact") hasImpact = true;
-      });
-      return hasSymptom && (hasContext || hasImpact || cycle.length >= 3);
-    });
 
-    const scored = filtered
+  const rankedMeaningfulCycles = useMemo(() => {
+    const scored = meaningfulCycles.map((cycle) => {
+      const weights = cycle.map((nodeId, idx) => {
+        const nextId = cycle[(idx + 1) % cycle.length];
+        return edgeWeightByKey.get(`${nodeId}->${nextId}`) ?? 0;
+      });
+      const strength = weights.length ? Math.min(...weights) : 0;
+      return { cycle, strength };
+    });
+    scored.sort((a, b) => b.strength - a.strength);
+    return scored;
+  }, [meaningfulCycles, edgeWeightByKey]);
+
+  const mainCycle = useMemo(
+    () => rankedMeaningfulCycles[0]?.cycle ?? rankedCircuitCycles[0]?.cycle ?? [],
+    [rankedMeaningfulCycles, rankedCircuitCycles],
+  );
+  const anchoredAttachments = useMemo(() => {
+    if (!mainCycle.length) return { inputs: [], outputs: [] };
+    const raw = findAnchoredAttachments(mainCycle, circuitEdges);
+    return {
+      inputs: raw.inputs.map((input) => ({
+        id: input.id,
+        label: nodeKeyToText[input.id] ?? input.id,
+        linkedNodeId: input.targetId,
+      })),
+      outputs: raw.outputs.map((output) => ({
+        id: output.id,
+        label: nodeKeyToText[output.id] ?? output.id,
+        linkedNodeId: output.sourceId,
+      })),
+    };
+  }, [mainCycle, circuitEdges, nodeKeyToText]);
+
+  const handleOrbitalNodeClick = useCallback(
+    (id: string) => {
+      setOrbitalSelection((prev) => {
+        if (prev.start && !prev.end && prev.start !== id) {
+          const paths = gatherPaths(prev.start, adjacency);
+          const matches = paths.filter((path) => path[path.length - 1] === id);
+          matches.sort((a, b) => a.length - b.length);
+          setOrbitalPath(matches[0] ?? []);
+          return { ...prev, end: id };
+        }
+        setOrbitalPath([]);
+        return { start: id, end: null };
+      });
+    },
+    [adjacency],
+  );
+
+  const buildCycleEdgeDetails = useCallback(
+    (cycle: string[]): CycleEdgeDetail[] =>
+      cycle.map((sourceId, idx) => {
+        const targetId = cycle[(idx + 1) % cycle.length];
+        const match = mergedEdges.find(
+          (edge) => edge.sourceNode === sourceId && edge.targetNode === targetId,
+        );
+        const lagVal = match?.avgLag ?? 0;
+        const lagText = lagVal < 0.5 ? "Same day" : `+${Math.round(lagVal)}d`;
+        return {
+          from: sourceId,
+          to: targetId,
+          confidence: match?.confidence ?? 0.5,
+          weight: match?.frequency ?? 1,
+          lagText,
+        };
+      }),
+    [mergedEdges],
+  );
+  const storyCycles = useMemo(() => {
+    const scored = meaningfulCycles
       .map((cycle) => {
         const weight = cycle.reduce((sum, nodeId, idx) => {
           const nextId = cycle[(idx + 1) % cycle.length];
@@ -790,12 +875,18 @@ const CyclesGraphPage = () => {
     });
 
     return uniqueStories.slice(0, 4);
-  }, [circuitCycles, edgeWeightByKey, nodeKindById]);
+  }, [meaningfulCycles, edgeWeightByKey]);
 
   const consolidatedGroups = useMemo(() => {
-    const validCycles = circuitCycles.filter((cycle) => cycle.length >= 3);
-    return consolidateCycles(validCycles);
-  }, [circuitCycles]);
+    return consolidateCycles(meaningfulCycles);
+  }, [meaningfulCycles]);
+
+  const visibleCycleCards = useMemo(() => {
+    if (selection.primary) {
+      return rankedMeaningfulCycles.filter(({ cycle }) => cycle.includes(selection.primary));
+    }
+    return rankedMeaningfulCycles.slice(0, 3);
+  }, [rankedMeaningfulCycles, selection.primary]);
 
   useEffect(() => {
     if (!pairFrom) return;
@@ -863,8 +954,142 @@ const CyclesGraphPage = () => {
     [linkDataArray],
   );
 
+  const neuralNodes = useMemo<NeuralCircuitNode[]>(
+    () =>
+      nodeDataArray.map((node) => ({
+        id: node.key,
+        label: node.text,
+        kind: node.kind,
+      })),
+    [nodeDataArray],
+  );
+
+  const neuralEdges = useMemo<NeuralCircuitEdge[]>(
+    () =>
+      linkDataArray.map((link) => ({
+        from: link.from,
+        to: link.to,
+        weight: link.weight,
+      })),
+    [linkDataArray],
+  );
+  const { findPaths } = useNeuralPathfinding(neuralEdges);
+  const [neuralSelection, setNeuralSelection] = useState<{ start: string | null; end: string | null }>({
+    start: null,
+    end: null,
+  });
+  const [neuralPaths, setNeuralPaths] = useState<string[][]>([]);
+  const [neuralActiveIndex, setNeuralActiveIndex] = useState(0);
+
+  const handleNeuralNodeClick = useCallback(
+    (id: string) => {
+      setNeuralSelection((prev) => {
+        if (prev.start === id) {
+          setNeuralPaths([]);
+          setNeuralActiveIndex(0);
+          return { start: null, end: null };
+        }
+        if (!prev.start) {
+          setNeuralPaths([]);
+          setNeuralActiveIndex(0);
+          return { start: id, end: null };
+        }
+        if (prev.start && !prev.end) {
+          const found = findPaths(prev.start, id);
+          setNeuralPaths(found);
+          setNeuralActiveIndex(0);
+          return { start: prev.start, end: id };
+        }
+        setNeuralPaths([]);
+        setNeuralActiveIndex(0);
+        return { start: id, end: null };
+      });
+    },
+    [findPaths],
+  );
+
+  const activeNeuralPath = neuralPaths[neuralActiveIndex] ?? null;
+
   return (
     <div className="w-full space-y-10 pb-20 text-slate-900">
+      <section className="space-y-4">
+        <div className="flex flex-col gap-2">
+          <p className="text-xs uppercase tracking-[0.4em] text-slate-400">Neural Circuit</p>
+          <h1 className="text-3xl font-semibold text-brand">Active Neural Circuit</h1>
+          <p className="max-w-2xl text-sm text-slate-500">
+            Tap one node to surface its feedback loops, or tap two nodes to visualize all causal paths.
+          </p>
+        </div>
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+          <NeuralCircuit
+            nodes={neuralNodes}
+            edges={neuralEdges}
+            selection={neuralSelection}
+            activePath={activeNeuralPath}
+            onNodeClick={handleNeuralNodeClick}
+            showPanel={false}
+          />
+          <div className="flex max-h-[560px] flex-col gap-4 overflow-hidden rounded-[28px] border border-slate-200 bg-white/80 p-5 shadow-sm">
+            <div>
+              <h3 className="text-sm font-semibold text-slate-700">
+                {neuralSelection.end ? "Connections Found" : "Pathfinder"}
+              </h3>
+              <p className="mt-1 text-xs text-slate-500">
+                {!neuralSelection.start
+                  ? "Tap a node to start tracing."
+                  : !neuralSelection.end
+                    ? "Tap a second node to connect them."
+                    : `Found ${neuralPaths.length} paths.`}
+              </p>
+              {neuralSelection.start && (
+                <div className="mt-3 flex flex-wrap gap-2 text-[11px] font-semibold text-slate-500">
+                  {[neuralSelection.start, neuralSelection.end]
+                    .filter(Boolean)
+                    .map((nodeId) => (
+                      <span
+                        key={nodeId}
+                        className="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5"
+                      >
+                        {nodeKeyToText[nodeId as string] ?? nodeId}
+                      </span>
+                    ))}
+                </div>
+              )}
+            </div>
+
+            <div className="min-h-0 flex-1 space-y-2 overflow-y-auto pr-1">
+              {neuralSelection.end && neuralPaths.length === 0 ? (
+                <div className="rounded-2xl border border-dashed border-slate-200 bg-white/70 p-4 text-xs text-slate-500">
+                  No direct paths found between these nodes.
+                </div>
+              ) : null}
+              {neuralPaths.map((path, idx) => (
+                <button
+                  key={`${path.join("->")}-${idx}`}
+                  type="button"
+                  onClick={() => setNeuralActiveIndex(idx)}
+                  className={`w-full rounded-2xl border p-3 text-left text-xs transition-all ${
+                    neuralActiveIndex === idx
+                      ? "border-indigo-400 bg-indigo-50 text-indigo-900"
+                      : "border-slate-200 bg-white text-slate-600 hover:border-indigo-200"
+                  }`}
+                >
+                  <div className="font-semibold">Path {idx + 1} ({Math.max(path.length - 1, 0)} steps)</div>
+                  <div className="mt-1 flex flex-wrap gap-1 text-[11px]">
+                    {path.map((nodeId, index) => (
+                      <span key={`${nodeId}-${index}`} className="flex items-center">
+                        {index > 0 && <span className="mx-1 text-slate-300">→</span>}
+                        {nodeKeyToText[nodeId] ?? nodeId}
+                      </span>
+                    ))}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
       <PageHeader
         eyebrow="Quick intel"
         title="Issue Pair Explorer"
@@ -997,64 +1222,6 @@ const CyclesGraphPage = () => {
         </details>
       </PageHeader>
 
-      <section className="rounded-3xl border border-brand/15 bg-gradient-to-br from-white via-white to-brand/5 p-6">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <p className="text-xs uppercase tracking-[0.4em] text-brand/60">MindStorm network</p>
-            <h1 className="mt-2 text-3xl font-semibold text-brand">Cycles tracker</h1>
-            <p className="mt-2 text-sm text-slate-500">
-              Tap a box to set the starting point. Tap another to compare loops between them—every connection mirrors the original MindStorm map.
-            </p>
-          </div>
-        </div>
-        <div className="mt-6 rounded-3xl border border-slate-100 bg-slate-50/60 p-6">
-          <FlowGraph
-            nodes={flowNodes}
-            edges={flowEdges}
-            highlightedNodeIds={highlightState.highlightedNodes}
-            highlightedEdgeIds={highlightState.highlightedEdges}
-            focusNodeIds={highlightState.focusNodes}
-            focusEdgeIds={highlightState.focusLinks}
-            onNodeClick={handleNodeSelection}
-            onEdgeClick={(edge) => {
-              const match = mergedEdges.find(
-                (item) => item.sourceNode === edge.from && item.targetNode === edge.to,
-              );
-              if (match) {
-                setSelectedEdge(match);
-              }
-            }}
-            className="w-full"
-          />
-        </div>
-      </section>
-
-      <section className="rounded-3xl border border-slate-200 bg-white p-6">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <p className="text-xs uppercase tracking-[0.4em] text-slate-400">Legacy view</p>
-            <h2 className="mt-2 text-2xl font-semibold text-slate-700">GoJS graph</h2>
-            <p className="mt-2 text-sm text-slate-500">
-              Reference layout for development parity while the new flow graph is tuned.
-            </p>
-          </div>
-          <div className="flex flex-wrap items-center gap-3">
-            <Button variant="secondary" size="sm" onClick={() => diagramInstance.current?.commandHandler.increaseZoom()}>
-              Zoom in
-            </Button>
-            <Button variant="secondary" size="sm" onClick={() => diagramInstance.current?.commandHandler.decreaseZoom()}>
-              Zoom out
-            </Button>
-            <Button variant="secondary" size="sm" onClick={() => diagramInstance.current?.zoomToFit()}>
-              Fit to screen
-            </Button>
-          </div>
-        </div>
-        <div className="mt-6 rounded-3xl border border-slate-100 p-4">
-          <div ref={diagramRef} className="h-[70vh] w-full min-h-[460px]" />
-        </div>
-      </section>
-
       <section className="rounded-3xl border border-slate-200 bg-white p-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
@@ -1065,13 +1232,91 @@ const CyclesGraphPage = () => {
             </p>
           </div>
         </div>
-        <div className="mt-6 flex flex-col gap-6">
-          {circuitCycles.length === 0 ? (
+        <div className="mt-6">
+          {mainCycle.length === 0 ? (
             <Card className="p-4 text-sm text-slate-500">
               No cycles found yet. Add more entries or adjust the filters above.
             </Card>
           ) : (
-            rankedCircuitCycles.slice(0, 3).map(({ cycle }, idx) => {
+            <div className="rounded-3xl border border-slate-200 bg-white p-6">
+              <div className="mb-4 text-center">
+                <h3 className="text-lg font-semibold text-slate-800">Orbital circuit</h3>
+                <p className="text-sm text-slate-500">
+                  Tap any two nodes to trace the strongest path between them.
+                </p>
+              </div>
+              <OrbitalCycle
+                cycleNodes={mainCycle.map((id) => ({
+                  id,
+                  label: nodeKeyToText[id] ?? id,
+                  kind: nodeKindById.get(id) ?? "symptom",
+                }))}
+                inputs={anchoredAttachments.inputs}
+                outputs={anchoredAttachments.outputs}
+                highlightedPath={orbitalPath}
+                onNodeClick={handleOrbitalNodeClick}
+                selection={orbitalSelection}
+              />
+            </div>
+          )}
+        </div>
+        <div className="mt-6">
+          {rankedMeaningfulCycles.length === 0 ? (
+            <Card className="p-4 text-sm text-slate-500">
+              No cycles found yet. Add more entries or adjust the filters above.
+            </Card>
+          ) : (
+            rankedMeaningfulCycles.slice(0, 1).map(({ cycle }, idx) => {
+              const attachments = findAttachments(cycle, circuitEdges);
+              const cycleNodes = cycle.map((id) => ({
+                id,
+                label: nodeKeyToText[id] ?? id,
+                kind: nodeKindById.get(id) ?? "symptom",
+              }));
+              const edges = buildCycleEdgeDetails(cycle);
+              const avgWeight = Math.round(
+                edges.reduce((sum, edge) => sum + (edge.weight || 0), 0) / edges.length,
+              );
+              const inputs = attachments.inputs.map((id) => ({
+                id,
+                label: nodeKeyToText[id] ?? id,
+              }));
+              const outputs = attachments.outputs.map((id) => ({
+                id,
+                label: nodeKeyToText[id] ?? id,
+              }));
+              return (
+                <div key={`rich-${cycle.join("-")}-${idx}`} className="rounded-3xl border border-slate-200 bg-white p-6">
+                  <div className="mb-4 text-center">
+                    <h3 className="text-lg font-semibold text-slate-800">Dominant cycle</h3>
+                    <p className="text-sm text-slate-500">
+                      This pattern repeats every {avgWeight || 1} days on average.
+                    </p>
+                  </div>
+                  <RichCycleCircuit
+                    cycleNodes={cycleNodes}
+                    edges={edges}
+                    inputs={inputs}
+                    outputs={outputs}
+                    onEdgeClick={(from, to) => {
+                      const match = mergedEdges.find(
+                        (edge) => edge.sourceNode === from && edge.targetNode === to,
+                      );
+                      if (match) setSelectedEdge(match);
+                    }}
+                  />
+                </div>
+              );
+            })
+          )}
+        </div>
+        <div className="mt-6 flex flex-col gap-6">
+          {visibleCycleCards.length === 0 ? (
+            <Card className="p-4 text-sm text-slate-500">
+              No cycles found yet. Add more entries or adjust the filters above.
+            </Card>
+          ) : (
+            visibleCycleCards.map(({ cycle }, idx) => {
               const attachments = findAttachments(cycle, circuitEdges);
               const cycleNodes = cycle.map((id) => ({
                 id,
@@ -1092,7 +1337,6 @@ const CyclesGraphPage = () => {
                   inputs={inputs}
                   outputs={outputs}
                   onBreakCycle={(source, target) => {
-                    setSelectedCycleIndex(idx);
                     setSelection({ primary: source, comparison: target });
                   }}
                 />
@@ -1103,203 +1347,281 @@ const CyclesGraphPage = () => {
       </section>
 
       <section className="rounded-3xl border border-slate-200 bg-white p-6">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <p className="text-xs uppercase tracking-[0.4em] text-slate-400">Cycle stories</p>
-            <h2 className="mt-2 text-2xl font-semibold text-slate-700">Narrative strips</h2>
-            <p className="mt-2 text-sm text-slate-500">
-              Focused loops with a clear trigger-to-experience story and a gentle return.
-            </p>
-          </div>
-        </div>
-        <div className="mt-6 flex flex-col gap-6">
-          {storyCycles.length === 0 ? (
-            <Card className="p-4 text-sm text-slate-500">
-              No narrative loops met the filter yet. Try lowering the confidence filter above.
-            </Card>
-          ) : (
-            storyCycles.map(({ cycle, strength }, idx) => {
-              const nodes = cycle.map((id) => ({
-                id,
-                label: nodeKeyToText[id] ?? id,
-                type: nodeKindById.get(id) ?? "symptom",
-              }));
-              return <CycleStory key={`${cycle.join("-")}-${idx}`} nodes={nodes} frequency={strength} />;
-            })
-          )}
-        </div>
-      </section>
+        <details className="group">
+          <summary className="flex cursor-pointer flex-wrap items-center justify-between gap-3 text-sm font-semibold text-slate-700">
+            <span className="uppercase tracking-[0.4em] text-slate-400">Alternative cycle views</span>
+            <span className="rounded-full border border-slate-200 px-3 py-1 text-xs uppercase tracking-[0.3em] text-slate-400">
+              Open / close
+            </span>
+          </summary>
+          <div className="mt-6 space-y-6">
+            <section className="rounded-3xl border border-brand/15 bg-gradient-to-br from-white via-white to-brand/5 p-6">
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.4em] text-brand/60">MindStorm network</p>
+                  <h1 className="mt-2 text-3xl font-semibold text-brand">Cycles tracker</h1>
+                  <p className="mt-2 text-sm text-slate-500">
+                    Tap a box to set the starting point. Tap another to compare loops between them—every connection mirrors the original MindStorm map.
+                  </p>
+                </div>
+              </div>
+              <div className="mt-6 rounded-3xl border border-slate-100 bg-slate-50/60 p-6">
+                <FlowGraph
+                  nodes={flowNodes}
+                  edges={flowEdges}
+                  highlightedNodeIds={highlightState.highlightedNodes}
+                  highlightedEdgeIds={highlightState.highlightedEdges}
+                  focusNodeIds={highlightState.focusNodes}
+                  focusEdgeIds={highlightState.focusLinks}
+                  onNodeClick={handleNodeSelection}
+                  onEdgeClick={(edge) => {
+                    const match = mergedEdges.find(
+                      (item) => item.sourceNode === edge.from && item.targetNode === edge.to,
+                    );
+                    if (match) {
+                      setSelectedEdge(match);
+                    }
+                  }}
+                  className="w-full"
+                />
+              </div>
+            </section>
 
-      <section className="rounded-3xl border border-slate-200 bg-white p-6">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <p className="text-xs uppercase tracking-[0.4em] text-slate-400">Nested patterns</p>
-            <h2 className="mt-2 text-2xl font-semibold text-slate-700">Consolidated cycles</h2>
-            <p className="mt-2 text-sm text-slate-500">
-              Longer loops with their internal shortcut cycles grouped beneath.
-            </p>
+            <section className="rounded-3xl border border-slate-200 bg-white p-6">
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.4em] text-slate-400">Legacy view</p>
+                  <h2 className="mt-2 text-2xl font-semibold text-slate-700">GoJS graph</h2>
+                  <p className="mt-2 text-sm text-slate-500">
+                    Reference layout for development parity while the new flow graph is tuned.
+                  </p>
+                </div>
+                <div className="flex flex-wrap items-center gap-3">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => diagramInstance.current?.commandHandler.increaseZoom()}
+                  >
+                    Zoom in
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => diagramInstance.current?.commandHandler.decreaseZoom()}
+                  >
+                    Zoom out
+                  </Button>
+                  <Button variant="secondary" size="sm" onClick={() => diagramInstance.current?.zoomToFit()}>
+                    Fit to screen
+                  </Button>
+                </div>
+              </div>
+              <div className="mt-6 rounded-3xl border border-slate-100 p-4">
+                <div ref={diagramRef} className="h-[70vh] w-full min-h-[460px]" />
+              </div>
+            </section>
+
+            <section className="rounded-3xl border border-slate-200 bg-white p-6">
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.4em] text-slate-400">Cycle stories</p>
+                  <h2 className="mt-2 text-2xl font-semibold text-slate-700">Narrative strips</h2>
+                  <p className="mt-2 text-sm text-slate-500">
+                    Focused loops with a clear trigger-to-experience story and a gentle return.
+                  </p>
+                </div>
+              </div>
+              <div className="mt-6 flex flex-col gap-6">
+                {storyCycles.length === 0 ? (
+                  <Card className="p-4 text-sm text-slate-500">
+                    No narrative loops met the filter yet. Try lowering the confidence filter above.
+                  </Card>
+                ) : (
+                  storyCycles.map(({ cycle, strength }, idx) => {
+                    const nodes = cycle.map((id) => ({
+                      id,
+                      label: nodeKeyToText[id] ?? id,
+                      type: nodeKindById.get(id) ?? "symptom",
+                    }));
+                    return <CycleStory key={`${cycle.join("-")}-${idx}`} nodes={nodes} frequency={strength} />;
+                  })
+                )}
+              </div>
+            </section>
+
+            <section className="rounded-3xl border border-slate-200 bg-white p-6">
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.4em] text-slate-400">Nested patterns</p>
+                  <h2 className="mt-2 text-2xl font-semibold text-slate-700">Consolidated cycles</h2>
+                  <p className="mt-2 text-sm text-slate-500">
+                    Longer loops with their internal shortcut cycles grouped beneath.
+                  </p>
+                </div>
+              </div>
+              <div className="mt-6 flex flex-col gap-6">
+                {consolidatedGroups.length === 0 ? (
+                  <Card className="p-4 text-sm text-slate-500">
+                    No consolidated cycles detected yet.
+                  </Card>
+                ) : (
+                  consolidatedGroups.slice(0, 3).map((group, idx) => (
+                    <NestedCycleCard
+                      key={`${group.parent.join("-")}-${idx}`}
+                      parentCycle={group.parent}
+                      subLoops={group.subLoops}
+                      nodeLabels={nodeKeyToText}
+                      nodeKinds={Object.fromEntries(nodeKindById.entries())}
+                    />
+                  ))
+                )}
+              </div>
+            </section>
           </div>
-        </div>
-        <div className="mt-6 flex flex-col gap-6">
-          {consolidatedGroups.length === 0 ? (
-            <Card className="p-4 text-sm text-slate-500">
-              No consolidated cycles detected yet.
-            </Card>
-          ) : (
-            consolidatedGroups.map((group, idx) => (
-              <NestedCycleCard
-                key={`${group.parent.join("-")}-${idx}`}
-                parentCycle={group.parent}
-                subLoops={group.subLoops}
-                nodeLabels={nodeKeyToText}
-                nodeKinds={Object.fromEntries(nodeKindById.entries())}
-              />
-            ))
-          )}
-        </div>
+        </details>
       </section>
 
       <section className="space-y-6 rounded-3xl border border-brand/15 p-6">
         <div className="ms-glass-surface rounded-2xl border p-4 text-sm text-slate-600">
           <p className="font-semibold text-brand">How to use this map</p>
-              <p className="mt-2 leading-relaxed">
-                Select one issue to explore its internal loops. Select a second to surface every path between the two. Hover or click any path in the list to
-                highlight it on the graph, just like the legacy MindStorm experience.
-              </p>
-            </div>
+          <p className="mt-2 leading-relaxed">
+            Select one issue to explore its internal loops. Select a second to surface every path between the two.
+            Hover or click any path in the list to highlight it on the graph, just like the legacy MindStorm experience.
+          </p>
+        </div>
 
-            <div className="grid gap-6 lg:grid-cols-[2fr,1fr]">
-              <Card className="p-6 text-slate-700">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div>
-                    <h2 className="text-lg font-semibold text-brand">
-                      {selection.comparison ? "Cycles between nodes" : "Cycles within node"} ({cycles.length})
-                    </h2>
-                    <p className="text-sm text-slate-500">{helperMessage}</p>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    disabled={!primaryNode && !comparisonNode}
-                    onClick={() => {
-                      setSelection({ primary: null, comparison: null });
-                      setCycles([]);
-                      setSelectedCycleIndex(null);
-                      setHoveredCycleIndex(null);
-                    }}
-                  >
-                    Reset
-                  </Button>
-                </div>
-                <div className="mt-6 grid gap-4 md:grid-cols-2">
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.4em] text-slate-400">Primary</p>
-                    <p className="mt-1 rounded-2xl bg-slate-100 p-3 text-sm font-semibold text-brand">
-                      {primaryNode ? primaryNode.text : "Tap any node to choose a starting point."}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.4em] text-slate-400">Comparison</p>
-                    <p className="mt-1 rounded-2xl bg-slate-100 p-3 text-sm font-semibold text-brand">
-                      {comparisonNode ? comparisonNode.text : "Select a second node (optional)."}
-                    </p>
-                  </div>
-                </div>
-                <div className="ms-glass-surface mt-6 h-72 overflow-y-auto rounded-2xl border p-3">
-                  {cycles.length === 0 ? (
-                    <p className="text-sm text-slate-500">
-                      {selection.primary
-                        ? "No cycles detected for the current selection yet."
-                        : "Select node(s) on the graph to list their cycles."}
-                    </p>
-                  ) : (
-                    <div className="space-y-2">
-                      {cycles.map((cycle, index) => (
-                        <button
-                          key={`${cycle.join("-")}-${index}`}
-                          onClick={() => setSelectedCycleIndex(index)}
-                          onMouseEnter={() => setHoveredCycleIndex(index)}
-                          onMouseLeave={() => setHoveredCycleIndex(null)}
-                          className={`flex w-full flex-wrap items-center rounded-xl px-3 py-2 text-left text-sm transition ${
-                            (hoveredCycleIndex ?? selectedCycleIndex) === index
-                              ? "bg-brand/10 text-brand shadow-inner"
-                              : "text-brand hover:bg-white"
-                          }`}
-                        >
-                          {cycle.map((label, idx) => (
-                            <span key={`${label}-${idx}`} className="flex items-center">
-                              <span className="rounded-full px-3 py-1 text-xs font-semibold text-brand">
-                                {nodeDataArray.find((node) => node.key === label)?.text ?? label}
-                              </span>
-                              {idx < cycle.length - 1 && <span className="px-2 text-slate-400">→</span>}
-                            </span>
-                          ))}
-                        </button>
+        <div className="grid gap-6 lg:grid-cols-[2fr,1fr]">
+          <Card className="p-6 text-slate-700">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h2 className="text-lg font-semibold text-brand">
+                  {selection.comparison ? "Cycles between nodes" : "Cycles within node"} ({cycles.length})
+                </h2>
+                <p className="text-sm text-slate-500">{helperMessage}</p>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                disabled={!primaryNode && !comparisonNode}
+                onClick={() => {
+                  setSelection({ primary: null, comparison: null });
+                  setCycles([]);
+                  setSelectedCycleIndex(null);
+                  setHoveredCycleIndex(null);
+                }}
+              >
+                Reset
+              </Button>
+            </div>
+            <div className="mt-6 grid gap-4 md:grid-cols-2">
+              <div>
+                <p className="text-xs uppercase tracking-[0.4em] text-slate-400">Primary</p>
+                <p className="mt-1 rounded-2xl bg-slate-100 p-3 text-sm font-semibold text-brand">
+                  {primaryNode ? primaryNode.text : "Tap any node to choose a starting point."}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-[0.4em] text-slate-400">Comparison</p>
+                <p className="mt-1 rounded-2xl bg-slate-100 p-3 text-sm font-semibold text-brand">
+                  {comparisonNode ? comparisonNode.text : "Select a second node (optional)."}
+                </p>
+              </div>
+            </div>
+            <div className="ms-glass-surface mt-6 h-72 overflow-y-auto rounded-2xl border p-3">
+              {cycles.length === 0 ? (
+                <p className="text-sm text-slate-500">
+                  {selection.primary
+                    ? "No cycles detected for the current selection yet."
+                    : "Select node(s) on the graph to list their cycles."}
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {cycles.map((cycle, index) => (
+                    <button
+                      key={`${cycle.join("-")}-${index}`}
+                      onClick={() => setSelectedCycleIndex(index)}
+                      onMouseEnter={() => setHoveredCycleIndex(index)}
+                      onMouseLeave={() => setHoveredCycleIndex(null)}
+                      className={`flex w-full flex-wrap items-center rounded-xl px-3 py-2 text-left text-sm transition ${
+                        (hoveredCycleIndex ?? selectedCycleIndex) === index
+                          ? "bg-brand/10 text-brand shadow-inner"
+                          : "text-brand hover:bg-white"
+                      }`}
+                    >
+                      {cycle.map((label, idx) => (
+                        <span key={`${label}-${idx}`} className="flex items-center">
+                          <span className="rounded-full px-3 py-1 text-xs font-semibold text-brand">
+                            {nodeDataArray.find((node) => node.key === label)?.text ?? label}
+                          </span>
+                          {idx < cycle.length - 1 && <span className="px-2 text-slate-400">→</span>}
+                        </span>
                       ))}
-                    </div>
-                  )}
-                </div>
-              </Card>
-
-              <Card className="p-6 text-slate-700">
-                <h2 className="text-lg font-semibold text-brand">Cycle metrics</h2>
-                <dl className="mt-4 space-y-3 text-sm">
-                  <div>
-                    <dt className="text-xs uppercase tracking-[0.4em] text-slate-400">Total paths</dt>
-                    <dd className="font-semibold text-brand">{stats.total}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-xs uppercase tracking-[0.4em] text-slate-400">Longest path</dt>
-                    <dd className="font-semibold text-brand">{stats.longest}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-xs uppercase tracking-[0.4em] text-slate-400">Shortest path</dt>
-                    <dd className="font-semibold text-brand">{stats.shortest}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-xs uppercase tracking-[0.4em] text-slate-400">Average length</dt>
-                    <dd className="font-semibold text-brand">{stats.averageLength}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-xs uppercase tracking-[0.4em] text-slate-400">Most frequent node</dt>
-                    <dd className="font-semibold text-brand">{stats.mostFrequent}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-xs uppercase tracking-[0.4em] text-slate-400">Least frequent node</dt>
-                    <dd className="font-semibold text-brand">{stats.leastFrequent}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-xs uppercase tracking-[0.4em] text-slate-400">Nodes without paths</dt>
-                    <dd className="font-semibold text-brand">{stats.nodesWithoutPaths}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-xs uppercase tracking-[0.4em] text-slate-400">Path diversity</dt>
-                    <dd className="font-semibold text-brand">{stats.diversity}</dd>
-                  </div>
-                </dl>
-              </Card>
-            </div>
-
-            <div className="rounded-3xl border border-brand/15 p-6">
-              <h2 className="text-lg font-semibold text-brand">Selected path diagram</h2>
-              {activeCycle ? (
-                <div className="mt-4 flex flex-wrap items-center gap-2">
-                  {activeCycle.map((key, idx) => (
-                    <span key={`${key}-${idx}`} className="flex items-center">
-                      <span className="rounded-full bg-brand/10 px-4 py-2 text-sm font-semibold text-brand">
-                        {nodeDataArray.find((node) => node.key === key)?.text ?? key}
-                      </span>
-                      {idx < activeCycle.length - 1 && <span className="px-2 text-slate-400">→</span>}
-                    </span>
+                    </button>
                   ))}
                 </div>
-              ) : (
-                <p className="mt-3 text-sm text-slate-500">
-                  Hover or click a cycle to render its path here, similar to the original HTML diagram.
-                </p>
               )}
             </div>
-          </section>
+          </Card>
+
+          <Card className="p-6 text-slate-700">
+            <h2 className="text-lg font-semibold text-brand">Cycle metrics</h2>
+            <dl className="mt-4 space-y-3 text-sm">
+              <div>
+                <dt className="text-xs uppercase tracking-[0.4em] text-slate-400">Total paths</dt>
+                <dd className="font-semibold text-brand">{stats.total}</dd>
+              </div>
+              <div>
+                <dt className="text-xs uppercase tracking-[0.4em] text-slate-400">Longest path</dt>
+                <dd className="font-semibold text-brand">{stats.longest}</dd>
+              </div>
+              <div>
+                <dt className="text-xs uppercase tracking-[0.4em] text-slate-400">Shortest path</dt>
+                <dd className="font-semibold text-brand">{stats.shortest}</dd>
+              </div>
+              <div>
+                <dt className="text-xs uppercase tracking-[0.4em] text-slate-400">Average length</dt>
+                <dd className="font-semibold text-brand">{stats.averageLength}</dd>
+              </div>
+              <div>
+                <dt className="text-xs uppercase tracking-[0.4em] text-slate-400">Most frequent node</dt>
+                <dd className="font-semibold text-brand">{stats.mostFrequent}</dd>
+              </div>
+              <div>
+                <dt className="text-xs uppercase tracking-[0.4em] text-slate-400">Least frequent node</dt>
+                <dd className="font-semibold text-brand">{stats.leastFrequent}</dd>
+              </div>
+              <div>
+                <dt className="text-xs uppercase tracking-[0.4em] text-slate-400">Nodes without paths</dt>
+                <dd className="font-semibold text-brand">{stats.nodesWithoutPaths}</dd>
+              </div>
+              <div>
+                <dt className="text-xs uppercase tracking-[0.4em] text-slate-400">Path diversity</dt>
+                <dd className="font-semibold text-brand">{stats.diversity}</dd>
+              </div>
+            </dl>
+          </Card>
+        </div>
+
+        <div className="rounded-3xl border border-brand/15 p-6">
+          <h2 className="text-lg font-semibold text-brand">Selected path diagram</h2>
+          {activeCycle ? (
+            <div className="mt-4 flex flex-wrap items-center gap-2">
+              {activeCycle.map((key, idx) => (
+                <span key={`${key}-${idx}`} className="flex items-center">
+                  <span className="rounded-full bg-brand/10 px-4 py-2 text-sm font-semibold text-brand">
+                    {nodeDataArray.find((node) => node.key === key)?.text ?? key}
+                  </span>
+                  {idx < activeCycle.length - 1 && <span className="px-2 text-slate-400">→</span>}
+                </span>
+              ))}
+            </div>
+          ) : (
+            <p className="mt-3 text-sm text-slate-500">
+              Hover or click a cycle to render its path here, similar to the original HTML diagram.
+            </p>
+          )}
+        </div>
+      </section>
     </div>
   );
 };
