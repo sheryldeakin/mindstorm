@@ -1224,130 +1224,6 @@ const CyclesGraphPage = () => {
       </PageHeader>
 
       <section className="rounded-3xl border border-slate-200 bg-white p-6">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <p className="text-xs uppercase tracking-[0.4em] text-slate-400">Cycle circuits</p>
-            <h2 className="mt-2 text-2xl font-semibold text-slate-700">Linked cycles & chains</h2>
-            <p className="mt-2 text-sm text-slate-500">
-              Each circuit highlights a loop with its incoming triggers and outgoing impacts.
-            </p>
-          </div>
-        </div>
-        <div className="mt-6">
-          {mainCycle.length === 0 ? (
-            <Card className="p-4 text-sm text-slate-500">
-              No cycles found yet. Add more entries or adjust the filters above.
-            </Card>
-          ) : (
-            <div className="rounded-3xl border border-slate-200 bg-white p-6">
-              <div className="mb-4 text-center">
-                <h3 className="text-lg font-semibold text-slate-800">Orbital circuit</h3>
-                <p className="text-sm text-slate-500">
-                  Tap any two nodes to trace the strongest path between them.
-                </p>
-              </div>
-              <OrbitalCycle
-                cycleNodes={mainCycle.map((id) => ({
-                  id,
-                  label: nodeKeyToText[id] ?? id,
-                  kind: nodeKindById.get(id) ?? "symptom",
-                }))}
-                inputs={anchoredAttachments.inputs}
-                outputs={anchoredAttachments.outputs}
-                highlightedPath={orbitalPath}
-                onNodeClick={handleOrbitalNodeClick}
-                selection={orbitalSelection}
-              />
-            </div>
-          )}
-        </div>
-        <div className="mt-6">
-          {rankedMeaningfulCycles.length === 0 ? (
-            <Card className="p-4 text-sm text-slate-500">
-              No cycles found yet. Add more entries or adjust the filters above.
-            </Card>
-          ) : (
-            rankedMeaningfulCycles.slice(0, 1).map(({ cycle }, idx) => {
-              const attachments = findAttachments(cycle, circuitEdges);
-              const cycleNodes = cycle.map((id) => ({
-                id,
-                label: nodeKeyToText[id] ?? id,
-                kind: nodeKindById.get(id) ?? "symptom",
-              }));
-              const edges = buildCycleEdgeDetails(cycle);
-              const avgWeight = Math.round(
-                edges.reduce((sum, edge) => sum + (edge.weight || 0), 0) / edges.length,
-              );
-              const inputs = attachments.inputs.map((id) => ({
-                id,
-                label: nodeKeyToText[id] ?? id,
-              }));
-              const outputs = attachments.outputs.map((id) => ({
-                id,
-                label: nodeKeyToText[id] ?? id,
-              }));
-              return (
-                <div key={`rich-${cycle.join("-")}-${idx}`} className="rounded-3xl border border-slate-200 bg-white p-6">
-                  <div className="mb-4 text-center">
-                    <h3 className="text-lg font-semibold text-slate-800">Dominant cycle</h3>
-                    <p className="text-sm text-slate-500">
-                      This pattern repeats every {avgWeight || 1} days on average.
-                    </p>
-                  </div>
-                  <RichCycleCircuit
-                    cycleNodes={cycleNodes}
-                    edges={edges}
-                    inputs={inputs}
-                    outputs={outputs}
-                    onEdgeClick={(from, to) => {
-                      const match = mergedEdges.find(
-                        (edge) => edge.sourceNode === from && edge.targetNode === to,
-                      );
-                      if (match) setSelectedEdge(match);
-                    }}
-                  />
-                </div>
-              );
-            })
-          )}
-        </div>
-        <div className="mt-6 flex flex-col gap-6">
-          {visibleCycleCards.length === 0 ? (
-            <Card className="p-4 text-sm text-slate-500">
-              No cycles found yet. Add more entries or adjust the filters above.
-            </Card>
-          ) : (
-            visibleCycleCards.map(({ cycle }, idx) => {
-              const attachments = findAttachments(cycle, circuitEdges);
-              const cycleNodes = cycle.map((id) => ({
-                id,
-                label: nodeKeyToText[id] ?? id,
-              }));
-              const inputs = attachments.inputs.map((id) => ({
-                id,
-                label: nodeKeyToText[id] ?? id,
-              }));
-              const outputs = attachments.outputs.map((id) => ({
-                id,
-                label: nodeKeyToText[id] ?? id,
-              }));
-              return (
-                <CycleCircuit
-                  key={`${cycle.join("-")}-${idx}`}
-                  cycleNodes={cycleNodes}
-                  inputs={inputs}
-                  outputs={outputs}
-                  onBreakCycle={(source, target) => {
-                    setSelection({ primary: source, comparison: target });
-                  }}
-                />
-              );
-            })
-          )}
-        </div>
-      </section>
-
-      <section className="rounded-3xl border border-slate-200 bg-white p-6">
         <details className="group">
           <summary className="flex cursor-pointer flex-wrap items-center justify-between gap-3 text-sm font-semibold text-slate-700">
             <span className="uppercase tracking-[0.4em] text-slate-400">Alternative cycle views</span>
@@ -1356,6 +1232,129 @@ const CyclesGraphPage = () => {
             </span>
           </summary>
           <div className="mt-6 space-y-6">
+            <section className="rounded-3xl border border-slate-200 bg-white p-6">
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.4em] text-slate-400">Cycle circuits</p>
+                  <h2 className="mt-2 text-2xl font-semibold text-slate-700">Linked cycles & chains</h2>
+                  <p className="mt-2 text-sm text-slate-500">
+                    Each circuit highlights a loop with its incoming triggers and outgoing impacts.
+                  </p>
+                </div>
+              </div>
+              <div className="mt-6">
+                {mainCycle.length === 0 ? (
+                  <Card className="p-4 text-sm text-slate-500">
+                    No cycles found yet. Add more entries or adjust the filters above.
+                  </Card>
+                ) : (
+                  <div className="rounded-3xl border border-slate-200 bg-white p-6">
+                    <div className="mb-4 text-center">
+                      <h3 className="text-lg font-semibold text-slate-800">Orbital circuit</h3>
+                      <p className="text-sm text-slate-500">
+                        Tap any two nodes to trace the strongest path between them.
+                      </p>
+                    </div>
+                    <OrbitalCycle
+                      cycleNodes={mainCycle.map((id) => ({
+                        id,
+                        label: nodeKeyToText[id] ?? id,
+                        kind: nodeKindById.get(id) ?? "symptom",
+                      }))}
+                      inputs={anchoredAttachments.inputs}
+                      outputs={anchoredAttachments.outputs}
+                      highlightedPath={orbitalPath}
+                      onNodeClick={handleOrbitalNodeClick}
+                      selection={orbitalSelection}
+                    />
+                  </div>
+                )}
+              </div>
+              <div className="mt-6">
+                {rankedMeaningfulCycles.length === 0 ? (
+                  <Card className="p-4 text-sm text-slate-500">
+                    No cycles found yet. Add more entries or adjust the filters above.
+                  </Card>
+                ) : (
+                  rankedMeaningfulCycles.slice(0, 1).map(({ cycle }, idx) => {
+                    const attachments = findAttachments(cycle, circuitEdges);
+                    const cycleNodes = cycle.map((id) => ({
+                      id,
+                      label: nodeKeyToText[id] ?? id,
+                      kind: nodeKindById.get(id) ?? "symptom",
+                    }));
+                    const edges = buildCycleEdgeDetails(cycle);
+                    const avgWeight = Math.round(
+                      edges.reduce((sum, edge) => sum + (edge.weight || 0), 0) / edges.length,
+                    );
+                    const inputs = attachments.inputs.map((id) => ({
+                      id,
+                      label: nodeKeyToText[id] ?? id,
+                    }));
+                    const outputs = attachments.outputs.map((id) => ({
+                      id,
+                      label: nodeKeyToText[id] ?? id,
+                    }));
+                    return (
+                      <div key={`rich-${cycle.join("-")}-${idx}`} className="rounded-3xl border border-slate-200 bg-white p-6">
+                        <div className="mb-4 text-center">
+                          <h3 className="text-lg font-semibold text-slate-800">Dominant cycle</h3>
+                          <p className="text-sm text-slate-500">
+                            This pattern repeats every {avgWeight || 1} days on average.
+                          </p>
+                        </div>
+                        <RichCycleCircuit
+                          cycleNodes={cycleNodes}
+                          edges={edges}
+                          inputs={inputs}
+                          outputs={outputs}
+                          onEdgeClick={(from, to) => {
+                            const match = mergedEdges.find(
+                              (edge) => edge.sourceNode === from && edge.targetNode === to,
+                            );
+                            if (match) setSelectedEdge(match);
+                          }}
+                        />
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+              <div className="mt-6 flex flex-col gap-6">
+                {visibleCycleCards.length === 0 ? (
+                  <Card className="p-4 text-sm text-slate-500">
+                    No cycles found yet. Add more entries or adjust the filters above.
+                  </Card>
+                ) : (
+                  visibleCycleCards.map(({ cycle }, idx) => {
+                    const attachments = findAttachments(cycle, circuitEdges);
+                    const cycleNodes = cycle.map((id) => ({
+                      id,
+                      label: nodeKeyToText[id] ?? id,
+                    }));
+                    const inputs = attachments.inputs.map((id) => ({
+                      id,
+                      label: nodeKeyToText[id] ?? id,
+                    }));
+                    const outputs = attachments.outputs.map((id) => ({
+                      id,
+                      label: nodeKeyToText[id] ?? id,
+                    }));
+                    return (
+                      <CycleCircuit
+                        key={`${cycle.join("-")}-${idx}`}
+                        cycleNodes={cycleNodes}
+                        inputs={inputs}
+                        outputs={outputs}
+                        onBreakCycle={(source, target) => {
+                          setSelection({ primary: source, comparison: target });
+                        }}
+                      />
+                    );
+                  })
+                )}
+              </div>
+            </section>
             <section className="rounded-3xl border border-brand/15 bg-gradient-to-br from-white via-white to-brand/5 p-6">
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div>
