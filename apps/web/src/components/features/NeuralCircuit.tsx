@@ -31,6 +31,7 @@ const NODE_RADIUS = 16;
 const BASE_RING = 150;
 const OUTER_RING = 210;
 const DIM_OPACITY = 0.25;
+const CYCLE_RADIUS = 140;
 
 const hashToOffset = (value: string) => {
   let hash = 0;
@@ -80,6 +81,29 @@ const getFocusedLayout = (nodes: NeuralCircuitNode[], selected: string[]): Layou
   return map;
 };
 
+const getCycleLayout = (nodes: NeuralCircuitNode[], cycleIds: string[]): LayoutMap => {
+  const map = new Map<string, LayoutPoint>();
+  const count = Math.max(cycleIds.length, 1);
+  cycleIds.forEach((id, index) => {
+    const angle = (index / count) * Math.PI * 2 - Math.PI / 2;
+    map.set(id, {
+      x: Math.cos(angle) * CYCLE_RADIUS,
+      y: Math.sin(angle) * CYCLE_RADIUS,
+    });
+  });
+
+  const remaining = nodes.filter((node) => !cycleIds.includes(node.id));
+  const remainderCount = Math.max(remaining.length, 1);
+  remaining.forEach((node, index) => {
+    const angle = (index / remainderCount) * Math.PI * 2 + Math.PI / 6;
+    map.set(node.id, {
+      x: Math.cos(angle) * OUTER_RING,
+      y: Math.sin(angle) * OUTER_RING,
+    });
+  });
+
+  return map;
+};
 const pathIncludesEdge = (path: GraphPath, edge: NeuralCircuitEdge) => {
   for (let i = 0; i < path.length - 1; i += 1) {
     if (path[i] === edge.from && path[i + 1] === edge.to) return true;
@@ -112,8 +136,13 @@ const kindStyle = (kind: NeuralCircuitNode["kind"]) => {
   return "fill-indigo-200 text-indigo-800";
 };
 
-const useLayout = (nodes: NeuralCircuitNode[], selected: string[]) =>
-  useMemo(() => getFocusedLayout(nodes, selected), [nodes, selected]);
+const useLayout = (nodes: NeuralCircuitNode[], selected: string[], cycleIds: string[] | null) =>
+  useMemo(() => {
+    if (cycleIds && cycleIds.length >= 2) {
+      return getCycleLayout(nodes, cycleIds);
+    }
+    return getFocusedLayout(nodes, selected);
+  }, [nodes, selected, cycleIds]);
 
 const NeuralCircuit = ({
   nodes,
@@ -132,7 +161,12 @@ const NeuralCircuit = ({
     ? ([selection.start, selection.end].filter(Boolean) as string[])
     : selectedNodes;
   const effectivePath = activePath ?? highlightedPath;
-  const layout = useLayout(nodes, effectiveSelectedNodes);
+  const isCycle =
+    Boolean(effectivePath && effectivePath.length >= 3 && effectivePath[0] === effectivePath[effectivePath.length - 1]);
+  const cycleNodeIds = isCycle
+    ? Array.from(new Set(effectivePath?.slice(0, -1) ?? []))
+    : null;
+  const layout = useLayout(nodes, effectiveSelectedNodes, cycleNodeIds);
   const highlightedKey = effectivePath ? effectivePath.join("->") : null;
   const renderPanel = showPanel && !isControlled;
 
@@ -186,21 +220,35 @@ const NeuralCircuit = ({
           {/* Edges are intentionally hidden; the active dotted path is the only visible connection. */}
 
           {effectivePath && (
-            <motion.path
-              d={effectivePath
-                .map((nodeId, idx) => {
-                  const point = layout.get(nodeId);
-                  if (!point) return "";
-                  return `${idx === 0 ? "M" : "L"} ${point.x} ${point.y}`;
-                })
-                .join(" ")}
-              fill="none"
-              stroke="#6366f1"
-              strokeWidth={3}
-              strokeDasharray="6 6"
-              animate={{ strokeDashoffset: [24, 0] }}
-              transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
-            />
+            isCycle ? (
+              <motion.circle
+                cx={0}
+                cy={0}
+                r={CYCLE_RADIUS}
+                fill="none"
+                stroke="#6366f1"
+                strokeWidth={3}
+                strokeDasharray="6 6"
+                animate={{ strokeDashoffset: [24, 0] }}
+                transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+              />
+            ) : (
+              <motion.path
+                d={effectivePath
+                  .map((nodeId, idx) => {
+                    const point = layout.get(nodeId);
+                    if (!point) return "";
+                    return `${idx === 0 ? "M" : "L"} ${point.x} ${point.y}`;
+                  })
+                  .join(" ")}
+                fill="none"
+                stroke="#6366f1"
+                strokeWidth={3}
+                strokeDasharray="6 6"
+                animate={{ strokeDashoffset: [24, 0] }}
+                transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+              />
+            )
           )}
 
           {nodes.map((node) => {

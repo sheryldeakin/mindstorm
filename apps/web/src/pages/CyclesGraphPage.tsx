@@ -979,36 +979,37 @@ const CyclesGraphPage = () => {
     end: null,
   });
   const [neuralPaths, setNeuralPaths] = useState<string[][]>([]);
-  const [neuralActiveIndex, setNeuralActiveIndex] = useState(0);
+  const [neuralActiveIndex, setNeuralActiveIndex] = useState<number | null>(null);
 
   const handleNeuralNodeClick = useCallback(
     (id: string) => {
       setNeuralSelection((prev) => {
         if (prev.start === id) {
           setNeuralPaths([]);
-          setNeuralActiveIndex(0);
+          setNeuralActiveIndex(null);
           return { start: null, end: null };
         }
         if (!prev.start) {
-          setNeuralPaths([]);
-          setNeuralActiveIndex(0);
-          return { start: id, end: null };
+          setNeuralPaths(findPaths(id, id));
+          setNeuralActiveIndex(null);
+          return { start: id, end: id };
         }
         if (prev.start && !prev.end) {
           const found = findPaths(prev.start, id);
           setNeuralPaths(found);
-          setNeuralActiveIndex(0);
+          setNeuralActiveIndex(null);
           return { start: prev.start, end: id };
         }
         setNeuralPaths([]);
-        setNeuralActiveIndex(0);
+        setNeuralActiveIndex(null);
         return { start: id, end: null };
       });
     },
     [findPaths],
   );
 
-  const activeNeuralPath = neuralPaths[neuralActiveIndex] ?? null;
+  const activeNeuralPath =
+    neuralActiveIndex === null ? null : neuralPaths[neuralActiveIndex] ?? null;
 
   return (
     <div className="w-full space-y-10 pb-20 text-slate-900">
@@ -1045,9 +1046,9 @@ const CyclesGraphPage = () => {
                 <div className="mt-3 flex flex-wrap gap-2 text-[11px] font-semibold text-slate-500">
                   {[neuralSelection.start, neuralSelection.end]
                     .filter(Boolean)
-                    .map((nodeId) => (
+                    .map((nodeId, idx) => (
                       <span
-                        key={nodeId}
+                        key={`${nodeId}-${idx}`}
                         className="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5"
                       >
                         {nodeKeyToText[nodeId as string] ?? nodeId}
