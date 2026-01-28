@@ -1117,6 +1117,7 @@ const CyclesGraphPage = () => {
               nodes={neuralNodes}
               edges={neuralInsightEdges}
               entries={entries ?? []}
+              rankedCycles={rankedMeaningfulCycles}
             />
           </div>
         </Card>
