@@ -16,8 +16,10 @@ import NeuralCircuit, {
   type NeuralCircuitEdge,
   type NeuralCircuitNode,
 } from "../components/features/NeuralCircuit";
+import NeuralInsightsPanel from "../components/features/NeuralInsightsPanel";
 import { consolidateCycles, findAnchoredAttachments, findAttachments, findSimpleCycles } from "../lib/graphUtils";
 import { useNeuralPathfinding } from "../hooks/useNeuralPathfinding";
+import useEntries from "../hooks/useEntries";
 
 type NodeData = {
   key: string;
@@ -246,6 +248,7 @@ const CyclesGraphPage = () => {
   }, [filteredEdges, getPatientLabel]);
 
   const { nodeDataArray, mergedEdges, linkDataArray } = graphData;
+  const { data: entries } = useEntries({ limit: 200 });
 
   const groupDataArray = useMemo<GroupData[]>(
     () => [
@@ -973,6 +976,18 @@ const CyclesGraphPage = () => {
       })),
     [linkDataArray],
   );
+  const neuralInsightEdges = useMemo(
+    () =>
+      mergedEdges.map((edge) => ({
+        from: edge.sourceNode,
+        to: edge.targetNode,
+        avgLag: edge.avgLag ?? 0,
+        frequency: edge.frequency ?? 0,
+        confidence: edge.confidence ?? 0,
+        evidenceEntryIds: edge.evidenceEntryIds ?? [],
+      })),
+    [mergedEdges],
+  );
   const { findPaths } = useNeuralPathfinding(neuralEdges);
   const [neuralSelection, setNeuralSelection] = useState<{ start: string | null; end: string | null }>({
     start: null,
@@ -1089,6 +1104,22 @@ const CyclesGraphPage = () => {
             </div>
           </div>
         </div>
+        <Card className="mt-6 rounded-[28px] border border-slate-200 bg-white/90 p-6 shadow-sm">
+          <div className="mb-4 flex items-center justify-between">
+            <div>
+              <p className="text-xs uppercase tracking-[0.4em] text-slate-400">Neural insights</p>
+              <h2 className="mt-2 text-2xl font-semibold text-slate-700">Pattern signals</h2>
+            </div>
+          </div>
+          <div className="max-h-[360px] overflow-y-auto pr-2">
+            <NeuralInsightsPanel
+              activePath={activeNeuralPath}
+              nodes={neuralNodes}
+              edges={neuralInsightEdges}
+              entries={entries ?? []}
+            />
+          </div>
+        </Card>
       </section>
 
       <PageHeader
