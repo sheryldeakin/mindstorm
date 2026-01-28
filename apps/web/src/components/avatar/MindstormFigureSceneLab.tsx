@@ -1,6 +1,6 @@
 import { useMemo, useRef } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
-import { Environment, Text } from "@react-three/drei";
+import { AccumulativeShadows, Environment, RandomizedLight, Text } from "@react-three/drei";
 import * as THREE from "three";
 import { MindstormWalker } from "./MindstormWalker";
 import type { DomainKey } from "../features/MindMapOverlayLab";
@@ -39,10 +39,10 @@ const MindstormFigureSceneLab = ({
   walkTarget = null,
 }: MindstormFigureSceneLabProps) => {
   const fog = useMemo(() => {
-    if (activeDomain === "symptom") return { color: "#eef2ff", near: 2, far: 10 };
-    if (activeDomain === "context") return { color: "#f0f9ff", near: 2.5, far: 11 };
-    if (activeDomain === "impact") return { color: "#fff7ed", near: 2.5, far: 10 };
-    return { color: "#f8fafc", near: 3, far: 12 };
+    if (activeDomain === "symptom") return { color: "#f8f7ff", near: 3.5, far: 10 };
+    if (activeDomain === "context") return { color: "#f7fcff", near: 4, far: 12 };
+    if (activeDomain === "impact") return { color: "#fffaf4", near: 4, far: 11 };
+    return { color: "#ffffff", near: 4.5, far: 13 };
   }, [activeDomain]);
 
   return (
@@ -50,7 +50,7 @@ const MindstormFigureSceneLab = ({
       <Canvas shadows camera={{ fov: 45, position: CAMERA_ZONES.root.pos }}>
         <color attach="background" args={[fog.color]} />
         <fog attach="fog" args={[fog.color, fog.near, fog.far]} />
-        <ambientLight intensity={0.6} />
+        <ambientLight intensity={0.85} />
         <directionalLight position={[5, 5, 5]} intensity={1} />
         <CameraRig activeDomain={activeDomain} />
         <Environment preset="studio" />
@@ -70,13 +70,39 @@ const MindstormFigureSceneLab = ({
             cloneScene
           />
         </group>
+        <AccumulativeShadows
+          temporal={false}
+          frames={1}
+          color="#ffffff"
+          colorBlend={0.05}
+          opacity={0.01}
+          scale={12}
+          alphaTest={0.95}
+        >
+          <RandomizedLight amount={2} radius={2} ambient={1} intensity={0.2} position={[4, 6, -8]} bias={0.001} />
+        </AccumulativeShadows>
+
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.02, 0]} receiveShadow>
+          <planeGeometry args={[60, 60]} />
+          <meshPhysicalMaterial
+            color="#ffffff"
+            roughness={0.08}
+            transmission={0.9}
+            thickness={0.6}
+            transparent
+            opacity={0.5}
+            clearcoat={0.8}
+            clearcoatRoughness={0.12}
+          />
+        </mesh>
+
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.02, 0]} receiveShadow>
+          <planeGeometry args={[80, 80]} />
+          <meshStandardMaterial color="#ffffff" />
+        </mesh>
+
 
         <group>
-          <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
-            <planeGeometry args={[20, 20]} />
-            <meshStandardMaterial color="#f8fafc" />
-          </mesh>
-
           <mesh rotation={[-Math.PI / 2, 0, 0]} position={[-3, 0.01, -2]} receiveShadow>
             <planeGeometry args={[3.5, 5]} />
             <meshStandardMaterial color="#e2e8f0" />
@@ -142,10 +168,6 @@ const MindstormFigureSceneLab = ({
           </group>
         </group>
 
-        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
-          <planeGeometry args={[20, 20]} />
-          <shadowMaterial opacity={0.15} />
-        </mesh>
       </Canvas>
     </div>
   );

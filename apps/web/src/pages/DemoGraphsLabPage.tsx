@@ -80,12 +80,6 @@ const DemoGraphsLabPage = () => {
       .finally(() => setLoading(false));
   }, [status]);
 
-  useEffect(() => {
-    if (activeDomain === "root") return;
-    const timer = window.setTimeout(() => setActiveDomain("root"), 3200);
-    return () => window.clearTimeout(timer);
-  }, [activeDomain]);
-
   const fallbackFlow = useMemo(
     () => buildImpactFlowFromEntries(entries),
     [entries],
@@ -193,6 +187,17 @@ const DemoGraphsLabPage = () => {
       )}
 
       <div className="relative h-[560px] w-full overflow-hidden rounded-3xl border border-slate-200 bg-white/90">
+        {activeDomain !== "root" && (
+          <button
+            onClick={() => {
+              setActiveDomain("root");
+              setSelectedEdgeId(undefined);
+            }}
+            className="absolute right-4 top-4 z-10 rounded-full border border-slate-200 bg-white/90 px-3 py-1 text-xs font-semibold text-slate-700 shadow-sm"
+          >
+            Back to center
+          </button>
+        )}
         <div className="absolute inset-0">
           <MindstormJourneyLab
             activeDomain={activeDomain}

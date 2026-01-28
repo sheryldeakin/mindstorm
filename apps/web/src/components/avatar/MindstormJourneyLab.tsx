@@ -1,9 +1,10 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
-import { Environment } from "@react-three/drei";
+import { AccumulativeShadows, Environment, RandomizedLight } from "@react-three/drei";
 import * as THREE from "three";
 import { MindstormWalker } from "./MindstormWalker";
 import { ConstellationTotem, ImpactTotem, SymptomTotem } from "./DataMonumentsLab";
+import { PathFloor } from "./PathFloor";
 import type { ConnectionEdge, ConnectionNode } from "../../types/connections";
 import type { ThemeSeries } from "@mindstorm/derived-spec";
 import type { JournalEntry } from "../../types/journal";
@@ -56,28 +57,35 @@ const MindstormJourneyLab = ({
   const [walkTarget, setWalkTarget] = useState<number | null>(null);
   const [attentionToken, setAttentionToken] = useState(0);
   const [attentionYaw, setAttentionYaw] = useState(0);
-
   const fog = useMemo(() => {
-    if (activeDomain === "symptom") return { color: "#eef2ff", near: 2.5, far: 10 };
-    if (activeDomain === "context") return { color: "#f0f9ff", near: 3, far: 11 };
-    if (activeDomain === "impact") return { color: "#fff7ed", near: 3, far: 10 };
-    return { color: "#f8fafc", near: 3.5, far: 12 };
+    if (activeDomain === "symptom") return { color: "#f8f7ff", near: 3.5, far: 10 };
+    if (activeDomain === "context") return { color: "#f7fcff", near: 4, far: 12 };
+    if (activeDomain === "impact") return { color: "#fffaf4", near: 4, far: 11 };
+    return { color: "#ffffff", near: 4.5, far: 13 };
   }, [activeDomain]);
 
+  const [detailDomain, setDetailDomain] = useState<JourneyState | null>(null);
+  useEffect(() => {
+    if (activeDomain === "root" && detailDomain !== null) {
+      setDetailDomain(null);
+    }
+  }, [activeDomain, detailDomain]);
   const handleFocus = (domain: Exclude<JourneyState, "root">) => {
     if (activeDomain === domain) {
       onSelectDomain("root");
       setWalkTarget(null);
       setAttentionYaw(0);
+      setDetailDomain(null);
       return;
     }
     onSelectDomain(domain);
+    setDetailDomain(null);
     setAttentionToken((prev) => prev + 1);
     if (domain === "context") {
-      setWalkTarget(-0.9);
+      setWalkTarget(-1.1);
       setAttentionYaw(0.8);
     } else if (domain === "impact") {
-      setWalkTarget(0.9);
+      setWalkTarget(1.1);
       setAttentionYaw(-0.8);
     } else if (domain === "symptom") {
       setWalkTarget(0);
@@ -90,12 +98,12 @@ const MindstormJourneyLab = ({
       <Canvas shadows camera={{ fov: 50, position: ZONES.root.cam }}>
         <color attach="background" args={[fog.color]} />
         <fog attach="fog" args={[fog.color, fog.near, fog.far]} />
-        <ambientLight intensity={0.6} />
+        <ambientLight intensity={0.85} />
         <spotLight position={[6, 8, 4]} angle={0.4} penumbra={0.6} intensity={1} castShadow />
         <CameraRig activeState={activeDomain} />
         <Environment preset="studio" />
 
-        <group scale={5.625} position={[0, 0, 0]}>
+        <group scale={5.625} position={[0, -0.16, 0]}>
           <MindstormWalker
             isWalking={walkTarget != null}
             walkMode="target"
@@ -106,14 +114,14 @@ const MindstormJourneyLab = ({
           />
         </group>
 
-        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
-          <planeGeometry args={[22, 22]} />
-          <meshStandardMaterial color="#f8fafc" />
-        </mesh>
+        <PathFloor activeDomain={activeDomain} />
+
 
         <ConstellationTotem
           active={activeDomain === "context"}
+          detail={detailDomain === "context"}
           onEnter={() => handleFocus("context")}
+          onDeepDive={() => setDetailDomain("context")}
           nodes={nodes}
           edges={edges}
           onEdgeSelect={onEdgeSelect}
@@ -121,14 +129,29 @@ const MindstormJourneyLab = ({
         />
         <SymptomTotem
           active={activeDomain === "symptom"}
+          detail={detailDomain === "symptom"}
           onEnter={() => handleFocus("symptom")}
+          onDeepDive={() => setDetailDomain("symptom")}
           series={series}
         />
         <ImpactTotem
           active={activeDomain === "impact"}
+          detail={detailDomain === "impact"}
           onEnter={() => handleFocus("impact")}
+          onDeepDive={() => setDetailDomain("impact")}
           entries={entries}
         />
+        <AccumulativeShadows
+          temporal={false}
+          frames={1}
+          color="#ffffff"
+          colorBlend={0.05}
+          opacity={0.01}
+          scale={12}
+          alphaTest={0.95}
+        >
+          <RandomizedLight amount={2} radius={2} ambient={1} intensity={0.2} position={[4, 6, -8]} bias={0.001} />
+        </AccumulativeShadows>
       </Canvas>
     </div>
   );
