@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { AnimatePresence, LayoutGroup, motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { ArrowLeft, Brain, Briefcase, Heart } from "lucide-react";
 import clsx from "clsx";
 import MindstormFigureScene from "../avatar/MindstormFigureScene";
@@ -41,8 +41,7 @@ const MindMapNav = ({ contextItems, symptomItems, impactItems, onSelectMetric, o
 
   return (
     <div className="relative flex h-[560px] w-full items-center justify-center overflow-hidden rounded-3xl border border-slate-200 bg-white/90">
-      <LayoutGroup>
-        <AnimatePresence>
+      <AnimatePresence>
         {activeDomain !== "root" && (
           <motion.button
             type="button"
@@ -57,23 +56,7 @@ const MindMapNav = ({ contextItems, symptomItems, impactItems, onSelectMetric, o
         )}
         </AnimatePresence>
 
-        <AnimatePresence>
-          {activeDomain === "root" && onBack && (
-            <motion.button
-              type="button"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              onClick={onBack}
-              className="absolute left-6 top-6 z-20 flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-medium text-slate-500 shadow-sm hover:bg-slate-50"
-            >
-              <ArrowLeft size={14} /> Zoom out
-            </motion.button>
-          )}
-        </AnimatePresence>
-
         <motion.div
-          layout
           className={clsx(
             "z-20 flex flex-col items-center justify-center",
             activeDomain !== "root" && "absolute right-10 top-10",
@@ -88,12 +71,7 @@ const MindMapNav = ({ contextItems, symptomItems, impactItems, onSelectMetric, o
             <MindstormFigureScene />
           </div>
           {activeDomain === "root" && (
-            <motion.div
-              layoutId="character-label"
-              className="mt-3 text-xs font-bold uppercase tracking-widest text-slate-400"
-            >
-              You
-            </motion.div>
+            <div className="mt-3 text-xs font-bold uppercase tracking-widest text-slate-400">You</div>
           )}
         </motion.div>
 
@@ -123,14 +101,21 @@ const MindMapNav = ({ contextItems, symptomItems, impactItems, onSelectMetric, o
                 <motion.button
                   key={key}
                   type="button"
-                  layoutId={`node-${key}`}
-                  initial={{ opacity: 0, scale: 0 }}
+                  initial={{ opacity: 0, scale: 0, x: 0, y: 0 }}
                   animate={{ opacity: 1, scale: 1, x, y }}
                   exit={{ opacity: 0, scale: 0 }}
-                  whileHover={{ scale: 1.08 }}
+                  whileHover={{ scale: 1.08, y: y - 6 }}
+                  whileTap={{ scale: 1.02 }}
+                  onHoverStart={() => setHovered(key)}
+                  onHoverEnd={() => setHovered(null)}
+                  {...(hovered === key
+                    ? {
+                        animate: { opacity: 1, scale: 1, x, y, y: y - 6 },
+                        transition: { duration: 1.6, repeat: Infinity, repeatType: "mirror", ease: "easeInOut" },
+                      }
+                    : {})}
+                  transition={{ type: "spring", stiffness: 140, damping: 16 }}
                   onClick={() => setActiveDomain(key)}
-                  onMouseEnter={() => setHovered(key)}
-                  onMouseLeave={() => setHovered(null)}
                   className={clsx(
                     "pointer-events-auto absolute left-1/2 top-1/2 flex h-28 w-28 -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center gap-2 rounded-full border-4 border-white text-[10px] font-bold uppercase tracking-widest shadow-lg transition-transform",
                     config.color,
@@ -167,7 +152,6 @@ const MindMapNav = ({ contextItems, symptomItems, impactItems, onSelectMetric, o
           </motion.div>
         )}
         </AnimatePresence>
-      </LayoutGroup>
     </div>
   );
 };
