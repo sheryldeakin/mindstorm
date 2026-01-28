@@ -4,6 +4,7 @@ import ImpactFlow from "../components/features/ImpactFlow";
 import PatternStream from "../components/features/PatternStream";
 import LifeBalanceCompass from "../components/features/LifeBalanceCompass";
 import IntroSequence from "../components/features/IntroSequence";
+import MindstormScene from "../components/avatar/MindstormScene";
 import type { ThemeSeries } from "@mindstorm/derived-spec";
 import type { ConnectionEdge, ConnectionNode } from "../lib/vizUtils";
 import { buildImpactFlowFromEntries } from "../lib/vizUtils";
@@ -209,6 +210,8 @@ const DemoGraphsPage = () => {
           {error}
         </div>
       )}
+
+      <MindstormScene />
 
       <IntroSequence
         contextItems={contextItems}

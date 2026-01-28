@@ -50,7 +50,7 @@ const LABEL_DISPLAY_MAP: Record<string, string> = {
   SYMPTOM_TRAUMA: "Trauma signals",
   SYMPTOM_COGNITIVE: "Cognitive signals",
   SYMPTOM_SOMATIC: "Somatic signals",
-  IMPACT_WORK: "Work/School impact",
+  IMPACT_WORK: "Work/School",
   IMPACT_SOCIAL: "Social impact",
   IMPACT_SELF_CARE: "Self-care impact",
   IMPAIRMENT: "Functional impairment",

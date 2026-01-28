@@ -144,9 +144,9 @@ const ClinicianLogicGraphPage = () => {
       selectedNode.labels?.includes("IMPACT_WORK");
     if (isImpactWork) {
       return resolveImpactWorkLabelFromUnits(drawerEvidence, {
-        work: "Work impact",
-        school: "School impact",
-        fallback: "Work/School impact",
+        work: "Work",
+        school: "School",
+        fallback: "Work/School",
       });
     }
     return selectedNode.label || "Evidence";

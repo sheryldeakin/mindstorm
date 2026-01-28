@@ -305,7 +305,7 @@ const buildPrepareMergePrompt = (timeRangeLabel, signalContext) =>
     "Translate signals into patient-friendly terms (examples):",
     "SYMPTOM_MOOD -> Low mood, SYMPTOM_ANHEDONIA -> Loss of interest, SYMPTOM_COGNITIVE -> Foggy thinking or self-critical thoughts,",
     "SYMPTOM_SOMATIC -> Low energy or appetite changes, SYMPTOM_SLEEP -> Sleep changes, SYMPTOM_ANXIETY -> Anxiety or worry,",
-    "IMPACT_WORK -> Work/School impact, IMPACT_SOCIAL -> Relationship strain or isolation, IMPACT_SELF_CARE -> Self-care struggles,",
+    "IMPACT_WORK -> Work/School, IMPACT_SOCIAL -> Relationship strain or isolation, IMPACT_SELF_CARE -> Self-care struggles,",
     "CONTEXT_STRESSOR -> Life stressors, CONTEXT_MEDICAL -> Physical health changes, CONTEXT_SUBSTANCE -> Alcohol/substance/medication changes,",
     "SYMPTOM_MANIA -> Wired or unusually high energy, SYMPTOM_PSYCHOSIS -> Unusual perceptions or beliefs,",
     "SYMPTOM_TRAUMA -> Trauma reminders or flashbacks.",
