@@ -992,7 +992,7 @@ const CyclesGraphPage = () => {
         if (!prev.start) {
           setNeuralPaths(findPaths(id, id));
           setNeuralActiveIndex(null);
-          return { start: id, end: id };
+          return { start: id, end: null };
         }
         if (prev.start && !prev.end) {
           const found = findPaths(prev.start, id);

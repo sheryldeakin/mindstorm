@@ -32,6 +32,7 @@ const BASE_RING = 150;
 const OUTER_RING = 210;
 const DIM_OPACITY = 0.25;
 const CYCLE_RADIUS = 140;
+const PATH_SPACING = 110;
 
 const hashToOffset = (value: string) => {
   let hash = 0;
@@ -39,6 +40,18 @@ const hashToOffset = (value: string) => {
     hash = (hash * 31 + value.charCodeAt(i)) % 997;
   }
   return (hash / 997) * 2 - 1;
+};
+
+const uniqueOrdered = (ids: string[]) => {
+  const seen = new Set<string>();
+  const ordered: string[] = [];
+  ids.forEach((id) => {
+    if (!seen.has(id)) {
+      seen.add(id);
+      ordered.push(id);
+    }
+  });
+  return ordered;
 };
 
 const getBaseLayout = (nodes: NeuralCircuitNode[]): LayoutMap => {
@@ -104,6 +117,30 @@ const getCycleLayout = (nodes: NeuralCircuitNode[], cycleIds: string[]): LayoutM
 
   return map;
 };
+
+const getPathLayout = (nodes: NeuralCircuitNode[], pathIds: string[]): LayoutMap => {
+  const map = new Map<string, LayoutPoint>();
+  const count = Math.max(pathIds.length, 1);
+  const startX = -((count - 1) * PATH_SPACING) / 2;
+  pathIds.forEach((id, index) => {
+    map.set(id, {
+      x: startX + index * PATH_SPACING,
+      y: 0,
+    });
+  });
+
+  const remaining = nodes.filter((node) => !pathIds.includes(node.id));
+  const remainderCount = Math.max(remaining.length, 1);
+  remaining.forEach((node, index) => {
+    const angle = (index / remainderCount) * Math.PI * 2 + Math.PI / 6;
+    map.set(node.id, {
+      x: Math.cos(angle) * OUTER_RING,
+      y: Math.sin(angle) * OUTER_RING,
+    });
+  });
+
+  return map;
+};
 const pathIncludesEdge = (path: GraphPath, edge: NeuralCircuitEdge) => {
   for (let i = 0; i < path.length - 1; i += 1) {
     if (path[i] === edge.from && path[i + 1] === edge.to) return true;
@@ -136,13 +173,21 @@ const kindStyle = (kind: NeuralCircuitNode["kind"]) => {
   return "fill-indigo-200 text-indigo-800";
 };
 
-const useLayout = (nodes: NeuralCircuitNode[], selected: string[], cycleIds: string[] | null) =>
+const useLayout = (
+  nodes: NeuralCircuitNode[],
+  selected: string[],
+  cycleIds: string[] | null,
+  pathIds: string[] | null,
+) =>
   useMemo(() => {
     if (cycleIds && cycleIds.length >= 2) {
       return getCycleLayout(nodes, cycleIds);
     }
+    if (pathIds && pathIds.length >= 2) {
+      return getPathLayout(nodes, pathIds);
+    }
     return getFocusedLayout(nodes, selected);
-  }, [nodes, selected, cycleIds]);
+  }, [nodes, selected, cycleIds, pathIds]);
 
 const NeuralCircuit = ({
   nodes,
@@ -163,10 +208,9 @@ const NeuralCircuit = ({
   const effectivePath = activePath ?? highlightedPath;
   const isCycle =
     Boolean(effectivePath && effectivePath.length >= 3 && effectivePath[0] === effectivePath[effectivePath.length - 1]);
-  const cycleNodeIds = isCycle
-    ? Array.from(new Set(effectivePath?.slice(0, -1) ?? []))
-    : null;
-  const layout = useLayout(nodes, effectiveSelectedNodes, cycleNodeIds);
+  const cycleNodeIds = isCycle && effectivePath ? uniqueOrdered(effectivePath.slice(0, -1)) : null;
+  const pathNodeIds = !isCycle && effectivePath ? uniqueOrdered(effectivePath) : null;
+  const layout = useLayout(nodes, effectiveSelectedNodes, cycleNodeIds, pathNodeIds);
   const highlightedKey = effectivePath ? effectivePath.join("->") : null;
   const renderPanel = showPanel && !isControlled;
 
