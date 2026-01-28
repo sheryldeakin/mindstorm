@@ -18,6 +18,10 @@ type MindstormWalkerProps = {
   lookStrengthIdle?: number;
   lookStrengthWalk?: number;
   cloneScene?: boolean;
+  walkMode?: "loop" | "target";
+  walkTarget?: number | null;
+  attentionToken?: number;
+  attentionYaw?: number;
 };
 
 export const MindstormWalker = forwardRef<THREE.Group, MindstormWalkerProps>(
@@ -36,6 +40,10 @@ export const MindstormWalker = forwardRef<THREE.Group, MindstormWalkerProps>(
       lookStrengthIdle = 0.35,
       lookStrengthWalk = 0.12,
       cloneScene = false,
+      walkMode = "loop",
+      walkTarget = null,
+      attentionToken = 0,
+      attentionYaw = 0,
     },
     ref,
   ) => {
@@ -104,6 +112,9 @@ export const MindstormWalker = forwardRef<THREE.Group, MindstormWalkerProps>(
     const current = useRef("IDLE");
     const isWaving = useRef(false);
     const pauseFactor = 0.2;
+    const attentionTime = useRef(0);
+    const attentionActive = useRef(false);
+    const attentionYawRef = useRef(0);
 
     useImperativeHandle(ref, () => modelRef.current as THREE.Group);
 
@@ -209,6 +220,12 @@ export const MindstormWalker = forwardRef<THREE.Group, MindstormWalkerProps>(
       };
     }, [actions, wave, fade]);
 
+    useEffect(() => {
+      attentionActive.current = true;
+      attentionTime.current = 0;
+      attentionYawRef.current = attentionYaw;
+    }, [attentionToken, attentionYaw]);
+
     const lerpAngle = (from: number, to: number, t: number) => {
       const delta = THREE.MathUtils.euclideanModulo(to - from + Math.PI, Math.PI * 2) - Math.PI;
       return from + delta * t;
@@ -230,26 +247,46 @@ export const MindstormWalker = forwardRef<THREE.Group, MindstormWalkerProps>(
       if (isWalking) {
         play("WALK");
         const safeBounds = Math.max(boundsX, 0.001);
-        const angularSpeed = speed / safeBounds;
-        const speedFactor = THREE.MathUtils.lerp(
-          pauseFactor,
-          1,
-          Math.min(1, Math.abs(Math.cos(phase.current))),
-        );
-        phase.current += angularSpeed * speedFactor * dt;
-        if (phase.current > Math.PI * 2) phase.current -= Math.PI * 2;
+        if (walkMode === "target" && typeof walkTarget === "number") {
+          const targetX = THREE.MathUtils.clamp(walkTarget, -1, 1) * safeBounds;
+          const delta = targetX - walker.position.x;
+          const arriveThreshold = Math.max(0.01, safeBounds * 0.04);
+          const isArrived = Math.abs(delta) < arriveThreshold;
+          if (isArrived) {
+            play("IDLE");
+          } else {
+            const damped = THREE.MathUtils.damp(walker.position.x, targetX, 10, dt);
+            walker.position.x = damped;
+          }
+          walker.position.z = 0;
+          desiredYaw = delta >= 0 ? Math.PI / 2 : -Math.PI / 2;
+          walker.rotation.y = lerpAngle(
+            walker.rotation.y,
+            desiredYaw,
+            1 - Math.exp(-turn * dt),
+          );
+        } else {
+          const angularSpeed = speed / safeBounds;
+          const speedFactor = THREE.MathUtils.lerp(
+            pauseFactor,
+            1,
+            Math.min(1, Math.abs(Math.cos(phase.current))),
+          );
+          phase.current += angularSpeed * speedFactor * dt;
+          if (phase.current > Math.PI * 2) phase.current -= Math.PI * 2;
 
-        const sinPhase = Math.sin(phase.current);
-        const cosPhase = Math.cos(phase.current);
-        walker.position.x = sinPhase * safeBounds;
+          const sinPhase = Math.sin(phase.current);
+          const cosPhase = Math.cos(phase.current);
+          walker.position.x = sinPhase * safeBounds;
 
-        walker.position.z = 0;
-        desiredYaw = cosPhase > 0 ? Math.PI / 2 : -Math.PI / 2;
-        walker.rotation.y = lerpAngle(
-          walker.rotation.y,
-          desiredYaw,
-          1 - Math.exp(-turn * dt),
-        );
+          walker.position.z = 0;
+          desiredYaw = cosPhase > 0 ? Math.PI / 2 : -Math.PI / 2;
+          walker.rotation.y = lerpAngle(
+            walker.rotation.y,
+            desiredYaw,
+            1 - Math.exp(-turn * dt),
+          );
+        }
       }
 
       // Prevent root-motion drift from the animation.
@@ -286,6 +323,19 @@ export const MindstormWalker = forwardRef<THREE.Group, MindstormWalkerProps>(
         lookPitch.current = THREE.MathUtils.lerp(lookPitch.current, nextPitch, 1 - Math.exp(-6 * dt));
       }
 
+      if (attentionActive.current) {
+        attentionTime.current += dt;
+        const duration = 0.6;
+        const t = Math.min(1, attentionTime.current / duration);
+        if (t >= 1) attentionActive.current = false;
+      }
+
+      const pulse = attentionActive.current
+        ? Math.sin(Math.PI * Math.min(1, attentionTime.current / 0.6))
+        : 0;
+      const attentionYawOffset = attentionYawRef.current * pulse;
+      const attentionPitchOffset = -0.12 * pulse;
+
       const applyBone = (
         bone: THREE.Bone | null,
         yaw: number,
@@ -296,8 +346,8 @@ export const MindstormWalker = forwardRef<THREE.Group, MindstormWalkerProps>(
         if (!bone) return;
         const base = bone.rotation;
         bone.rotation.set(
-          base.x + pitch * pitchWeight,
-          base.y + yaw * yawWeight,
+          base.x + (pitch + attentionPitchOffset) * pitchWeight,
+          base.y + (yaw + attentionYawOffset) * yawWeight,
           base.z,
         );
       };

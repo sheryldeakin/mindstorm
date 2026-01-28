@@ -1,8 +1,9 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowLeft, Brain, Briefcase, Heart } from "lucide-react";
 import clsx from "clsx";
 import MindstormFigureScene from "../avatar/MindstormFigureScene";
+import * as THREE from "three";
 
 type DomainKey = "root" | "context" | "symptom" | "impact";
 
@@ -29,6 +30,11 @@ const domains = {
 const MindMapNav = ({ contextItems, symptomItems, impactItems, onSelectMetric, onBack }: MindMapNavProps) => {
   const [activeDomain, setActiveDomain] = useState<DomainKey>("root");
   const [hovered, setHovered] = useState<string | null>(null);
+  const [attentionToken, setAttentionToken] = useState(0);
+  const [attentionYaw, setAttentionYaw] = useState(0);
+  const [wave, setWave] = useState(false);
+  const waveTimeoutRef = useRef<number | null>(null);
+  const transitionTimeoutRef = useRef<number | null>(null);
 
   const itemsByDomain = useMemo(
     () => ({
@@ -38,6 +44,13 @@ const MindMapNav = ({ contextItems, symptomItems, impactItems, onSelectMetric, o
     }),
     [contextItems, impactItems, symptomItems],
   );
+
+  useEffect(() => {
+    return () => {
+      if (waveTimeoutRef.current) window.clearTimeout(waveTimeoutRef.current);
+      if (transitionTimeoutRef.current) window.clearTimeout(transitionTimeoutRef.current);
+    };
+  }, []);
 
   return (
     <div className="relative flex h-[560px] w-full items-center justify-center overflow-hidden rounded-3xl border border-slate-200 bg-white/90">
@@ -59,7 +72,7 @@ const MindMapNav = ({ contextItems, symptomItems, impactItems, onSelectMetric, o
         <motion.div
           className={clsx(
             "z-20 flex flex-col items-center justify-center",
-            activeDomain !== "root" && "absolute right-10 top-10",
+            activeDomain !== "root" && "absolute right-10 -top-8",
           )}
           animate={{
             scale: activeDomain === "root" ? 1.1 : 0.7,
@@ -68,7 +81,7 @@ const MindMapNav = ({ contextItems, symptomItems, impactItems, onSelectMetric, o
           transition={{ type: "spring", stiffness: 140, damping: 18 }}
         >
           <div className="pointer-events-none">
-            <MindstormFigureScene />
+            <MindstormFigureScene attentionToken={attentionToken} attentionYaw={attentionYaw} wave={wave} />
           </div>
           {activeDomain === "root" && (
             <div className="mt-3 text-xs font-bold uppercase tracking-widest text-slate-400">You</div>
@@ -115,7 +128,15 @@ const MindMapNav = ({ contextItems, symptomItems, impactItems, onSelectMetric, o
                       }
                     : {})}
                   transition={{ type: "spring", stiffness: 140, damping: 16 }}
-                  onClick={() => setActiveDomain(key)}
+                  onClick={() => {
+                    setAttentionToken((prev) => prev + 1);
+                    setAttentionYaw(x >= 0 ? 0.45 : -0.45);
+                    setWave(true);
+                    if (waveTimeoutRef.current) window.clearTimeout(waveTimeoutRef.current);
+                    waveTimeoutRef.current = window.setTimeout(() => setWave(false), 180);
+                    if (transitionTimeoutRef.current) window.clearTimeout(transitionTimeoutRef.current);
+                    transitionTimeoutRef.current = window.setTimeout(() => setActiveDomain(key), 520);
+                  }}
                   className={clsx(
                     "pointer-events-auto absolute left-1/2 top-1/2 flex h-28 w-28 -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center gap-2 rounded-full border-4 border-white text-[10px] font-bold uppercase tracking-widest shadow-lg transition-transform",
                     config.color,

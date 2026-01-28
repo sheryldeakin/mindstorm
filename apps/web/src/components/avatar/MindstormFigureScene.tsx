@@ -41,7 +41,21 @@ const StaticOrthoCamera = ({
   return null;
 };
 
-const MindstormFigureScene = () => {
+type MindstormFigureSceneProps = {
+  walkTarget?: number | null;
+  attentionToken?: number;
+  attentionYaw?: number;
+  wave?: boolean;
+  boundsX?: number;
+};
+
+const MindstormFigureScene = ({
+  walkTarget = null,
+  attentionToken = 0,
+  attentionYaw = 0,
+  wave = false,
+  boundsX = 0.9,
+}: MindstormFigureSceneProps) => {
   return (
     <div className="h-[360px] w-[220px]">
       <Canvas orthographic camera={{ position: FIGURE_CAMERA_POS, zoom: FIGURE_ORTHO_ZOOM }} dpr={[1, 1.5]}>
@@ -51,11 +65,16 @@ const MindstormFigureScene = () => {
           <Environment preset="studio" />
           <group scale={FIGURE_MODEL_SCALE} position={[0, 0, 0]}>
             <MindstormWalker
-              isWalking={false}
-              wave={false}
+              isWalking={walkTarget != null}
+              wave={wave}
               lookStrengthIdle={0.45}
               lookStrengthWalk={0.12}
               cloneScene
+              walkMode="target"
+              walkTarget={walkTarget}
+              boundsX={boundsX}
+              attentionToken={attentionToken}
+              attentionYaw={attentionYaw}
             />
           </group>
         </Suspense>
