@@ -2,6 +2,7 @@ import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef } from "rea
 import { useFrame } from "@react-three/fiber";
 import { useAnimations, useGLTF } from "@react-three/drei";
 import * as THREE from "three";
+import { clone } from "three/examples/jsm/utils/SkeletonUtils";
 
 type MindstormWalkerProps = {
   isWalking?: boolean;
@@ -16,6 +17,7 @@ type MindstormWalkerProps = {
   targetIntervalMs?: number;
   lookStrengthIdle?: number;
   lookStrengthWalk?: number;
+  cloneScene?: boolean;
 };
 
 export const MindstormWalker = forwardRef<THREE.Group, MindstormWalkerProps>(
@@ -33,12 +35,19 @@ export const MindstormWalker = forwardRef<THREE.Group, MindstormWalkerProps>(
       targetIntervalMs = 3500,
       lookStrengthIdle = 0.35,
       lookStrengthWalk = 0.12,
+      cloneScene = false,
     },
     ref,
   ) => {
     const walkerRef = useRef<THREE.Group | null>(null);
     const modelRef = useRef<THREE.Group | null>(null);
-    const { scene, animations } = useGLTF("/models/mindstorm_character.glb");
+    const { scene: baseScene, animations: baseAnimations } = useGLTF("/models/mindstorm_character.glb");
+    const { scene, animations } = useMemo(() => {
+      if (!cloneScene) return { scene: baseScene, animations: baseAnimations };
+      const clonedScene = clone(baseScene) as THREE.Group;
+      const clonedAnimations = baseAnimations.map((clip) => clip.clone());
+      return { scene: clonedScene, animations: clonedAnimations };
+    }, [baseAnimations, baseScene, cloneScene]);
     const rootBoneName = useMemo(() => {
       if (!scene) return null;
       let candidate: THREE.Bone | null = null;

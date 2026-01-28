@@ -211,8 +211,6 @@ const DemoGraphsPage = () => {
         </div>
       )}
 
-      <MindstormScene />
-
       <IntroSequence
         contextItems={contextItems}
         symptomItems={symptomItems}

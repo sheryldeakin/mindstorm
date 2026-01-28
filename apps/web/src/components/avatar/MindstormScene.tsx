@@ -275,6 +275,7 @@ const MindstormScene = () => {
   const fitPadding = FIT_PADDING;
   const [fitToken] = useState(0);
   const characterRef = useRef<THREE.Group | null>(null);
+  const rootRef = useRef<THREE.Group | null>(null);
 
   const triggerWave = () => {
     setWave(true);
@@ -282,12 +283,12 @@ const MindstormScene = () => {
   };
 
   useEffect(() => {
-    if (!USE_FIXED_CAMERA || !modelReady || !characterRef.current) return;
-    const box = buildMeshBounds(characterRef.current) ?? new THREE.Box3().setFromObject(characterRef.current);
+    if (!USE_FIXED_CAMERA || !modelReady || !rootRef.current) return;
+    const box = buildMeshBounds(rootRef.current) ?? new THREE.Box3().setFromObject(rootRef.current);
     if (box.isEmpty()) return;
     const center = box.getCenter(new THREE.Vector3());
-    characterRef.current.position.set(-center.x, -box.min.y, -center.z);
-    characterRef.current.updateWorldMatrix(true, true);
+    rootRef.current.position.set(-center.x, -box.min.y, -center.z);
+    rootRef.current.updateWorldMatrix(true, true);
   }, [modelReady]);
 
   return (
@@ -314,7 +315,7 @@ const MindstormScene = () => {
           <Suspense fallback={null}>
             <Environment preset="studio" />
             {USE_FIXED_CAMERA ? (
-              <group scale={FIXED_MODEL_SCALE} position={[0, 0, 0]}>
+              <group ref={rootRef} scale={FIXED_MODEL_SCALE} position={[0, 0, 0]}>
                 <WalkerWithBounds
                   ref={characterRef}
                   isWalking={walking}

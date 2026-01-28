@@ -50,7 +50,13 @@ const MindstormFigureScene = () => {
         <Suspense fallback={null}>
           <Environment preset="studio" />
           <group scale={FIGURE_MODEL_SCALE} position={[0, 0, 0]}>
-            <MindstormWalker isWalking={false} wave={false} lookStrengthIdle={0.45} lookStrengthWalk={0.12} />
+            <MindstormWalker
+              isWalking={false}
+              wave={false}
+              lookStrengthIdle={0.45}
+              lookStrengthWalk={0.12}
+              cloneScene
+            />
           </group>
         </Suspense>
         <StaticOrthoCamera

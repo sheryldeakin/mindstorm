@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { AnimatePresence, LayoutGroup, motion } from "framer-motion";
 import { ArrowLeft, Brain, Briefcase, Heart } from "lucide-react";
 import clsx from "clsx";
-import MindfulAvatar from "./MindfulAvatar";
+import MindstormFigureScene from "../avatar/MindstormFigureScene";
 
 type DomainKey = "root" | "context" | "symptom" | "impact";
 
@@ -84,10 +84,9 @@ const MindMapNav = ({ contextItems, symptomItems, impactItems, onSelectMetric, o
           }}
           transition={{ type: "spring", stiffness: 140, damping: 18 }}
         >
-          <MindfulAvatar
-            state={hovered ? "listening" : activeDomain === "root" ? "idle" : "focused"}
-            scale={activeDomain === "root" ? 1.2 : 0.8}
-          />
+          <div className="pointer-events-none">
+            <MindstormFigureScene />
+          </div>
           {activeDomain === "root" && (
             <motion.div
               layoutId="character-label"
@@ -107,11 +106,16 @@ const MindMapNav = ({ contextItems, symptomItems, impactItems, onSelectMetric, o
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            {(Object.keys(domains) as Array<keyof typeof domains>).map((key, index) => {
-              const angle = (index * 120 * Math.PI) / 180;
+            {(Object.keys(domains) as Array<keyof typeof domains>).map((key) => {
               const radius = 180;
-              const x = Math.cos(angle) * radius;
-              const y = Math.sin(angle) * radius;
+              const yOffset = -70;
+              const xOffset = -36;
+              const positions: Record<keyof typeof domains, { x: number; y: number }> = {
+                context: { x: -radius * 1.05 + xOffset, y: -radius * 0.75 + yOffset },
+                symptom: { x: xOffset, y: -radius + yOffset },
+                impact: { x: radius * 1.05 + xOffset, y: -radius * 0.75 + yOffset },
+              };
+              const { x, y } = positions[key];
               const config = domains[key];
               const Icon = config.icon;
 
