@@ -123,7 +123,7 @@ const MindMapNav = ({ contextItems, symptomItems, impactItems, onSelectMetric, o
                   onHoverEnd={() => setHovered(null)}
                   {...(hovered === key
                     ? {
-                        animate: { opacity: 1, scale: 1, x, y, y: y - 6 },
+                        animate: { opacity: 1, scale: 1, x, y: y - 6 },
                         transition: { duration: 1.6, repeat: Infinity, repeatType: "mirror", ease: "easeInOut" },
                       }
                     : {})}
