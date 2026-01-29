@@ -4,7 +4,7 @@ import { Activity, Brain, Briefcase, Heart } from "lucide-react";
 import PageHeader from "../components/layout/PageHeader";
 import Tabs from "../components/ui/Tabs";
 import { Card } from "../components/ui/Card";
-import HomeAvatarScene, { type HomeAvatarDomain } from "../components/avatar/HomeAvatarScene";
+import HomeAvatarScene, { type HomeAvatarDomain, type SceneEmotion } from "../components/avatar/HomeAvatarScene";
 import PatternCardGrid from "../components/features/PatternCardGrid";
 import RecentEmotionsPulse from "../components/features/RecentEmotionsPulse";
 import PatternHighlights from "../components/features/PatternHighlights";
@@ -262,6 +262,35 @@ const HomeSnapshotHubPage = () => {
     }));
   }, [snapshotImpactAreas]);
 
+  const sceneEmotions = useMemo<SceneEmotion[]>(() => {
+    const map = new Map<string, { count: number; tone: SceneEmotion["tone"]; intensitySum: number }>();
+
+    entriesInRange.forEach((entry) => {
+      (entry.emotions || []).forEach((emotion) => {
+        const current = map.get(emotion.label) || {
+          count: 0,
+          tone: emotion.tone as SceneEmotion["tone"],
+          intensitySum: 0,
+        };
+        map.set(emotion.label, {
+          count: current.count + 1,
+          tone: current.tone,
+          intensitySum: current.intensitySum + (emotion.intensity || 50),
+        });
+      });
+    });
+
+    return Array.from(map.entries())
+      .map(([label, data]) => ({
+        label,
+        intensity: Math.round(data.intensitySum / data.count),
+        tone: data.tone,
+        count: data.count,
+      }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 8);
+  }, [entriesInRange]);
+
   return (
     <div className="relative min-h-screen pb-20">
       <div className="sticky top-0 z-50 overflow-hidden rounded-t-3xl border-b border-slate-200 bg-slate-50/80 backdrop-blur-md">
@@ -280,6 +309,7 @@ const HomeSnapshotHubPage = () => {
           onSelectDomain={setActiveDomain}
           moodIntensity={moodIntensity}
           enableIdleWave
+          emotions={sceneEmotions}
         />
         {activeDomain !== "root" && (
           <div className="pointer-events-auto absolute bottom-6 left-1/2 -translate-x-1/2">
