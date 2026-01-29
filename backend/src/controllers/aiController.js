@@ -1297,7 +1297,7 @@ const analyzeEntry = asyncHandler(async (req, res) => {
         { role: "user", content: `Journal entry:\n${text}\nReturn JSON only.` },
       ],
       temperature: 0.2,
-      max_tokens: 240,
+      max_tokens: 420,
       response_format: { type: "json_object" },
     }),
   });
@@ -1309,6 +1309,7 @@ const analyzeEntry = asyncHandler(async (req, res) => {
 
   const data = await response.json();
   const content = data.choices?.[0]?.message?.content;
+  console.log("[ai/analyze] raw LLM content:", content);
   if (!content) {
     return res.status(502).json({ message: "No analysis returned." });
   }
@@ -1317,17 +1318,32 @@ const analyzeEntry = asyncHandler(async (req, res) => {
   if (!parsed) {
     return res.status(502).json({ message: "Failed to parse analysis JSON." });
   }
+  console.log("[ai/analyze] parsed JSON:", parsed);
+
+  let normalized = parsed;
+  if (Array.isArray(parsed)) {
+    const normalizedEmotions = normalizeEmotions(parsed);
+    normalized = {
+      emotions: normalizedEmotions,
+      themes: [],
+      themeIntensities: [],
+      triggers: [],
+      summary: undefined,
+      title: undefined,
+    };
+  }
+  console.log("[ai/analyze] normalized emotions:", normalizeEmotions(normalized.emotions));
 
   res.json({
     analysis: {
-      title: parsed.title,
-      emotions: normalizeEmotions(parsed.emotions),
-      themes: parsed.themes || [],
-      themeIntensities: parsed.themeIntensities || [],
-      triggers: parsed.triggers || [],
-      summary: parsed.summary,
-      languageReflection: parsed.languageReflection,
-      timeReflection: parsed.timeReflection,
+      title: normalized.title,
+      emotions: normalizeEmotions(normalized.emotions),
+      themes: normalized.themes || [],
+      themeIntensities: normalized.themeIntensities || [],
+      triggers: normalized.triggers || [],
+      summary: normalized.summary,
+      languageReflection: normalized.languageReflection,
+      timeReflection: normalized.timeReflection,
     },
   });
 });

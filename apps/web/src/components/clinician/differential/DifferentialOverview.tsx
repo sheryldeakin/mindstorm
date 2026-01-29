@@ -11,6 +11,7 @@ type DifferentialOverviewProps = {
   pinnedKeys: DifferentialDiagnosis["key"][];
   onSelect: (key: DifferentialDiagnosis["key"]) => void;
   onTogglePin: (key: DifferentialDiagnosis["key"]) => void;
+  className?: string;
 };
 
 const DifferentialOverview = ({
@@ -19,9 +20,10 @@ const DifferentialOverview = ({
   pinnedKeys,
   onSelect,
   onTogglePin,
+  className,
 }: DifferentialOverviewProps) => {
   return (
-    <div className="space-y-4">
+    <div className={["space-y-4", className].filter(Boolean).join(" ")}>
       {diagnoses.map((diagnosis) => (
         <DiagnosisCard
           key={diagnosis.key}

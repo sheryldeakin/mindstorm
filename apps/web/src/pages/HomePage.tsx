@@ -3,8 +3,11 @@ import { Link } from "react-router-dom";
 import { motion, useScroll, useTransform } from "framer-motion";
 import {
   Activity,
+  ArrowRightLeft,
   ArrowRight,
+  AlertTriangle,
   Brain,
+  CheckCircle2,
   FileText,
   LineChart,
   Shield,
@@ -16,7 +19,6 @@ import {
 import HomeAvatarScene, { type HomeAvatarDomain } from "../components/avatar/HomeAvatarScene";
 import HeroMockup from "../components/features/HeroMockup";
 import NeuralCircuit, { type NeuralCircuitEdge, type NeuralCircuitNode } from "../components/features/NeuralCircuit";
-import ConnectionsGraph from "../components/features/ConnectionsGraph";
 import LiveInsightPanel from "../components/features/LiveInsightPanel";
 import PatternStream from "../components/features/PatternStream";
 import LifeBalanceCompass from "../components/features/LifeBalanceCompass";
@@ -27,21 +29,15 @@ import CopingStrategiesPanel from "../components/features/CopingStrategiesPanel"
 import ExploreQuestionsPanel from "../components/features/ExploreQuestionsPanel";
 import PatternCard from "../components/patterns/PatternCard";
 import DiagnosisCard from "../components/clinician/differential/DiagnosisCard";
-import DifferentialOverview from "../components/clinician/differential/DifferentialOverview";
-import CriteriaCoverageBar from "../components/clinician/CriteriaCoverageBar";
-import CaseStatusHeader from "../components/clinician/CaseStatusHeader";
-import SymptomHeatmap from "../components/clinician/SymptomHeatmap";
-import DiagnosticLogicGraph from "../components/clinician/DiagnosticLogicGraph";
-import SpecifierChips from "../components/clinician/SpecifierChips";
-import FunctionalImpactCard from "../components/clinician/FunctionalImpactCard";
 import Button from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
 import type { LlmAnalysis } from "../lib/analyzeEntry";
-import type { JournalEntry, PatternMetric } from "../types/journal";
+import type { JournalEntry } from "../types/journal";
 import type { PatternInfluence, CopingStrategies } from "../types/patterns";
 import type { ThemeSeries } from "@mindstorm/derived-spec";
+import DifferentialOverview from "../components/clinician/differential/DifferentialOverview";
+import CriteriaCoverageBar from "../components/clinician/CriteriaCoverageBar";
 import type { DifferentialDiagnosis } from "../components/clinician/differential/types";
-import type { CaseEntry, RiskSignal } from "../types/clinician";
 
 const MOCK_NEURAL_NODES: NeuralCircuitNode[] = [
   { id: "work", label: "Work pressure", kind: "context" },
@@ -61,19 +57,6 @@ const MOCK_NEURAL_EDGES: NeuralCircuitEdge[] = [
   { from: "work", to: "tension" },
   { from: "tension", to: "sleep" },
   { from: "sleep", to: "rumination" },
-];
-
-const MOCK_CONNECTION_NODES = [
-  { id: "work", label: "Work stress" },
-  { id: "anxiety", label: "Anxiety" },
-  { id: "sleep", label: "Sleep" },
-  { id: "conflict", label: "Conflict" },
-];
-
-const MOCK_CONNECTION_EDGES = [
-  { id: "e1", from: "work", to: "anxiety", strength: 80, label: "Triggers", evidence: [] },
-  { id: "e2", from: "anxiety", to: "sleep", strength: 60, label: "Disrupts", evidence: [] },
-  { id: "e3", from: "sleep", to: "conflict", strength: 40, label: "Worsens", evidence: [] },
 ];
 
 const DEMO_DRAFT_TEXT =
@@ -149,48 +132,124 @@ const DEMO_ENTRIES: JournalEntry[] = [
 
 const DEMO_THEME_SERIES: ThemeSeries[] = [
   {
-    userId: "demo-user",
-    rangeKey: "last_30_days",
-    theme: "anxiety",
+    userId: "demo",
+    rangeKey: "week",
+    theme: "Anxiety",
     points: [
-      { dateISO: "2026-01-08", intensity: 2 },
-      { dateISO: "2026-01-10", intensity: 3 },
-      { dateISO: "2026-01-12", intensity: 4 },
-      { dateISO: "2026-01-14", intensity: 5 },
-      { dateISO: "2026-01-16", intensity: 4 },
-    ],
-  },
-  {
-    userId: "demo-user",
-    rangeKey: "last_30_days",
-    theme: "sleep",
-    points: [
-      { dateISO: "2026-01-08", intensity: 1 },
-      { dateISO: "2026-01-10", intensity: 2 },
-      { dateISO: "2026-01-12", intensity: 3 },
-      { dateISO: "2026-01-14", intensity: 4 },
-      { dateISO: "2026-01-16", intensity: 3 },
-    ],
-  },
-  {
-    userId: "demo-user",
-    rangeKey: "last_30_days",
-    theme: "focus",
-    points: [
-      { dateISO: "2026-01-08", intensity: 3 },
-      { dateISO: "2026-01-10", intensity: 2 },
-      { dateISO: "2026-01-12", intensity: 2 },
-      { dateISO: "2026-01-14", intensity: 1 },
-      { dateISO: "2026-01-16", intensity: 2 },
+      { dateISO: "2023-01-01", intensity: 2 },
+      { dateISO: "2023-01-02", intensity: 5 },
+      { dateISO: "2023-01-03", intensity: 3 },
+      { dateISO: "2023-01-04", intensity: 6 },
+      { dateISO: "2023-01-05", intensity: 4 },
     ],
   },
 ];
 
-const DEMO_METRICS: PatternMetric[] = [
-  { id: "m1", label: "Most intense day", value: "Sunday night", delta: "↑ 2 mentions", status: "up" },
-  { id: "m2", label: "Top trigger", value: "Work deadlines", delta: "↑ 18%", status: "up" },
-  { id: "m3", label: "Most helpful", value: "Evening walks", delta: "↓ 12%", status: "down" },
+const DEMO_METRICS = [
+  { label: "Most intense day", value: "Sunday night", delta: "↑ 2 mentions" },
+  { label: "Top trigger", value: "Work deadlines", delta: "↑ 18%" },
+  { label: "Most helpful", value: "Evening walks", delta: "↓ 12%" },
 ];
+
+const OVERLAP_DIFFERENTIAL: DifferentialDiagnosis[] = [
+  {
+    key: "mdd",
+    card: {
+      key: "mdd",
+      title: "Major Depressive Disorder",
+      abbreviation: "MDD",
+      likelihood: "High",
+      status: "Sufficient",
+      shortSummary: "Mood symptoms present with impairment.",
+      criteriaPreview: { met: 5, total: 9 },
+    },
+    criteria: [],
+    criteriaSummary: { current: 5, required: 5, total: 9 },
+    symptomCourse: [],
+    functionalImpact: [],
+    exclusionChecks: [],
+    prompts: [],
+    specifiers: [],
+  },
+  {
+    key: "pdd",
+    card: {
+      key: "pdd",
+      title: "Generalized Anxiety",
+      abbreviation: "GAD",
+      likelihood: "Moderate",
+      status: "Incomplete",
+      shortSummary: "Worry and tension present; duration unclear.",
+      criteriaPreview: { met: 3, total: 6 },
+    },
+    criteria: [],
+    criteriaSummary: { current: 3, required: 4, total: 6 },
+    symptomCourse: [],
+    functionalImpact: [],
+    exclusionChecks: [],
+    prompts: [],
+    specifiers: [],
+  },
+  {
+    key: "udd",
+    card: {
+      key: "udd",
+      title: "Bipolar II",
+      abbreviation: "BP-II",
+      likelihood: "Low",
+      status: "Insufficient",
+      shortSummary: "Depressive symptoms present; mania history unconfirmed.",
+      criteriaPreview: { met: 2, total: 7 },
+      blocked: true,
+      blockedReason: "No mania history",
+    },
+    criteria: [],
+    criteriaSummary: { current: 2, required: 4, total: 7 },
+    symptomCourse: [],
+    functionalImpact: [],
+    exclusionChecks: [],
+    prompts: [],
+    specifiers: [],
+  },
+];
+
+const OVERLAP_SUFFICIENCY = {
+  mdd: {
+    status: "Sufficient",
+    note: "Meets minimum criteria for MDD; rule-outs remain visible.",
+    bars: [
+      { label: "Mood criteria (MDD)", current: 5, lifetime: 6, max: 9, threshold: 5 },
+      { label: "Functional impairment", current: 2, lifetime: 3, max: 4, threshold: 3 },
+    ],
+    prompts: ["Clarify symptom duration (2+ weeks)", "Confirm impairment across work or self-care"],
+  },
+  pdd: {
+    status: "Incomplete",
+    note: "Criteria trending upward; duration gate still missing.",
+    bars: [
+      { label: "Anxiety criteria (GAD)", current: 3, lifetime: 4, max: 6, threshold: 4 },
+      { label: "Functional impairment", current: 2, lifetime: 3, max: 4, threshold: 3 },
+    ],
+    prompts: ["Verify 6-month duration of worry", "Confirm restlessness and muscle tension"],
+  },
+  udd: {
+    status: "Insufficient",
+    note: "Rule-out active until mania history is excluded.",
+    bars: [
+      { label: "Mood episode duration", current: 1, lifetime: 1, max: 2, threshold: 2 },
+      { label: "Mania gate (Bipolar II)", current: 0, lifetime: 0, max: 1, threshold: 1 },
+    ],
+    prompts: ["Screen for hypomanic episodes", "Review family history of bipolar disorder"],
+  },
+} satisfies Record<
+  DifferentialDiagnosis["key"],
+  {
+    status: "Sufficient" | "Incomplete" | "Insufficient";
+    note: string;
+    bars: Array<{ label: string; current: number; lifetime: number; max: number; threshold: number }>;
+    prompts: string[];
+  }
+>;
 
 const DEMO_INFLUENCES: PatternInfluence[] = [
   {
@@ -254,164 +313,21 @@ const DEMO_DIAGNOSIS = {
   blocked: false,
 };
 
-const DEMO_DIFFERENTIAL: DifferentialDiagnosis[] = [
-  {
-    key: "mdd",
-    card: {
-      key: "mdd",
-      title: "Major Depressive Disorder",
-      abbreviation: "MDD",
-      likelihood: "Moderate",
-      status: "Incomplete",
-      shortSummary: "Mood symptoms present; duration criteria unclear.",
-      criteriaPreview: { met: 3, total: 9 },
-    },
-    criteria: [],
-    criteriaSummary: { current: 3, required: 5, total: 9 },
-    symptomCourse: [],
-    functionalImpact: [],
-    exclusionChecks: [],
-    prompts: [],
-    specifiers: [],
-  },
-  {
-    key: "pdd",
-    card: {
-      key: "pdd",
-      title: "Persistent Depressive Disorder",
-      abbreviation: "PDD",
-      likelihood: "Low",
-      status: "Insufficient",
-      shortSummary: "Chronicity signals not yet present.",
-      criteriaPreview: { met: 1, total: 6 },
-    },
-    criteria: [],
-    criteriaSummary: { current: 1, required: 3, total: 6 },
-    symptomCourse: [],
-    functionalImpact: [],
-    exclusionChecks: [],
-    prompts: [],
-    specifiers: [],
-  },
-  {
-    key: "udd",
-    card: {
-      key: "udd",
-      title: "Unspecified Depressive Disorder",
-      abbreviation: "UDD",
-      likelihood: "Low",
-      status: "Incomplete",
-      shortSummary: "Some depressive signals present, but criteria are limited.",
-      criteriaPreview: { met: 2, total: 5 },
-    },
-    criteria: [],
-    criteriaSummary: { current: 2, required: 4, total: 5 },
-    symptomCourse: [],
-    functionalImpact: [],
-    exclusionChecks: [],
-    prompts: [],
-    specifiers: [],
-  },
-];
-
-const DEMO_RISK_SIGNAL: RiskSignal = {
-  detected: true,
-  type: "passive_suicidality",
-  level: "moderate",
-  confidence: 0.62,
-};
-
-const DEMO_CASE_ENTRIES: CaseEntry[] = [
-  {
-    id: "case-1",
-    dateISO: "2026-01-08",
-    summary: "Low mood and sleep disruption after a stressful week.",
-    risk_signal: null,
-    evidenceUnits: [
-      { span: "low mood most of the day", label: "SYMPTOM_MOOD", attributes: { polarity: "PRESENT" } },
-      { span: "woke up at 3am", label: "SYMPTOM_SLEEP", attributes: { polarity: "PRESENT" } },
-      { span: "work performance slipped", label: "IMPACT_WORK", attributes: { polarity: "PRESENT" } },
-      { span: "felt tense all day", label: "SYMPTOM_SOMATIC", attributes: { polarity: "PRESENT" } },
-    ],
-  },
-  {
-    id: "case-2",
-    dateISO: "2026-01-10",
-    summary: "Difficulty concentrating during meetings.",
-    risk_signal: null,
-    evidenceUnits: [
-      { span: "couldn't focus", label: "SYMPTOM_COGNITIVE", attributes: { polarity: "PRESENT" } },
-      { span: "anxiety spike", label: "SYMPTOM_ANXIETY", attributes: { polarity: "PRESENT" } },
-      { span: "missed a deadline", label: "IMPACT_WORK", attributes: { polarity: "PRESENT" } },
-    ],
-  },
-  {
-    id: "case-3",
-    dateISO: "2026-01-12",
-    summary: "Withdrawn socially and felt emotionally flat.",
-    risk_signal: DEMO_RISK_SIGNAL,
-    evidenceUnits: [
-      { span: "skipped dinner with friends", label: "IMPACT_SOCIAL", attributes: { polarity: "PRESENT" } },
-      { span: "feeling numb", label: "SYMPTOM_MOOD", attributes: { polarity: "PRESENT" } },
-      { span: "persistent fatigue", label: "SYMPTOM_SOMATIC", attributes: { polarity: "PRESENT" } },
-      { span: "thoughts of giving up", label: "SYMPTOM_RISK", attributes: { polarity: "PRESENT" } },
-    ],
-  },
-  {
-    id: "case-4",
-    dateISO: "2026-01-15",
-    summary: "Energy still low but able to complete a small task.",
-    risk_signal: null,
-    evidenceUnits: [
-      { span: "low energy", label: "SYMPTOM_SOMATIC", attributes: { polarity: "PRESENT" } },
-      { span: "completed laundry", label: "IMPACT_SELF_CARE", attributes: { polarity: "PRESENT" } },
-      { span: "sleep improved slightly", label: "SYMPTOM_SLEEP", attributes: { polarity: "PRESENT" } },
-      { span: "denied self-harm", label: "SYMPTOM_RISK", attributes: { polarity: "ABSENT" } },
-    ],
-  },
-];
-
-const DEMO_CASE_DENSITY = [2, 3, 1, 4, 2, 3, 5, 4, 2, 3, 1, 2];
-
-const DEMO_COVERAGE = [
-  { label: "Mood criteria", current: 3, lifetime: 4, max: 9, threshold: 5 },
-  { label: "Anxiety overlap", current: 2, lifetime: 3, max: 6, threshold: 4 },
-  { label: "Functional impact", current: 2, lifetime: 3, max: 6, threshold: 3 },
-];
-
-const DEMO_CLARIFICATION_PROMPTS = [
-  "Confirm duration of low mood (2+ weeks).",
-  "Clarify impact on self-care routines.",
-  "Assess ongoing risk thoughts and safety planning.",
-];
-
 const HomePage = () => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [activeDomain, setActiveDomain] = useState<HomeAvatarDomain>("root");
-  const [selectedEdgeId, setSelectedEdgeId] = useState<string | undefined>(undefined);
-  const [selectedDxKey, setSelectedDxKey] = useState<DifferentialDiagnosis["key"]>("mdd");
-  const [pinnedDxKeys, setPinnedDxKeys] = useState<DifferentialDiagnosis["key"][]>(["mdd"]);
   const [draftText, setDraftText] = useState("");
   const [liveLoading, setLiveLoading] = useState(true);
   const [liveAnalysis, setLiveAnalysis] = useState<LlmAnalysis | null>(null);
+  const [selectedOverlapKey, setSelectedOverlapKey] = useState<DifferentialDiagnosis["key"]>("mdd");
+  const [pinnedOverlapKeys, setPinnedOverlapKeys] = useState<DifferentialDiagnosis["key"][]>([]);
+  const lastOverlapInteractionRef = useRef<number>(0);
   const { scrollYProgress } = useScroll({ target: containerRef, offset: ["start start", "end start"] });
 
   const yHero = useTransform(scrollYProgress, [0, 0.2], [0, -90]);
   const opacityHero = useTransform(scrollYProgress, [0, 0.15], [1, 0]);
   const yFeature1 = useTransform(scrollYProgress, [0.08, 0.28], [30, -30]);
   const yClinician = useTransform(scrollYProgress, [0.55, 0.85], [40, -40]);
-  const translationRef = useRef<HTMLDivElement | null>(null);
-  const { scrollYProgress: translationProgress } = useScroll({
-    target: translationRef,
-    offset: ["start start", "end end"],
-  });
-  const patientOpacity = useTransform(translationProgress, [0, 0.5, 0.65], [1, 1, 0]);
-  const patientScale = useTransform(translationProgress, [0, 0.5, 0.65], [1, 0.98, 0.9]);
-  const patientX = useTransform(translationProgress, [0, 0.5], [0, -60]);
-  const clinicianOpacity = useTransform(translationProgress, [0.45, 0.7, 1], [0, 1, 1]);
-  const clinicianX = useTransform(translationProgress, [0.45, 0.7], [60, 0]);
-  const clinicianLift = useTransform(translationProgress, [0.45, 0.7], [20, 0]);
-
   useEffect(() => {
     const timer = window.setInterval(() => {
       setActiveDomain((prev) => {
@@ -478,7 +394,20 @@ const HomePage = () => {
     };
   }, []);
 
-  const selectedDifferential = DEMO_DIFFERENTIAL.find((diagnosis) => diagnosis.key === selectedDxKey) ?? DEMO_DIFFERENTIAL[0];
+  useEffect(() => {
+    const sequence: DifferentialDiagnosis["key"][] = ["mdd", "pdd"];
+    const interval = window.setInterval(() => {
+      const now = Date.now();
+      if (now - lastOverlapInteractionRef.current < 6000) return;
+      setSelectedOverlapKey((prev) => {
+        const idx = sequence.indexOf(prev);
+        const next = sequence[(idx + 1) % sequence.length] ?? "mdd";
+        return next;
+      });
+    }, 4500);
+
+    return () => window.clearInterval(interval);
+  }, []);
 
   return (
     <div
@@ -486,10 +415,10 @@ const HomePage = () => {
       className="relative w-full overflow-hidden bg-gradient-to-b from-slate-50 to-white text-slate-900 selection:bg-brand/20"
     >
       <div
-        className="pointer-events-none fixed inset-0 z-0 mix-blend-overlay opacity-50"
+        className="pointer-events-none fixed inset-0 z-50 bg-[url('/noise.png')] opacity-[0.03]"
         style={{
           backgroundImage:
-            "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.12'/%3E%3C/svg%3E\")",
+            "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.4'/%3E%3C/svg%3E\")",
         }}
       />
       <div className="relative z-10">
@@ -594,7 +523,7 @@ const HomePage = () => {
             <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-2xl bg-sky-50 text-sky-600">
               <LineChart size={24} />
             </div>
-            <h2 className="mb-6 text-4xl font-bold text-slate-900">
+            <h2 className="mb-6 text-4xl font-bold text-slate-900 tracking-tight font-display">
               Live reflections as you write.
             </h2>
             <p className="mb-6 text-lg text-slate-600">
@@ -671,329 +600,297 @@ const HomePage = () => {
             </p>
           </div>
 
-          <div className="rounded-[32px] border border-white/20 bg-white/50 p-6 shadow-2xl backdrop-blur-xl">
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-              <div className="md:col-span-2 rounded-3xl border border-slate-200/60 bg-white p-5">
-                <div className="mb-4">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+            <div className="md:col-span-2 bg-white/60 backdrop-blur-xl border border-white/20 rounded-[32px] shadow-sm p-6">
+              <div className="mb-5 flex items-center justify-between">
+                <div>
                   <h3 className="text-sm font-semibold text-slate-700">Emotional weather</h3>
-                  <p className="text-xs text-slate-500">Themes rising together over time.</p>
+                  <p className="text-xs text-slate-500">Themes rising together over the last week.</p>
                 </div>
-                <PatternStream series={DEMO_THEME_SERIES} rangeKey="last_30_days" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-sky-50 text-sky-600">
+                  <Activity size={18} />
+                </div>
               </div>
+              <PatternStream series={DEMO_THEME_SERIES} rangeKey="week" />
+            </div>
 
-              <div className="rounded-3xl border border-slate-200/60 bg-white p-5">
-                <div className="mb-4">
-                  <h3 className="text-sm font-semibold text-slate-700">Top insights</h3>
-                  <p className="text-xs text-slate-500">Most consistent signals this week.</p>
-                </div>
-                <div className="space-y-3 text-sm text-slate-600">
-                  {DEMO_METRICS.map((metric) => (
-                    <div
-                      key={metric.id}
-                      className="rounded-2xl border border-slate-200/70 bg-slate-50 px-3 py-2"
-                    >
-                      <div className="text-xs uppercase tracking-[0.2em] text-slate-400">{metric.label}</div>
-                      <div className="mt-1 font-semibold text-slate-700">{metric.value}</div>
-                      <div className={metric.status === "up" ? "text-rose-500" : "text-emerald-600"}>
-                        {metric.delta}
-                      </div>
+            <div className="bg-white/60 backdrop-blur-xl border border-white/20 rounded-[32px] shadow-sm p-6">
+              <div className="mb-5">
+                <h3 className="text-sm font-semibold text-slate-700">Top insights</h3>
+                <p className="text-xs text-slate-500">The strongest signals this week.</p>
+              </div>
+              <div className="space-y-4 text-sm text-slate-600">
+                {DEMO_METRICS.map((metric) => (
+                  <div key={metric.label} className="rounded-2xl border border-slate-200/70 bg-white/70 px-4 py-3">
+                    <div className="text-xs uppercase tracking-[0.2em] text-slate-400">{metric.label}</div>
+                    <div className="mt-1 font-semibold text-slate-700">{metric.value}</div>
+                    <div className={metric.delta.startsWith("↑") ? "text-rose-500" : "text-emerald-600"}>
+                      {metric.delta}
                     </div>
-                  ))}
-                </div>
+                  </div>
+                ))}
               </div>
+            </div>
 
-              <div className="rounded-3xl border border-slate-200/60 bg-white p-5">
+            <div className="relative overflow-hidden bg-white/60 backdrop-blur-xl border border-white/20 rounded-[32px] shadow-sm p-6 md:col-start-3 md:row-start-2">
+              <div className="absolute right-4 top-4 h-16 w-16 rounded-full bg-gradient-to-br from-rose-100 to-amber-100 opacity-80" />
+              <div className="flex items-center justify-between">
                 <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">Focus area</p>
-                <div className="mt-4 text-3xl font-semibold text-slate-900">{DEMO_METRICS[1]?.value}</div>
-                <p className="mt-1 text-sm text-rose-500">{DEMO_METRICS[1]?.delta}</p>
-                <p className="mt-4 text-xs text-slate-500">
-                  Most intense on Sunday nights and after late emails.
-                </p>
+                <Sparkles size={18} className="text-rose-400" />
               </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section ref={translationRef} className="relative h-[250vh] border-y border-slate-200 bg-white/80 px-6">
-        <div className="sticky top-0 flex h-screen items-center overflow-hidden">
-          <div className="mx-auto grid w-full max-w-7xl grid-cols-1 items-center gap-16 lg:grid-cols-2">
-            <div className="relative h-[420px]">
-              <motion.div
-                style={{ opacity: patientOpacity, scale: patientScale, x: patientX }}
-                className="absolute inset-0 z-10 flex items-center justify-center"
-              >
-                <div className="w-full rounded-3xl border border-slate-100 bg-white/90 p-1 shadow-xl backdrop-blur">
-                  <div className="flex items-center gap-2 rounded-t-3xl border-b border-indigo-100 bg-indigo-50/60 p-4 text-xs font-bold uppercase tracking-wide text-indigo-700">
-                    <FileText size={14} /> Patient view
-                  </div>
-                  <div className="p-4">
-                    <PatternCard
-                      title={DEMO_PATTERN.title}
-                      description={DEMO_PATTERN.description}
-                      trend={DEMO_PATTERN.trend}
-                      confidence={DEMO_PATTERN.confidence}
-                      tags={DEMO_PATTERN.tags}
-                      series={DEMO_PATTERN.series}
-                    />
-                    <div className="mt-4">
-                      <ConnectionsGraph
-                        nodes={MOCK_CONNECTION_NODES}
-                        edges={MOCK_CONNECTION_EDGES}
-                        loading={false}
-                        selectedEdgeId={selectedEdgeId}
-                        onEdgeSelect={(edge) => setSelectedEdgeId(edge.id)}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-
-              <motion.div
-                style={{ opacity: clinicianOpacity, x: clinicianX, y: clinicianLift }}
-                className="absolute inset-0 z-20 flex items-center justify-center"
-              >
-                <div className="w-full rounded-3xl border border-emerald-100 bg-white/95 p-1 shadow-2xl">
-                  <div className="flex items-center gap-2 rounded-t-3xl border-b border-emerald-100 bg-emerald-50/60 p-4 text-xs font-bold uppercase tracking-wide text-emerald-700">
-                    <Stethoscope size={14} /> Clinician view
-                  </div>
-                  <div className="space-y-4 p-4">
-                    <DiagnosisCard data={DEMO_DIAGNOSIS} selected={false} pinned onSelect={() => {}} />
-                    <div className="rounded-xl border border-slate-100 bg-slate-50 p-3 text-xs text-slate-500">
-                      Evidence source: {DEMO_PATTERN.tags.join(" + ")}
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            </div>
-
-            <div className="lg:pt-8">
-              <h2 className="text-4xl font-bold text-slate-900 tracking-tight font-display">
-                One story. <span className="text-brandLight">Two languages.</span>
-              </h2>
-              <p className="mt-4 text-lg text-slate-600">
-                Your words become reflective insight for you and structured evidence for your clinician.
+              <div className="mt-6 text-3xl font-semibold text-slate-900">{DEMO_METRICS[1]?.value}</div>
+              <p className="mt-1 text-sm text-rose-500">{DEMO_METRICS[1]?.delta}</p>
+              <p className="mt-4 text-xs text-slate-500">
+                Most intense on Sunday nights and after late emails.
               </p>
-              <div className="mt-8 space-y-6">
-                <motion.div style={{ opacity: patientOpacity }} className="border-l-2 border-indigo-200 pl-5">
-                  <h3 className="text-lg font-bold text-indigo-900">For you: reflection</h3>
-                  <p className="text-slate-600">
-                    Non-clinical language that focuses on patterns, triggers, and what helps.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="relative border-y border-slate-200 bg-white/80 px-6 py-32">
+        <div className="mx-auto max-w-6xl">
+          <div className="mb-12 text-center">
+            <h2 className="text-4xl font-bold text-slate-900 tracking-tight font-display">
+              One story. <span className="text-brandLight">Two languages.</span>
+            </h2>
+            <p className="mt-4 text-lg text-slate-600">
+              Your words become reflective insight for you and structured evidence for your clinician.
+            </p>
+          </div>
+
+          <div className="relative grid grid-cols-1 gap-12 lg:grid-cols-2">
+            <div className="hidden lg:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+              <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 shadow-sm backdrop-blur">
+                <ArrowRightLeft size={14} className="text-brand" />
+                Translation
+              </div>
+            </div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              className="rounded-[32px] border border-white/40 bg-white/70 p-6 shadow-xl backdrop-blur-xl"
+            >
+              <div className="mb-4 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.3em] text-indigo-500">
+                <FileText size={14} />
+                For You: Reflection
+              </div>
+              <PatternCard
+                title={DEMO_PATTERN.title}
+                description={DEMO_PATTERN.description}
+                trend={DEMO_PATTERN.trend}
+                confidence={DEMO_PATTERN.confidence}
+                tags={DEMO_PATTERN.tags}
+                series={DEMO_PATTERN.series}
+              />
+              <p className="mt-4 text-sm text-slate-500 italic">I see patterns in my sleep and anxiety...</p>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+              className="rounded-[32px] border border-slate-200 bg-white p-6 shadow-sm"
+            >
+              <div className="mb-4 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.3em] text-emerald-600">
+                <Stethoscope size={14} />
+                For Clinicians: Evidence
+              </div>
+              <DiagnosisCard data={DEMO_DIAGNOSIS} selected={false} pinned onSelect={() => {}} />
+              <h3 className="mt-4 text-xl font-semibold text-slate-900 tracking-tight font-display">
+                Reduce misdiagnosis. Validated care.
+              </h3>
+              <p className="mt-3 text-sm text-slate-500">
+                Diagnostic error often comes from missing context or confusing overlapping symptoms. By structuring
+                evidence against DSM-5 criteria, MindStorm ensures critical rule-outs aren't missed—so patients get the
+                right treatment plan without having to constantly retell their story.
+              </p>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      <section className="relative bg-slate-50 px-6 py-28 text-slate-900">
+        <div className="mx-auto max-w-6xl">
+          <div className="mx-auto max-w-3xl text-center">
+            <h2 className="text-4xl font-bold tracking-tight font-display">Untangle overlapping symptoms.</h2>
+            <p className="mt-4 text-lg text-slate-600">
+              Fatigue, insomnia, and worry appear in dozens of diagnoses. MindStorm visualizes specific criteria
+              coverage side-by-side, highlighting exactly where a diagnosis fits—and where it fails (e.g., a "Mania"
+              exclusionary gate blocking MDD).
+            </p>
+          </div>
+
+          <div className="mt-12 grid gap-8 lg:grid-cols-[1.1fr_1fr]">
+            <div className="rounded-[32px] border border-slate-200 bg-white p-6 shadow-sm">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <h3 className="text-sm font-semibold text-slate-900">Differential overview</h3>
+                  <p className="text-xs text-slate-500">Competing hypotheses at a glance.</p>
+                </div>
+                <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs text-slate-500">
+                  DSM-5 logic active
+                </span>
+              </div>
+              <div className="mt-5">
+                <DifferentialOverview
+                  diagnoses={OVERLAP_DIFFERENTIAL}
+                  selectedKey={selectedOverlapKey}
+                  pinnedKeys={pinnedOverlapKeys}
+                  onSelect={(key) => {
+                    const isBlocked = OVERLAP_DIFFERENTIAL.find((item) => item.key === key)?.card.blocked;
+                    if (isBlocked) return;
+                    lastOverlapInteractionRef.current = Date.now();
+                    setSelectedOverlapKey(key);
+                  }}
+                  onTogglePin={(key) => {
+                    setPinnedOverlapKeys((prev) =>
+                      prev.includes(key) ? prev.filter((item) => item !== key) : [...prev, key],
+                    );
+                  }}
+                  className="[&>div]:border-slate-200/70 [&>div]:bg-slate-50/70 [&>div]:shadow-sm [&_[aria-pressed=true]]:border-blue-400 [&_[aria-pressed=true]]:bg-blue-50 [&_[aria-pressed=true]]:shadow-md"
+                />
+              </div>
+            </div>
+
+            <div className="rounded-[32px] border border-slate-200 bg-white p-6 shadow-sm">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <h3 className="text-sm font-semibold text-slate-900">Criteria sufficiency</h3>
+                  <p className="mt-1 text-xs text-slate-500">
+                    Thresholds show when a diagnosis is sufficiently supported.
                   </p>
-                </motion.div>
-                <motion.div style={{ opacity: clinicianOpacity }} className="border-l-2 border-emerald-200 pl-5">
-                  <h3 className="text-lg font-bold text-emerald-900">For clinicians: evidence</h3>
-                  <p className="text-slate-600">
-                    Criteria-aligned signals with traceable evidence and clear gaps to explore.
-                  </p>
-                </motion.div>
+                </div>
+                <span
+                  className={
+                    OVERLAP_SUFFICIENCY[selectedOverlapKey].status === "Sufficient"
+                      ? "rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800"
+                      : OVERLAP_SUFFICIENCY[selectedOverlapKey].status === "Incomplete"
+                        ? "rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800"
+                        : "rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600"
+                  }
+                >
+                  {OVERLAP_SUFFICIENCY[selectedOverlapKey].status}
+                </span>
+              </div>
+
+              <div className="mt-5 space-y-3">
+                {OVERLAP_SUFFICIENCY[selectedOverlapKey].bars.map((bar) => (
+                  <CriteriaCoverageBar
+                    key={bar.label}
+                    label={bar.label}
+                    current={bar.current}
+                    lifetime={bar.lifetime}
+                    max={bar.max}
+                    threshold={bar.threshold}
+                  />
+                ))}
+              </div>
+
+              <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-xs text-slate-600">
+                {OVERLAP_SUFFICIENCY[selectedOverlapKey].note}
+              </div>
+
+              <div className="mt-5 rounded-2xl border border-slate-200 bg-white p-4">
+                <div className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">
+                  To further evaluate
+                </div>
+                <ul className="mt-3 space-y-2 text-xs text-slate-600">
+                  {OVERLAP_SUFFICIENCY[selectedOverlapKey].prompts.map((prompt) => (
+                    <li key={prompt} className="flex items-start gap-2">
+                      <AlertTriangle size={14} className="mt-0.5 text-amber-500" />
+                      <span>{prompt}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="relative bg-slate-900 px-6 py-32 text-slate-100">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.08),transparent_55%),radial-gradient(circle_at_30%_80%,rgba(99,102,241,0.12),transparent_60%)]" />
-        <div className="relative mx-auto grid max-w-7xl gap-16 lg:grid-cols-[1.1fr_1.6fr]">
+      <section className="relative bg-slate-50 px-6 py-32 text-slate-900">
+        <div className="relative mx-auto grid max-w-7xl gap-16 lg:grid-cols-[1.1fr_1fr]">
           <motion.div style={{ y: yClinician }} className="lg:sticky lg:top-28 lg:self-start">
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.3em] text-slate-300">
-              Clinician world
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs uppercase tracking-[0.3em] text-slate-500">
+              Clinician safety
             </div>
-            <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-500/15 text-emerald-300">
+            <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700">
               <Stethoscope size={26} />
             </div>
-            <h2 className="text-4xl font-bold text-white tracking-tight font-display">
-              Differential evaluation <br />
-              <span className="text-emerald-300">workspace.</span>
+            <h2 className="text-4xl font-bold text-slate-900 tracking-tight font-display">
+              Reduce misdiagnosis with <br />
+              <span className="text-emerald-600">structured evidence.</span>
             </h2>
-            <p className="mt-6 text-lg text-slate-300">
-              Patients tell stories. Clinicians need evidence. MindStorm translates lived experience into criteria-aware
-              signals without stripping away the human context.
+            <p className="mt-6 text-lg text-slate-600">
+              Diagnostic error often stems from inconsistent data gathering. MindStorm standardizes the intake
+              process, ensuring critical rule-outs (like Bipolar history or Substance use) are flagged before you
+              diagnose.
             </p>
-            <div className="mt-6 space-y-3 text-sm text-slate-400">
-              <div className="flex items-start gap-3">
-                <span className="mt-1 h-2 w-2 rounded-full bg-emerald-400" />
-                Evidence is traceable to the original text.
-              </div>
-              <div className="flex items-start gap-3">
-                <span className="mt-1 h-2 w-2 rounded-full bg-emerald-400" />
-                Criteria coverage supports—never replaces—clinical judgment.
-              </div>
-              <div className="flex items-start gap-3">
-                <span className="mt-1 h-2 w-2 rounded-full bg-emerald-400" />
-                Missing gates become clear, actionable prompts.
-              </div>
+            <div className="mt-6 space-y-4 text-sm text-slate-600">
+              {[
+                "Standardized Criteria Checks: Verify duration and impairment gates automatically.",
+                "Automatic Rule-Outs: Surface exclusionary criteria that are easily missed in brief sessions.",
+                "Traceable Evidence: Every claim links back to the patient's original words.",
+              ].map((item) => (
+                <div key={item} className="flex items-start gap-3">
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 text-emerald-500" />
+                  <span>{item}</span>
+                </div>
+              ))}
             </div>
-            <div className="mt-8 rounded-2xl border border-emerald-400/30 bg-emerald-500/10 p-4 text-sm text-emerald-100">
-              <div className="flex items-center gap-2 font-semibold">
+            <div className="mt-8 rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-600">
+              <div className="flex items-center gap-2 font-semibold text-slate-800">
                 <Shield size={14} />
-                Clinical safety
+                Diagnostic safety
               </div>
-              <p className="mt-2 text-emerald-100/80">
-                We calculate criteria coverage, not automated diagnosis. Clinicians remain the decision makers.
+              <p className="mt-2 text-slate-500">
+                We highlight exclusions and coverage gaps to prevent premature closure, not to automate diagnoses.
               </p>
             </div>
           </motion.div>
 
           <motion.div
             style={{ y: yClinician }}
-            initial={{ opacity: 0, x: 30 }}
+            initial={{ opacity: 0, x: 20 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="space-y-6"
+            className="flex items-center"
           >
-            <div className="rounded-[32px] border border-white/10 bg-white/5 p-6 backdrop-blur">
-              <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="w-full rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
+              <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-sm font-semibold text-slate-100">Differential overview</h3>
-                  <p className="text-xs text-slate-400">Ranked by criteria coverage.</p>
+                  <h3 className="text-lg font-semibold text-slate-900">Major Depressive Disorder</h3>
+                  <p className="text-xs text-slate-500">Clinical summary card</p>
                 </div>
-                <span className="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs text-slate-200">
-                  DSM-5 logic active
+                <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800">
+                  Likelihood: High
                 </span>
               </div>
-              <div className="mt-4 grid gap-6 lg:grid-cols-[240px_1fr]">
-                <div>
-                  <DifferentialOverview
-                    diagnoses={DEMO_DIFFERENTIAL}
-                    selectedKey={selectedDxKey}
-                    pinnedKeys={pinnedDxKeys}
-                    onSelect={setSelectedDxKey}
-                    onTogglePin={(key) => {
-                      setPinnedDxKeys((prev) =>
-                        prev.includes(key) ? prev.filter((item) => item !== key) : [...prev, key],
-                      );
-                    }}
-                  />
-                </div>
-                <div className="space-y-6">
-                  <Card className="p-6">
-                    <h3 className="text-sm font-semibold text-slate-700">Selected candidate</h3>
-                    <p className="mt-1 text-xs text-slate-500">Criteria coverage preview for the active diagnosis.</p>
-                    <div className="mt-4">
-                      <DiagnosisCard
-                        data={selectedDifferential.card}
-                        selected
-                        pinned={pinnedDxKeys.includes(selectedDifferential.key)}
-                        onSelect={() => {}}
-                      />
-                    </div>
-                    <div className="mt-4 grid gap-3 md:grid-cols-2">
-                      <CriteriaCoverageBar label="Mood criteria" current={3} lifetime={4} max={9} threshold={5} />
-                      <CriteriaCoverageBar label="Functional impact" current={2} lifetime={3} max={6} threshold={3} />
-                    </div>
-                  </Card>
 
-                  <Card className="p-6">
-                    <h3 className="text-sm font-semibold text-slate-700">Evidence checklist preview</h3>
-                    <p className="mt-1 text-xs text-slate-500">Signals mapped to DSM-5-informed criteria.</p>
-                    <div className="mt-4 space-y-3 text-sm text-slate-600">
-                      {[
-                        "Low mood most days (4 entries)",
-                        "Sleep disruption present (3 entries)",
-                        "Energy reduction noted (2 entries)",
-                        "Impairment in work functioning (2 entries)",
-                      ].map((item) => (
-                        <div
-                          key={item}
-                          className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-3 py-2"
-                        >
-                          <span>{item}</span>
-                          <span className="rounded-full bg-emerald-50 px-2 py-1 text-xs font-semibold text-emerald-700">
-                            Evidence linked
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </Card>
+              <div className="mt-6">
+                <div className="flex items-center justify-between text-xs text-slate-500">
+                  <div className="flex items-center gap-2">
+                    <Activity size={14} className="text-slate-500" />
+                    <span>Criteria Coverage</span>
+                  </div>
+                  <span>5/9</span>
+                </div>
+                <div className="mt-2 h-2 w-full rounded-full bg-slate-100">
+                  <div className="h-2 w-[56%] rounded-full bg-slate-900" />
                 </div>
               </div>
-            </div>
 
-            <div className="rounded-[28px] border border-white/10 bg-white/5 p-6 text-sm text-slate-300 backdrop-blur">
-              <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">
-                <FileText size={12} />
-                Traceable evidence
-              </div>
-              <p className="italic text-slate-200">
-                “I haven't been able to focus on work assignments for weeks…”
-              </p>
-              <p className="mt-2 italic text-slate-200">
-                “I keep canceling plans because I'm too tired to pretend…”
-              </p>
-            </div>
+              <div className="mt-4 text-sm text-slate-500">Status: Sufficient</div>
 
-            <div className="rounded-[32px] border border-white/10 bg-white/5 p-6 backdrop-blur">
-              <h3 className="text-sm font-semibold text-slate-100">Case overview</h3>
-              <p className="mt-1 text-xs text-slate-400">Signals summarized across recent entries.</p>
-              <div className="mt-6 space-y-6">
-                <CaseStatusHeader
-                  name="Case: Jamie R."
-                  lastEntryDate={DEMO_CASE_ENTRIES[DEMO_CASE_ENTRIES.length - 1]?.dateISO || ""}
-                  riskSignal={DEMO_RISK_SIGNAL}
-                  densitySeries={DEMO_CASE_DENSITY}
-                  newCriticalCount={1}
-                  unknownGateCount={2}
-                />
-
-                <Card className="p-6">
-                  <h3 className="text-lg font-semibold">Clinical course heatmap</h3>
-                  <p className="mt-1 text-sm text-slate-500">
-                    Daily evidence clusters with new activity highlighted.
-                  </p>
-                  <div className="mt-4">
-                    <SymptomHeatmap entries={DEMO_CASE_ENTRIES} />
-                  </div>
-                </Card>
-
-                <div className="grid gap-4 md:grid-cols-3">
-                  {DEMO_COVERAGE.map((item) => (
-                    <CriteriaCoverageBar
-                      key={item.label}
-                      label={item.label}
-                      current={item.current}
-                      lifetime={item.lifetime}
-                      max={item.max}
-                      threshold={item.threshold}
-                    />
-                  ))}
-                </div>
-
-                <Card className="p-6">
-                  <h3 className="text-lg font-semibold">Diagnostic logic graph</h3>
-                  <p className="mt-1 text-sm text-slate-500">
-                    Nodes update based on present, denied, or missing evidence.
-                  </p>
-                  <div className="mt-4">
-                    <DiagnosticLogicGraph entries={DEMO_CASE_ENTRIES} onNodeSelect={() => {}} />
-                  </div>
-                </Card>
-
-                <Card className="p-6">
-                  <h3 className="text-lg font-semibold">Specifier trajectory</h3>
-                  <p className="mt-1 text-sm text-slate-500">
-                    Active specifiers are bold; historical specifiers show date ranges.
-                  </p>
-                  <div className="mt-4">
-                    <SpecifierChips entries={DEMO_CASE_ENTRIES} />
-                  </div>
-                </Card>
-
-                <FunctionalImpactCard entries={DEMO_CASE_ENTRIES} />
-
-                <Card className="p-6">
-                  <h3 className="text-lg font-semibold">Needs clarification</h3>
-                  <p className="mt-1 text-sm text-slate-500">
-                    Prompts generated for missing or ambiguous signals.
-                  </p>
-                  <ul className="mt-4 space-y-2 text-sm text-slate-700">
-                    {DEMO_CLARIFICATION_PROMPTS.map((prompt) => (
-                      <li key={prompt}>• {prompt}</li>
-                    ))}
-                  </ul>
-                </Card>
+              <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
+                <AlertTriangle size={14} />
+                ⚠️ Rule-out: Screen for Manic History
               </div>
             </div>
           </motion.div>
