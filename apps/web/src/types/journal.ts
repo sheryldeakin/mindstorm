@@ -60,5 +60,5 @@ export interface PatternMetric {
   label: string;
   value: string;
   delta: string;
-  status: "up" | "down";
+  status: "up" | "down" | "steady";
 }

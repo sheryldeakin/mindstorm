@@ -48,7 +48,7 @@ const SettingsDataActivityPage = () => {
       setActivityLoading(true);
       setActivityError(null);
       try {
-        const response = await apiFetch("/patient/activity?limit=20");
+        const response = await apiFetch<{ activity: ActivityItem[] }>("/patient/activity?limit=20");
         if (!active) return;
         setActivity(response.activity || []);
       } catch (err) {

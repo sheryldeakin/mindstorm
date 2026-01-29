@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { apiFetch } from "../lib/apiClient";
-import type { SettingsResponse, UserSettings } from "../types/settings";
+import type { SettingsResponse, SettingsUpdatePayload, UserSettings } from "../types/settings";
 
 const defaultSettings: UserSettings = {
   notifications: {
@@ -108,7 +108,7 @@ const useSettings = () => {
     applyPreferencesToDocument(preferences);
   }, [data]);
 
-  const updateSettings = useCallback(async (patch: Partial<SettingsResponse>) => {
+  const updateSettings = useCallback(async (patch: SettingsUpdatePayload) => {
     setSaving(true);
     setError(null);
     try {

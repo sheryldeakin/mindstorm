@@ -5,7 +5,7 @@ import useSettings from "../../hooks/useSettings";
 import PageHeader from "../../components/layout/PageHeader";
 
 const SettingsNotificationsPage = () => {
-  const { data, loading, saving, error, updateSettings } = useSettings();
+  const { data, saving, error, updateSettings } = useSettings();
   const [emailDigest, setEmailDigest] = useState(true);
   const [entryReminders, setEntryReminders] = useState(true);
   const [weeklyCheckins, setWeeklyCheckins] = useState(false);

@@ -84,7 +84,7 @@ const PatternsPage = () => {
     return entriesInRange.flatMap((entry) => entry.evidenceUnits || []);
   }, [entriesInRange]);
 
-  const severityToScore = (severity?: string | null) => {
+  const severityToScore = (severity?: string | null): number | null => {
     if (!severity) return null;
     const normalized = severity.toLowerCase();
     if (normalized.includes("severe")) return 3;
@@ -517,7 +517,11 @@ const PatternsPage = () => {
               <p className="text-xs uppercase tracking-[0.4em] text-brandLight">Patterns</p>
               <h2 className="mt-2 text-2xl font-semibold">Deep dive into one pattern</h2>
             </div>
-            <Tabs options={timelineOptions} activeId={timelineScale} onValueChange={setTimelineScale} />
+            <Tabs
+              options={timelineOptions}
+              activeId={timelineScale}
+              onValueChange={(value) => setTimelineScale(value as "week" | "month")}
+            />
           </div>
           <div className="flex flex-wrap gap-3">
             {patternLoading ? (

@@ -3,6 +3,8 @@ export interface SettingsProfile {
   username: string;
   bio: string;
   avatarUrl: string;
+  gender?: string;
+  birthdate?: string;
 }
 
 export interface NotificationSettings {
@@ -62,3 +64,7 @@ export interface SettingsResponse {
   profile: SettingsProfile;
   settings: UserSettings;
 }
+
+export type SettingsUpdatePayload = Partial<UserSettings> & {
+  profile?: Partial<SettingsProfile>;
+};
