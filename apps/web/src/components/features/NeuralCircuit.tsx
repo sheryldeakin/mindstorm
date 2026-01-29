@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useGraphPathfinding, type GraphPath } from "../../hooks/useGraphPathfinding";
 
@@ -21,6 +21,8 @@ type NeuralCircuitProps = {
   activePath?: GraphPath | null;
   onNodeClick?: (id: string) => void;
   showPanel?: boolean;
+  bare?: boolean;
+  autoDemo?: boolean;
 };
 
 type LayoutPoint = { x: number; y: number };
@@ -196,6 +198,8 @@ const NeuralCircuit = ({
   activePath,
   onNodeClick,
   showPanel = true,
+  bare = false,
+  autoDemo = false,
 }: NeuralCircuitProps) => {
   const [selectedNodes, setSelectedNodes] = useState<string[]>([]);
   const [highlightedPath, setHighlightedPath] = useState<GraphPath | null>(null);
@@ -213,6 +217,9 @@ const NeuralCircuit = ({
   const layout = useLayout(nodes, effectiveSelectedNodes, cycleNodeIds, pathNodeIds);
   const highlightedKey = effectivePath ? effectivePath.join("->") : null;
   const renderPanel = showPanel && !isControlled;
+  const renderContainer = !bare;
+  const viewBoxSize = renderContainer ? 520 : 640;
+  const viewBoxHalf = viewBoxSize / 2;
 
   const results = useMemo(() => {
     if (effectiveSelectedNodes.length === 1) {
@@ -239,6 +246,110 @@ const NeuralCircuit = ({
     setHighlightedPath(null);
   };
 
+  useEffect(() => {
+    if (!autoDemo || isControlled) return () => {};
+
+    const timers: number[] = [];
+    const schedule = (delayMs: number, action: () => void) => {
+      const id = window.setTimeout(action, delayMs);
+      timers.push(id);
+      return id;
+    };
+
+    const cycleCandidates = nodes
+      .map((node) => {
+        const cycles = findCyclesForNode(node.id).filter(
+          (path) => uniqueOrdered(path.slice(0, -1)).length >= 3,
+        );
+        return { nodeId: node.id, cycles };
+      })
+      .filter((entry) => entry.cycles.length > 0);
+
+    const cycleAnchor =
+      cycleCandidates.find((entry) => entry.cycles.length >= 2) ?? cycleCandidates[0] ?? null;
+    const cycleA = cycleAnchor?.cycles[0] ?? null;
+    const cycleB = cycleAnchor?.cycles[1] ?? cycleA;
+
+    type PathPair = { start: string; end: string; paths: GraphPath[] };
+    const pathPairs: PathPair[] = [];
+    for (let i = 0; i < nodes.length; i += 1) {
+      for (let j = i + 1; j < nodes.length; j += 1) {
+        const paths = findPathsBetween(nodes[i].id, nodes[j].id).filter(
+          (path) => uniqueOrdered(path).length >= 2,
+        );
+        if (paths.length) {
+          pathPairs.push({ start: nodes[i].id, end: nodes[j].id, paths });
+        }
+      }
+    }
+
+    const primaryPair =
+      pathPairs.find((pair) => pair.paths.length >= 2) ?? pathPairs[0] ?? null;
+    const secondaryPair =
+      primaryPair?.paths.length && primaryPair.paths.length >= 2
+        ? primaryPair
+        : pathPairs.find((pair) => pair !== primaryPair) ?? primaryPair;
+
+    const steps: Array<{
+      delay: number;
+      selected: string[];
+      path: GraphPath | null;
+    }> = [];
+    let timeline = 0;
+    const advance = (ms: number) => {
+      timeline += ms;
+    };
+    const pushStep = (selected: string[], path: GraphPath | null, holdMs: number) => {
+      steps.push({ delay: timeline, selected, path });
+      advance(holdMs);
+    };
+
+    const cycleHold = 2600;
+    const pathHold = 2600;
+    const transitionHold = 1200;
+
+    if (cycleAnchor && cycleA) {
+      pushStep([cycleAnchor.nodeId], null, transitionHold);
+      pushStep([cycleAnchor.nodeId], cycleA, cycleHold);
+      if (cycleB) {
+        pushStep([cycleAnchor.nodeId], cycleB, cycleHold);
+      }
+    }
+
+    pushStep([], null, transitionHold);
+
+    if (primaryPair) {
+      pushStep([primaryPair.start, primaryPair.end], null, transitionHold);
+      pushStep([primaryPair.start, primaryPair.end], primaryPair.paths[0] ?? null, pathHold);
+
+      if (primaryPair.paths.length >= 2) {
+        pushStep([primaryPair.start, primaryPair.end], primaryPair.paths[1] ?? null, pathHold);
+      } else if (secondaryPair && secondaryPair.paths.length) {
+        pushStep([secondaryPair.start, secondaryPair.end], null, transitionHold);
+        pushStep([secondaryPair.start, secondaryPair.end], secondaryPair.paths[0] ?? null, pathHold);
+      }
+    }
+
+    pushStep([], null, transitionHold);
+
+    const runSequence = () => {
+      steps.forEach((step) => {
+        schedule(step.delay, () => {
+          setSelectedNodes(step.selected);
+          setHighlightedPath(step.path);
+        });
+      });
+      const loopDelay = steps.length ? steps[steps.length - 1].delay + 2600 : 12000;
+      schedule(loopDelay, runSequence);
+    };
+
+    runSequence();
+
+    return () => {
+      timers.forEach((id) => window.clearTimeout(id));
+    };
+  }, [autoDemo, findCyclesForNode, findPathsBetween, isControlled, nodes]);
+
   const titleCopy =
     effectiveSelectedNodes.length === 0
       ? "Network Explorer"
@@ -256,11 +367,20 @@ const NeuralCircuit = ({
   const containerClass = renderPanel
     ? "grid gap-6 rounded-[32px] border border-slate-200 bg-white/60 p-6 shadow-sm backdrop-blur lg:grid-cols-[minmax(0,1fr)_320px]"
     : "rounded-[32px] border border-slate-200 bg-white/60 p-6 shadow-sm backdrop-blur";
+  const containerlessClass = renderPanel
+    ? "grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]"
+    : "";
 
   return (
-    <section className={containerClass}>
-      <div className="relative min-h-[520px] overflow-hidden rounded-[28px] border border-slate-200 bg-[radial-gradient(circle_at_top,_#f8fafc,_#eef2ff_45%,_#e2e8f0_100%)]">
-        <svg viewBox="-260 -260 520 520" className="h-full w-full">
+    <section className={renderContainer ? containerClass : containerlessClass}>
+      <div
+        className={
+          renderContainer
+            ? "relative min-h-[520px] overflow-hidden rounded-[28px] border border-slate-200 bg-[radial-gradient(circle_at_top,_#f8fafc,_#eef2ff_45%,_#e2e8f0_100%)]"
+            : "relative min-h-[600px] overflow-visible"
+        }
+      >
+        <svg viewBox={`${-viewBoxHalf} ${-viewBoxHalf} ${viewBoxSize} ${viewBoxSize}`} className="h-full w-full">
           {/* Edges are intentionally hidden; the active dotted path is the only visible connection. */}
 
           {effectivePath && (
@@ -328,9 +448,11 @@ const NeuralCircuit = ({
           })}
         </svg>
 
-        <div className="pointer-events-none absolute left-5 top-5 rounded-full border border-white/60 bg-white/80 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.3em] text-slate-400">
-          Active Neural Circuit
-        </div>
+        {renderContainer ? (
+          <div className="pointer-events-none absolute left-5 top-5 rounded-full border border-white/60 bg-white/80 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.3em] text-slate-400">
+            Active Neural Circuit
+          </div>
+        ) : null}
       </div>
 
       {renderPanel ? (
