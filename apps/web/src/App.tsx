@@ -85,9 +85,9 @@ const App = () => {
           }
         >
           <Route path="/patient">
-            <Route index element={<Navigate to="home" replace />} />
-            <Route path="home" element={<HomeDashboardPage />} />
-            <Route path="dashboard" element={<HomeDashboardPage />} />
+            <Route index element={<Navigate to="home-snapshot" replace />} />
+            <Route path="home" element={<Navigate to="/patient/home-snapshot" replace />} />
+            <Route path="dashboard" element={<Navigate to="/patient/home-snapshot" replace />} />
             <Route path="home-snapshot" element={<HomeSnapshotHubPage />} />
             <Route path="journal" element={<JournalDashboard />} />
             <Route path="entry" element={<EntryEditorPage />} />
@@ -151,8 +151,8 @@ const App = () => {
           <Route path="settings/sharing-access" element={<SettingsSharingAccessPage />} />
           <Route path="settings/ai-insights" element={<SettingsAiInsightsPage />} />
         </Route>
-        <Route path="/home" element={<Navigate to="/patient/home" replace />} />
-        <Route path="/dashboard" element={<Navigate to="/patient/home" replace />} />
+        <Route path="/home" element={<Navigate to="/patient/home-snapshot" replace />} />
+        <Route path="/dashboard" element={<Navigate to="/patient/home-snapshot" replace />} />
         <Route path="/journal" element={<Navigate to="/patient/journal" replace />} />
         <Route path="/entry" element={<Navigate to="/patient/entry" replace />} />
         <Route path="/entry/:id" element={<Navigate to="/patient/entry/:id" replace />} />
