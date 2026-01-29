@@ -275,7 +275,12 @@ const HomeSnapshotHubPage = () => {
       </div>
 
       <div className="relative h-[45vh] w-full overflow-hidden bg-slate-50 transition-colors duration-1000">
-        <HomeAvatarScene activeDomain={activeDomain} onSelectDomain={setActiveDomain} moodIntensity={moodIntensity} />
+        <HomeAvatarScene
+          activeDomain={activeDomain}
+          onSelectDomain={setActiveDomain}
+          moodIntensity={moodIntensity}
+          enableIdleWave
+        />
         {activeDomain !== "root" && (
           <div className="pointer-events-auto absolute bottom-6 left-1/2 -translate-x-1/2">
             <button

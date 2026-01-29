@@ -19,16 +19,13 @@ const landingLinks = [
 ];
 
 const appLinks = [
-  { label: "Home", to: "/patient/home" },
-  { label: "Interactive Dashboard", to: "/patient/home-snapshot" },
+  { label: "Home", to: "/patient/home-snapshot" },
   { label: "New Entry", to: "/patient/entry" },
   { label: "Check-in", to: "/patient/check-in" },
   { label: "Journal", to: "/patient/journal" },
   { label: "Connections", to: "/patient/connections" },
   { label: "Cycles", to: "/patient/cycles" },
   { label: "Patterns", to: "/patient/patterns" },
-  { label: "Demo Lab", to: "/patient/demo-graphs-lab" },
-  { label: "Character", to: "/patient/interactive-character" },
   { label: "Prepare", to: "/patient/prepare" },
 ];
 

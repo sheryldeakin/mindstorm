@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { ContactShadows, Environment, Float, Text } from "@react-three/drei";
 import * as THREE from "three";
@@ -10,6 +10,7 @@ type HomeAvatarSceneProps = {
   activeDomain: HomeAvatarDomain;
   onSelectDomain: (domain: HomeAvatarDomain) => void;
   moodIntensity?: number;
+  enableIdleWave?: boolean;
 };
 
 const CAMERA_ZONES: Record<HomeAvatarDomain, { pos: [number, number, number]; look: [number, number, number] }> = {
@@ -78,12 +79,50 @@ const Totem = ({
   </group>
 );
 
-const HomeAvatarScene = ({ activeDomain, onSelectDomain, moodIntensity = 0.5 }: HomeAvatarSceneProps) => {
+const HomeAvatarScene = ({
+  activeDomain,
+  onSelectDomain,
+  moodIntensity = 0.5,
+  enableIdleWave = false,
+}: HomeAvatarSceneProps) => {
   const fogConfig = useMemo(() => {
     const color = moodIntensity > 0.7 ? "#e0e7ff" : "#f8fafc";
     const far = 20 - moodIntensity * 6;
     return { color, far };
   }, [moodIntensity]);
+  const [wavePulse, setWavePulse] = useState(false);
+  const waveTimeoutRef = useRef<number | null>(null);
+  const resetTimeoutRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (!enableIdleWave) {
+      if (waveTimeoutRef.current) window.clearTimeout(waveTimeoutRef.current);
+      if (resetTimeoutRef.current) window.clearTimeout(resetTimeoutRef.current);
+      setWavePulse(false);
+      return () => {};
+    }
+
+    const scheduleWave = (delayMs: number) => {
+      waveTimeoutRef.current = window.setTimeout(() => {
+        setWavePulse(true);
+        resetTimeoutRef.current = window.setTimeout(() => {
+          setWavePulse(false);
+          scheduleWave(45000);
+        }, 900);
+      }, delayMs);
+    };
+
+    setWavePulse(true);
+    resetTimeoutRef.current = window.setTimeout(() => {
+      setWavePulse(false);
+      scheduleWave(45000);
+    }, 900);
+
+    return () => {
+      if (waveTimeoutRef.current) window.clearTimeout(waveTimeoutRef.current);
+      if (resetTimeoutRef.current) window.clearTimeout(resetTimeoutRef.current);
+    };
+  }, [enableIdleWave]);
 
   return (
     <Canvas shadows camera={{ fov: 45 }}>
@@ -98,6 +137,7 @@ const HomeAvatarScene = ({ activeDomain, onSelectDomain, moodIntensity = 0.5 }: 
       <group scale={8.4} position={[0, -0.45, 0]}>
         <MindstormWalker
           isWalking={false}
+          wave={wavePulse}
           attentionYaw={activeDomain === "context" ? 0.8 : activeDomain === "impact" ? -0.8 : 0}
         />
       </group>
