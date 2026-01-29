@@ -34,11 +34,17 @@ export const apiFetch = async <T>(path: string, options: RequestInit = {}): Prom
 
   if (!response.ok) {
     let message = "Request failed.";
+    let bodyText = "";
     try {
-      const payload = await response.json();
-      message = payload.message || message;
+      bodyText = await response.text();
+      const payload = bodyText ? JSON.parse(bodyText) : null;
+      if (payload && typeof payload === "object" && "message" in payload) {
+        message = (payload as { message?: string }).message || message;
+      } else if (bodyText) {
+        message = bodyText;
+      }
     } catch {
-      message = await response.text();
+      if (bodyText) message = bodyText;
     }
     throw new Error(message);
   }
