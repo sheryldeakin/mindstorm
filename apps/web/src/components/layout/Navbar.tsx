@@ -20,6 +20,7 @@ const landingLinks = [
 
 const appLinks = [
   { label: "Home", to: "/patient/home" },
+  { label: "Interactive Dashboard", to: "/patient/home-snapshot" },
   { label: "New Entry", to: "/patient/entry" },
   { label: "Check-in", to: "/patient/check-in" },
   { label: "Journal", to: "/patient/journal" },

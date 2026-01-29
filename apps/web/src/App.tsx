@@ -23,6 +23,7 @@ import SettingsPrivacyPage from "./pages/settings/SettingsPrivacyPage";
 import SettingsProfilePage from "./pages/settings/SettingsProfilePage";
 import SettingsSharingAccessPage from "./pages/settings/SettingsSharingAccessPage";
 import HomeDashboardPage from "./pages/HomeDashboardPage";
+import HomeSnapshotHubPage from "./pages/HomeSnapshotHubPage";
 import HomePage from "./pages/HomePage";
 import JournalDashboard from "./pages/JournalDashboard";
 import PatternsPage from "./pages/PatternsPage";
@@ -87,6 +88,7 @@ const App = () => {
             <Route index element={<Navigate to="home" replace />} />
             <Route path="home" element={<HomeDashboardPage />} />
             <Route path="dashboard" element={<HomeDashboardPage />} />
+            <Route path="home-snapshot" element={<HomeSnapshotHubPage />} />
             <Route path="journal" element={<JournalDashboard />} />
             <Route path="entry" element={<EntryEditorPage />} />
             <Route path="entry/:id" element={<EntryDetailPage />} />

@@ -14,6 +14,7 @@ import {
 
 const navItems = [
   { label: "Dashboard", to: "/patient/home", icon: CalendarDays },
+  { label: "Interactive Dashboard", to: "/patient/home-snapshot", icon: LayoutGrid },
   { label: "New Entry", to: "/patient/entry", icon: Sparkles },
   { label: "Check-in", to: "/patient/check-in", icon: SlidersHorizontal },
   { label: "Journal Library", to: "/patient/journal", icon: BookOpen },
