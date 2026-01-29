@@ -200,8 +200,10 @@ const ClinicianDifferentialEvaluationContent = ({
   }, [entries, autoLogic, nodeOverrides, labelOverrides, sessionDelta.lastAccessISO]);
 
   useEffect(() => {
+    if (!diagnoses.length) return;
+    if (diagnoses.some((item) => item.key === selectedKey)) return;
     setSelectedKey(diagnosesSorted(diagnoses)[0]?.key || "mdd");
-  }, [diagnoses]);
+  }, [diagnoses, selectedKey]);
 
   const persistPins = (nextPins: DifferentialDiagnosis["key"][]) => {
     if (!caseId) return;
