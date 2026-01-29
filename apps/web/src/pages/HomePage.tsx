@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion, useScroll, useTransform } from "framer-motion";
 import {
@@ -386,6 +386,7 @@ const DEMO_CLARIFICATION_PROMPTS = [
 ];
 
 const HomePage = () => {
+  const containerRef = useRef<HTMLDivElement | null>(null);
   const [activeDomain, setActiveDomain] = useState<HomeAvatarDomain>("root");
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | undefined>(undefined);
   const [selectedDxKey, setSelectedDxKey] = useState<DifferentialDiagnosis["key"]>("mdd");
@@ -393,10 +394,23 @@ const HomePage = () => {
   const [draftText, setDraftText] = useState("");
   const [liveLoading, setLiveLoading] = useState(true);
   const [liveAnalysis, setLiveAnalysis] = useState<LlmAnalysis | null>(null);
-  const { scrollYProgress } = useScroll();
+  const { scrollYProgress } = useScroll({ target: containerRef, offset: ["start start", "end start"] });
 
-  const yHero = useTransform(scrollYProgress, [0, 0.2], [0, -50]);
-  const opacityHero = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
+  const yHero = useTransform(scrollYProgress, [0, 0.2], [0, -90]);
+  const opacityHero = useTransform(scrollYProgress, [0, 0.15], [1, 0]);
+  const yFeature1 = useTransform(scrollYProgress, [0.08, 0.28], [30, -30]);
+  const yClinician = useTransform(scrollYProgress, [0.55, 0.85], [40, -40]);
+  const translationRef = useRef<HTMLDivElement | null>(null);
+  const { scrollYProgress: translationProgress } = useScroll({
+    target: translationRef,
+    offset: ["start start", "end end"],
+  });
+  const patientOpacity = useTransform(translationProgress, [0, 0.5, 0.65], [1, 1, 0]);
+  const patientScale = useTransform(translationProgress, [0, 0.5, 0.65], [1, 0.98, 0.9]);
+  const patientX = useTransform(translationProgress, [0, 0.5], [0, -60]);
+  const clinicianOpacity = useTransform(translationProgress, [0.45, 0.7, 1], [0, 1, 1]);
+  const clinicianX = useTransform(translationProgress, [0.45, 0.7], [60, 0]);
+  const clinicianLift = useTransform(translationProgress, [0.45, 0.7], [20, 0]);
 
   useEffect(() => {
     const timer = window.setInterval(() => {
@@ -467,7 +481,18 @@ const HomePage = () => {
   const selectedDifferential = DEMO_DIFFERENTIAL.find((diagnosis) => diagnosis.key === selectedDxKey) ?? DEMO_DIFFERENTIAL[0];
 
   return (
-    <div className="relative w-full overflow-hidden bg-[#f8fafc] text-slate-900">
+    <div
+      ref={containerRef}
+      className="relative w-full overflow-hidden bg-gradient-to-b from-slate-50 to-white text-slate-900 selection:bg-brand/20"
+    >
+      <div
+        className="pointer-events-none fixed inset-0 z-0 mix-blend-overlay opacity-50"
+        style={{
+          backgroundImage:
+            "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.12'/%3E%3C/svg%3E\")",
+        }}
+      />
+      <div className="relative z-10">
       <section className="relative flex h-screen w-full items-center justify-center">
         <div className="absolute inset-0 z-0">
           <HomeAvatarScene
@@ -492,7 +517,7 @@ const HomePage = () => {
             <span>AI-powered dual sense-making</span>
           </div>
 
-          <h1 className="mb-6 text-5xl font-bold tracking-tight text-slate-900 md:text-7xl">
+          <h1 className="mb-6 text-5xl font-bold tracking-tight font-display text-slate-900 md:text-7xl">
             Your mind is not <br />
             <span className="text-brandLight">a black box.</span>
           </h1>
@@ -539,7 +564,7 @@ const HomePage = () => {
             <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600">
               <Activity size={24} />
             </div>
-            <h2 className="mb-6 text-4xl font-bold text-slate-900">
+            <h2 className="mb-6 text-4xl font-bold text-slate-900 tracking-tight font-display">
               Just write. <br />
               <span className="text-slate-400">We find the signal.</span>
             </h2>
@@ -565,7 +590,7 @@ const HomePage = () => {
 
       <section className="relative px-6 pb-32">
         <div className="mx-auto grid max-w-6xl grid-cols-1 items-start gap-12 lg:grid-cols-2">
-          <div>
+          <motion.div style={{ y: yFeature1 }}>
             <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-2xl bg-sky-50 text-sky-600">
               <LineChart size={24} />
             </div>
@@ -588,7 +613,7 @@ const HomePage = () => {
                 <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1">Body tension</span>
               </div>
             </Card>
-          </div>
+          </motion.div>
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -612,7 +637,7 @@ const HomePage = () => {
             <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-50 text-orange-600">
               <Brain size={24} />
             </div>
-            <h2 className="mb-6 text-4xl font-bold text-slate-900">Explore your neural circuit.</h2>
+            <h2 className="mb-6 text-4xl font-bold text-slate-900 tracking-tight font-display">Explore your neural circuit.</h2>
             <p className="mb-6 text-lg text-slate-600">
               Tap a node to surface its feedback loops, or pick two to map the shortest path between them. MindStorm
               turns messy feelings into an interactive circuit you can explore.
@@ -640,142 +665,270 @@ const HomePage = () => {
       <section className="relative px-6 py-32">
         <div className="mx-auto max-w-6xl">
           <div className="mb-12 text-center">
-            <h2 className="text-4xl font-bold text-slate-900">Your weekly snapshot.</h2>
+          <h2 className="text-4xl font-bold text-slate-900 tracking-tight font-display">Your weekly snapshot.</h2>
             <p className="mt-4 text-lg text-slate-600">
               A calm summary of trends, emotional weather, and the life areas most affected.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 gap-10 lg:grid-cols-[1.1fr_0.9fr]">
-            <div className="space-y-8">
-              <PatternHighlights metrics={DEMO_METRICS} />
-              <PatternStream series={DEMO_THEME_SERIES} rangeKey="last_30_days" />
-            </div>
+          <div className="rounded-[32px] border border-white/20 bg-white/50 p-6 shadow-2xl backdrop-blur-xl">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+              <div className="md:col-span-2 rounded-3xl border border-slate-200/60 bg-white p-5">
+                <div className="mb-4">
+                  <h3 className="text-sm font-semibold text-slate-700">Emotional weather</h3>
+                  <p className="text-xs text-slate-500">Themes rising together over time.</p>
+                </div>
+                <PatternStream series={DEMO_THEME_SERIES} rangeKey="last_30_days" />
+              </div>
 
-            <div className="space-y-8">
-              <Card className="p-6">
-                <h3 className="text-sm font-semibold text-slate-700">Recent emotions</h3>
-                <p className="mt-1 text-xs text-slate-500">Most repeated feelings this week.</p>
-                <RecentEmotionsPulse entries={DEMO_ENTRIES} />
-              </Card>
-              <LifeBalanceCompass entries={DEMO_ENTRIES} />
-              <InfluencesPanel influences={DEMO_INFLUENCES} />
-            </div>
-          </div>
+              <div className="rounded-3xl border border-slate-200/60 bg-white p-5">
+                <div className="mb-4">
+                  <h3 className="text-sm font-semibold text-slate-700">Top insights</h3>
+                  <p className="text-xs text-slate-500">Most consistent signals this week.</p>
+                </div>
+                <div className="space-y-3 text-sm text-slate-600">
+                  {DEMO_METRICS.map((metric) => (
+                    <div
+                      key={metric.id}
+                      className="rounded-2xl border border-slate-200/70 bg-slate-50 px-3 py-2"
+                    >
+                      <div className="text-xs uppercase tracking-[0.2em] text-slate-400">{metric.label}</div>
+                      <div className="mt-1 font-semibold text-slate-700">{metric.value}</div>
+                      <div className={metric.status === "up" ? "text-rose-500" : "text-emerald-600"}>
+                        {metric.delta}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
 
-          <div className="mt-10 grid grid-cols-1 gap-8 md:grid-cols-2">
-            <CopingStrategiesPanel strategies={DEMO_STRATEGIES} />
-            <ExploreQuestionsPanel questions={DEMO_QUESTIONS} />
+              <div className="rounded-3xl border border-slate-200/60 bg-white p-5">
+                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">Focus area</p>
+                <div className="mt-4 text-3xl font-semibold text-slate-900">{DEMO_METRICS[1]?.value}</div>
+                <p className="mt-1 text-sm text-rose-500">{DEMO_METRICS[1]?.delta}</p>
+                <p className="mt-4 text-xs text-slate-500">
+                  Most intense on Sunday nights and after late emails.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      <section className="relative border-y border-slate-200 bg-white/80 px-6 py-32">
-        <div className="mx-auto max-w-7xl">
-          <div className="mx-auto mb-20 max-w-3xl text-center">
-            <h2 className="mb-6 text-4xl font-bold text-slate-900">
-              One story. <span className="text-brandLight">Two views.</span>
-            </h2>
-            <p className="text-lg text-slate-600">
-              Your data speaks two languages: one for your personal growth, and one for your clinician's diagnostic
-              reasoning.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 gap-12 md:grid-cols-2">
-            <motion.div
-              initial={{ opacity: 0, x: -30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              className="space-y-6"
-            >
-              <div className="flex items-center gap-3">
-                <div className="rounded-lg bg-indigo-100 p-2 text-indigo-600">
-                  <FileText size={20} />
-                </div>
-                <h3 className="text-2xl font-bold text-slate-800">For you</h3>
-              </div>
-              <p className="min-h-[3rem] text-slate-600">
-                Reflective insights focused on your lived experience, patterns, and what helps.
-              </p>
-
-              <div className="relative group">
-                <div className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-indigo-500 to-purple-500 opacity-25 blur transition duration-1000 group-hover:opacity-40" />
-                <div className="relative rounded-2xl bg-white p-1">
-                  <PatternCard
-                    title={DEMO_PATTERN.title}
-                    description={DEMO_PATTERN.description}
-                    trend={DEMO_PATTERN.trend}
-                    confidence={DEMO_PATTERN.confidence}
-                    tags={DEMO_PATTERN.tags}
-                    series={DEMO_PATTERN.series}
-                  />
-                </div>
-              </div>
-
-              <ConnectionsGraph
-                nodes={MOCK_CONNECTION_NODES}
-                edges={MOCK_CONNECTION_EDGES}
-                loading={false}
-                selectedEdgeId={selectedEdgeId}
-                onEdgeSelect={(edge) => setSelectedEdgeId(edge.id)}
-              />
-
-              <ul className="space-y-3 pt-4 text-sm text-slate-500">
-                <li className="flex gap-2">
-                  <div className="mt-1.5 h-2 w-2 rounded-full bg-indigo-400" />
-                  Non-clinical language ("Low mood" vs "Depression")
-                </li>
-                <li className="flex gap-2">
-                  <div className="mt-1.5 h-2 w-2 rounded-full bg-indigo-400" />
-                  Focus on triggers and coping
-                </li>
-              </ul>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, x: 30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              className="space-y-6"
-            >
-              <div className="flex items-center gap-3">
-                <div className="rounded-lg bg-emerald-100 p-2 text-emerald-600">
-                  <Stethoscope size={20} />
-                </div>
-                <h3 className="text-2xl font-bold text-slate-800">For your clinician</h3>
-              </div>
-              <p className="min-h-[3rem] text-slate-600">
-                Structured evidence aligned with DSM-5 criteria to support faster, more accurate care.
-              </p>
-
-              <div className="relative group">
-                <div className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 opacity-25 blur transition duration-1000 group-hover:opacity-40" />
-                <div className="relative rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
-                  <h4 className="mb-4 text-xs font-bold uppercase tracking-wider text-slate-400">
-                    Differential Signal Analysis
-                  </h4>
-                  <DiagnosisCard data={DEMO_DIAGNOSIS} selected={false} pinned onSelect={() => {}} />
-
-                  <div className="mt-4 space-y-3 border-t border-slate-100 pt-4">
-                    <CriteriaCoverageBar label="MDD criteria coverage" current={5} lifetime={5} max={9} threshold={5} />
-                    <CriteriaCoverageBar label="PTSD criteria coverage" current={2} lifetime={3} max={8} threshold={6} />
+      <section ref={translationRef} className="relative h-[250vh] border-y border-slate-200 bg-white/80 px-6">
+        <div className="sticky top-0 flex h-screen items-center overflow-hidden">
+          <div className="mx-auto grid w-full max-w-7xl grid-cols-1 items-center gap-16 lg:grid-cols-2">
+            <div className="relative h-[420px]">
+              <motion.div
+                style={{ opacity: patientOpacity, scale: patientScale, x: patientX }}
+                className="absolute inset-0 z-10 flex items-center justify-center"
+              >
+                <div className="w-full rounded-3xl border border-slate-100 bg-white/90 p-1 shadow-xl backdrop-blur">
+                  <div className="flex items-center gap-2 rounded-t-3xl border-b border-indigo-100 bg-indigo-50/60 p-4 text-xs font-bold uppercase tracking-wide text-indigo-700">
+                    <FileText size={14} /> Patient view
+                  </div>
+                  <div className="p-4">
+                    <PatternCard
+                      title={DEMO_PATTERN.title}
+                      description={DEMO_PATTERN.description}
+                      trend={DEMO_PATTERN.trend}
+                      confidence={DEMO_PATTERN.confidence}
+                      tags={DEMO_PATTERN.tags}
+                      series={DEMO_PATTERN.series}
+                    />
+                    <div className="mt-4">
+                      <ConnectionsGraph
+                        nodes={MOCK_CONNECTION_NODES}
+                        edges={MOCK_CONNECTION_EDGES}
+                        loading={false}
+                        selectedEdgeId={selectedEdgeId}
+                        onEdgeSelect={(edge) => setSelectedEdgeId(edge.id)}
+                      />
+                    </div>
                   </div>
                 </div>
+              </motion.div>
+
+              <motion.div
+                style={{ opacity: clinicianOpacity, x: clinicianX, y: clinicianLift }}
+                className="absolute inset-0 z-20 flex items-center justify-center"
+              >
+                <div className="w-full rounded-3xl border border-emerald-100 bg-white/95 p-1 shadow-2xl">
+                  <div className="flex items-center gap-2 rounded-t-3xl border-b border-emerald-100 bg-emerald-50/60 p-4 text-xs font-bold uppercase tracking-wide text-emerald-700">
+                    <Stethoscope size={14} /> Clinician view
+                  </div>
+                  <div className="space-y-4 p-4">
+                    <DiagnosisCard data={DEMO_DIAGNOSIS} selected={false} pinned onSelect={() => {}} />
+                    <div className="rounded-xl border border-slate-100 bg-slate-50 p-3 text-xs text-slate-500">
+                      Evidence source: {DEMO_PATTERN.tags.join(" + ")}
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+
+            <div className="lg:pt-8">
+              <h2 className="text-4xl font-bold text-slate-900 tracking-tight font-display">
+                One story. <span className="text-brandLight">Two languages.</span>
+              </h2>
+              <p className="mt-4 text-lg text-slate-600">
+                Your words become reflective insight for you and structured evidence for your clinician.
+              </p>
+              <div className="mt-8 space-y-6">
+                <motion.div style={{ opacity: patientOpacity }} className="border-l-2 border-indigo-200 pl-5">
+                  <h3 className="text-lg font-bold text-indigo-900">For you: reflection</h3>
+                  <p className="text-slate-600">
+                    Non-clinical language that focuses on patterns, triggers, and what helps.
+                  </p>
+                </motion.div>
+                <motion.div style={{ opacity: clinicianOpacity }} className="border-l-2 border-emerald-200 pl-5">
+                  <h3 className="text-lg font-bold text-emerald-900">For clinicians: evidence</h3>
+                  <p className="text-slate-600">
+                    Criteria-aligned signals with traceable evidence and clear gaps to explore.
+                  </p>
+                </motion.div>
               </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
-              <ul className="space-y-3 pt-4 text-sm text-slate-500">
-                <li className="flex gap-2">
-                  <div className="mt-1.5 h-2 w-2 rounded-full bg-emerald-400" />
-                  Criteria coverage, not automated diagnosis
-                </li>
-                <li className="flex gap-2">
-                  <div className="mt-1.5 h-2 w-2 rounded-full bg-emerald-400" />
-                  Traceable evidence to original text
-                </li>
-              </ul>
+      <section className="relative bg-slate-900 px-6 py-32 text-slate-100">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.08),transparent_55%),radial-gradient(circle_at_30%_80%,rgba(99,102,241,0.12),transparent_60%)]" />
+        <div className="relative mx-auto grid max-w-7xl gap-16 lg:grid-cols-[1.1fr_1.6fr]">
+          <motion.div style={{ y: yClinician }} className="lg:sticky lg:top-28 lg:self-start">
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.3em] text-slate-300">
+              Clinician world
+            </div>
+            <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-500/15 text-emerald-300">
+              <Stethoscope size={26} />
+            </div>
+            <h2 className="text-4xl font-bold text-white tracking-tight font-display">
+              Differential evaluation <br />
+              <span className="text-emerald-300">workspace.</span>
+            </h2>
+            <p className="mt-6 text-lg text-slate-300">
+              Patients tell stories. Clinicians need evidence. MindStorm translates lived experience into criteria-aware
+              signals without stripping away the human context.
+            </p>
+            <div className="mt-6 space-y-3 text-sm text-slate-400">
+              <div className="flex items-start gap-3">
+                <span className="mt-1 h-2 w-2 rounded-full bg-emerald-400" />
+                Evidence is traceable to the original text.
+              </div>
+              <div className="flex items-start gap-3">
+                <span className="mt-1 h-2 w-2 rounded-full bg-emerald-400" />
+                Criteria coverage supports—never replaces—clinical judgment.
+              </div>
+              <div className="flex items-start gap-3">
+                <span className="mt-1 h-2 w-2 rounded-full bg-emerald-400" />
+                Missing gates become clear, actionable prompts.
+              </div>
+            </div>
+            <div className="mt-8 rounded-2xl border border-emerald-400/30 bg-emerald-500/10 p-4 text-sm text-emerald-100">
+              <div className="flex items-center gap-2 font-semibold">
+                <Shield size={14} />
+                Clinical safety
+              </div>
+              <p className="mt-2 text-emerald-100/80">
+                We calculate criteria coverage, not automated diagnosis. Clinicians remain the decision makers.
+              </p>
+            </div>
+          </motion.div>
 
-              <div className="space-y-6 pt-6">
+          <motion.div
+            style={{ y: yClinician }}
+            initial={{ opacity: 0, x: 30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="space-y-6"
+          >
+            <div className="rounded-[32px] border border-white/10 bg-white/5 p-6 backdrop-blur">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <h3 className="text-sm font-semibold text-slate-100">Differential overview</h3>
+                  <p className="text-xs text-slate-400">Ranked by criteria coverage.</p>
+                </div>
+                <span className="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs text-slate-200">
+                  DSM-5 logic active
+                </span>
+              </div>
+              <div className="mt-4 grid gap-6 lg:grid-cols-[240px_1fr]">
+                <div>
+                  <DifferentialOverview
+                    diagnoses={DEMO_DIFFERENTIAL}
+                    selectedKey={selectedDxKey}
+                    pinnedKeys={pinnedDxKeys}
+                    onSelect={setSelectedDxKey}
+                    onTogglePin={(key) => {
+                      setPinnedDxKeys((prev) =>
+                        prev.includes(key) ? prev.filter((item) => item !== key) : [...prev, key],
+                      );
+                    }}
+                  />
+                </div>
+                <div className="space-y-6">
+                  <Card className="p-6">
+                    <h3 className="text-sm font-semibold text-slate-700">Selected candidate</h3>
+                    <p className="mt-1 text-xs text-slate-500">Criteria coverage preview for the active diagnosis.</p>
+                    <div className="mt-4">
+                      <DiagnosisCard
+                        data={selectedDifferential.card}
+                        selected
+                        pinned={pinnedDxKeys.includes(selectedDifferential.key)}
+                        onSelect={() => {}}
+                      />
+                    </div>
+                    <div className="mt-4 grid gap-3 md:grid-cols-2">
+                      <CriteriaCoverageBar label="Mood criteria" current={3} lifetime={4} max={9} threshold={5} />
+                      <CriteriaCoverageBar label="Functional impact" current={2} lifetime={3} max={6} threshold={3} />
+                    </div>
+                  </Card>
+
+                  <Card className="p-6">
+                    <h3 className="text-sm font-semibold text-slate-700">Evidence checklist preview</h3>
+                    <p className="mt-1 text-xs text-slate-500">Signals mapped to DSM-5-informed criteria.</p>
+                    <div className="mt-4 space-y-3 text-sm text-slate-600">
+                      {[
+                        "Low mood most days (4 entries)",
+                        "Sleep disruption present (3 entries)",
+                        "Energy reduction noted (2 entries)",
+                        "Impairment in work functioning (2 entries)",
+                      ].map((item) => (
+                        <div
+                          key={item}
+                          className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-3 py-2"
+                        >
+                          <span>{item}</span>
+                          <span className="rounded-full bg-emerald-50 px-2 py-1 text-xs font-semibold text-emerald-700">
+                            Evidence linked
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </Card>
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-[28px] border border-white/10 bg-white/5 p-6 text-sm text-slate-300 backdrop-blur">
+              <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">
+                <FileText size={12} />
+                Traceable evidence
+              </div>
+              <p className="italic text-slate-200">
+                “I haven't been able to focus on work assignments for weeks…”
+              </p>
+              <p className="mt-2 italic text-slate-200">
+                “I keep canceling plans because I'm too tired to pretend…”
+              </p>
+            </div>
+
+            <div className="rounded-[32px] border border-white/10 bg-white/5 p-6 backdrop-blur">
+              <h3 className="text-sm font-semibold text-slate-100">Case overview</h3>
+              <p className="mt-1 text-xs text-slate-400">Signals summarized across recent entries.</p>
+              <div className="mt-6 space-y-6">
                 <CaseStatusHeader
                   name="Case: Jamie R."
                   lastEntryDate={DEMO_CASE_ENTRIES[DEMO_CASE_ENTRIES.length - 1]?.dateISO || ""}
@@ -814,10 +967,7 @@ const HomePage = () => {
                     Nodes update based on present, denied, or missing evidence.
                   </p>
                   <div className="mt-4">
-                    <DiagnosticLogicGraph
-                      entries={DEMO_CASE_ENTRIES}
-                      onNodeSelect={() => {}}
-                    />
+                    <DiagnosticLogicGraph entries={DEMO_CASE_ENTRIES} onNodeSelect={() => {}} />
                   </div>
                 </Card>
 
@@ -845,78 +995,8 @@ const HomePage = () => {
                   </ul>
                 </Card>
               </div>
-            </motion.div>
-          </div>
-        </div>
-      </section>
-
-      <section className="relative bg-slate-50/80 px-6 py-32">
-        <div className="mx-auto max-w-6xl">
-          <div className="mb-12 text-center">
-            <h2 className="text-4xl font-bold text-slate-900">Differential evaluation workspace.</h2>
-            <p className="mt-4 text-lg text-slate-600">
-              Clinicians see ranked candidates, criteria coverage, and the evidence behind each signal.
-            </p>
-          </div>
-
-          <div className="grid gap-8 lg:grid-cols-[280px_1fr]">
-            <div className="space-y-4">
-              <div>
-                <h3 className="text-sm font-semibold text-slate-700">Differential overview</h3>
-                <p className="text-xs text-slate-500">Ranked by criteria coverage.</p>
-              </div>
-              <DifferentialOverview
-                diagnoses={DEMO_DIFFERENTIAL}
-                selectedKey={selectedDxKey}
-                pinnedKeys={pinnedDxKeys}
-                onSelect={setSelectedDxKey}
-                onTogglePin={(key) => {
-                  setPinnedDxKeys((prev) =>
-                    prev.includes(key) ? prev.filter((item) => item !== key) : [...prev, key],
-                  );
-                }}
-              />
             </div>
-
-            <div className="space-y-6">
-              <Card className="p-6">
-                <h3 className="text-sm font-semibold text-slate-700">Selected candidate</h3>
-                <p className="mt-1 text-xs text-slate-500">Criteria coverage preview for the active diagnosis.</p>
-                <div className="mt-4">
-                  <DiagnosisCard
-                    data={selectedDifferential.card}
-                    selected
-                    pinned={pinnedDxKeys.includes(selectedDifferential.key)}
-                    onSelect={() => {}}
-                  />
-                </div>
-                <div className="mt-4 grid gap-3 md:grid-cols-2">
-                  <CriteriaCoverageBar label="Mood criteria" current={3} lifetime={4} max={9} threshold={5} />
-                  <CriteriaCoverageBar label="Functional impact" current={2} lifetime={3} max={6} threshold={3} />
-                </div>
-              </Card>
-
-              <Card className="p-6">
-                <h3 className="text-sm font-semibold text-slate-700">Evidence checklist preview</h3>
-                <p className="mt-1 text-xs text-slate-500">Signals mapped to DSM-5-informed criteria.</p>
-                <div className="mt-4 space-y-3 text-sm text-slate-600">
-                  {[
-                    "Low mood most days (4 entries)",
-                    "Sleep disruption present (3 entries)",
-                    "Energy reduction noted (2 entries)",
-                    "Impairment in work functioning (2 entries)",
-                  ].map((item) => (
-                    <div key={item} className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-3 py-2">
-                      <span>{item}</span>
-                      <span className="rounded-full bg-emerald-50 px-2 py-1 text-xs font-semibold text-emerald-700">
-                        Evidence linked
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </Card>
-            </div>
-          </div>
+          </motion.div>
         </div>
       </section>
 
@@ -926,7 +1006,7 @@ const HomePage = () => {
             <Share2 size={32} />
           </div>
 
-          <h2 className="mb-8 text-4xl font-bold text-slate-900 md:text-5xl">
+          <h2 className="mb-8 text-4xl font-bold text-slate-900 md:text-5xl tracking-tight font-display">
             Bridging the gap to <br />
             <span className="text-emerald-600">clinical care.</span>
           </h2>
@@ -959,7 +1039,7 @@ const HomePage = () => {
 
       <section className="px-6 py-24 text-center">
         <div className="mx-auto max-w-3xl">
-          <h2 className="mb-6 text-3xl font-bold text-slate-900">Start making sense of the storm.</h2>
+          <h2 className="mb-6 text-3xl font-bold text-slate-900 tracking-tight font-display">Start making sense of the storm.</h2>
           <p className="mb-10 text-slate-600">Private, secure, and designed for dual sense-making.</p>
           <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Link to="/login">
@@ -974,6 +1054,7 @@ const HomePage = () => {
           </div>
         </div>
       </section>
+      </div>
     </div>
   );
 };
