@@ -1,18 +1,30 @@
 import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { Activity, Brain, Briefcase, Heart } from "lucide-react";
+import PageHeader from "../components/layout/PageHeader";
+import Tabs from "../components/ui/Tabs";
+import { Card } from "../components/ui/Card";
+import HomeAvatarScene, { type HomeAvatarDomain } from "../components/avatar/HomeAvatarScene";
 import PatternCardGrid from "../components/features/PatternCardGrid";
 import RecentEmotionsPulse from "../components/features/RecentEmotionsPulse";
+import PatternHighlights from "../components/features/PatternHighlights";
 import InfluencesPanel from "../components/features/InfluencesPanel";
 import LifeAreasImpactPanel from "../components/features/LifeAreasImpactPanel";
-import CopingStrategiesPanel from "../components/features/CopingStrategiesPanel";
-import { Card } from "../components/ui/Card";
+import WhatHelpedSummary from "../components/features/WhatHelpedSummary";
+import TodayPromptCard from "../components/features/TodayPromptCard";
 import { apiFetch } from "../lib/apiClient";
-import { useAuth } from "../contexts/AuthContext";
 import useEntries from "../hooks/useEntries";
+import { useAuth } from "../contexts/AuthContext";
 import { usePatientTranslation } from "../hooks/usePatientTranslation";
 import type { HomePatternCard, TimeRangeSummary } from "../types/home";
 import type { PatternMetric } from "../types/journal";
-import HomeAvatarScene, { type HomeAvatarDomain } from "../components/avatar/HomeAvatarScene";
+import type { LifeAreaImpact, PatternInfluence } from "../types/patterns";
+
+const rangeOptions = [
+  { id: "week", label: "Week" },
+  { id: "month", label: "Month" },
+  { id: "year", label: "Year" },
+];
 
 const buildSnapshotSynthesis = (patterns: HomePatternCard[], influences: string[]) => {
   const phrases = new Set<string>();
@@ -62,9 +74,10 @@ const buildSnapshotSynthesis = (patterns: HomePatternCard[], influences: string[
 
 const HomeSnapshotHubPage = () => {
   const { status } = useAuth();
+  const [range, setRange] = useState("week");
+  const [activeDomain, setActiveDomain] = useState<HomeAvatarDomain>("root");
   const { data: entries } = useEntries({ limit: 200 });
   const { getPatientLabel } = usePatientTranslation();
-  const [activeDomain, setActiveDomain] = useState<HomeAvatarDomain>("root");
   const [snapshot, setSnapshot] = useState<{
     patterns: HomePatternCard[];
     timeRangeSummary: TimeRangeSummary;
@@ -95,19 +108,10 @@ const HomeSnapshotHubPage = () => {
       reason?: string | null;
     };
   } | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  const rangeKey = "last_7_days";
-  const rangeCoverage = snapshot?.rangeCoverage;
-  const effectiveRangeKey = rangeCoverage?.effectiveRangeKey || rangeKey;
-  const rangeDays =
-    effectiveRangeKey === "last_7_days"
-      ? 7
-      : effectiveRangeKey === "last_30_days"
-        ? 30
-        : effectiveRangeKey === "last_365_days"
-          ? 365
-          : null;
+  const rangeKey =
+    range === "week" ? "last_7_days" : range === "month" ? "last_30_days" : "last_365_days";
 
   useEffect(() => {
     if (status !== "authed") {
@@ -134,9 +138,11 @@ const HomeSnapshotHubPage = () => {
       ? buildSnapshotSynthesis(patterns, snapshotInfluences)
       : "Add a few journal entries to unlock your snapshot patterns.";
   const narrativeHighlights = narrative.highlights || [];
+  const snapshotQuestions = narrative.questionsToExplore || snapshot?.openQuestions || [];
+
+  const rangeDays = range === "week" ? 7 : range === "month" ? 30 : 365;
 
   const entriesInRange = useMemo(() => {
-    if (!rangeDays) return entries;
     const today = new Date();
     const start = new Date(today.getFullYear(), today.getMonth(), today.getDate() - (rangeDays - 1));
     return entries.filter((entry) => {
@@ -171,7 +177,7 @@ const HomeSnapshotHubPage = () => {
     const total = Array.from(counts.values()).reduce((sum, value) => sum + value, 0);
     return Array.from(counts.entries())
       .sort((a, b) => b[1] - a[1])
-      .slice(0, 4)
+      .slice(0, 5)
       .map(([label, count]) => ({
         label,
         percent: total ? Math.round((count / total) * 100) : 0,
@@ -203,8 +209,9 @@ const HomeSnapshotHubPage = () => {
             const label = getPatientLabel(unit.label, unit.span);
             labelCounts.set(label, (labelCounts.get(label) || 0) + 1);
           });
-          return Array.from(labelCounts.entries())
-            .sort((a, b) => b[1] - a[1])[0]?.[0] || "—";
+          return (
+            Array.from(labelCounts.entries()).sort((a, b) => b[1] - a[1])[0]?.[0] || "—"
+          );
         })()
       : "—";
 
@@ -213,7 +220,7 @@ const HomeSnapshotHubPage = () => {
         id: "metric-entries",
         label: "Entries logged",
         value: entryCountInRange ? `${entryCountInRange} total` : "No entries",
-        delta: "Last 7 days",
+        delta: range === "week" ? "Last 7 days" : range === "month" ? "Last 30 days" : "Last 12 months",
         status: "up",
       },
       {
@@ -221,39 +228,68 @@ const HomeSnapshotHubPage = () => {
         label: "Emotional Load",
         value: reflectiveLabel,
         delta: avgScore ? (avgScore >= 2 ? "Heavier than usual" : "Manageable levels") : "Add more reflections",
-        status: avgScore >= 2 ? "up" : "steady",
+        status: avgScore >= 2 ? "up" : "down",
       },
       {
         id: "metric-trigger",
         label: "Most common context",
         value: topContext || "—",
         delta: "From recent notes",
-        status: "steady",
+        status: "up",
       },
     ];
-  }, [entriesInRange.length, evidenceUnitsInRange, getPatientLabel]);
+  }, [entriesInRange.length, evidenceUnitsInRange, getPatientLabel, range]);
 
   const moodMetric = patternMetrics.find((metric) => metric.id === "metric-emotion");
   const moodIntensity = moodMetric?.value === "Overwhelming" ? 0.9 : moodMetric?.value === "Heavy" ? 0.6 : 0.3;
 
+  const influencesForPanel = useMemo<PatternInfluence[]>(() => {
+    return snapshotInfluences.map((label) => ({
+      id: label,
+      label,
+      direction: "steady",
+      detail: "Recurring context",
+      confidence: 80,
+    }));
+  }, [snapshotInfluences]);
+
+  const impactAreasForPanel = useMemo<LifeAreaImpact[]>(() => {
+    return snapshotImpactAreas.map((label) => ({
+      id: label,
+      label,
+      score: 75,
+      detail: "Noted in recent entries",
+    }));
+  }, [snapshotImpactAreas]);
+
   return (
     <div className="relative min-h-screen pb-20">
-      <div className="relative h-[50vh] w-full overflow-hidden bg-slate-50 transition-colors duration-700">
+      <div className="sticky top-0 z-50 overflow-hidden rounded-t-3xl border-b border-slate-200 bg-slate-50/80 backdrop-blur-md">
+        <div className="mx-auto max-w-5xl px-4 py-3">
+          <PageHeader
+            title="Interactive Dashboard"
+            description="Explore your patterns in a reflective space."
+            actions={<Tabs options={rangeOptions} activeId={range} onValueChange={setRange} />}
+          />
+        </div>
+      </div>
+
+      <div className="relative h-[45vh] w-full overflow-hidden bg-slate-50 transition-colors duration-1000">
         <HomeAvatarScene activeDomain={activeDomain} onSelectDomain={setActiveDomain} moodIntensity={moodIntensity} />
         {activeDomain !== "root" && (
-          <div className="pointer-events-auto absolute left-1/2 top-4 -translate-x-1/2">
+          <div className="pointer-events-auto absolute bottom-6 left-1/2 -translate-x-1/2">
             <button
               type="button"
               onClick={() => setActiveDomain("root")}
-              className="rounded-full bg-white/80 px-4 py-2 text-xs font-bold text-slate-600 shadow-sm backdrop-blur hover:text-brand"
+              className="rounded-full border border-slate-200 bg-white/90 px-6 py-2 text-xs font-bold text-slate-600 shadow-sm backdrop-blur transition-transform hover:text-brand hover:scale-105"
             >
-              Return to Center
+              Return to Overview
             </button>
           </div>
         )}
       </div>
 
-      <div className="relative z-10 -mt-10 mx-auto w-full max-w-5xl px-4">
+      <div className="relative z-10 -mt-6 mx-auto w-full max-w-4xl px-4">
         <AnimatePresence mode="wait">
           {activeDomain === "root" && (
             <motion.div
@@ -264,10 +300,18 @@ const HomeSnapshotHubPage = () => {
               className="space-y-6"
             >
               <Card className="border-brand/10 bg-white/90 p-6 shadow-xl backdrop-blur">
-                <h2 className="text-xl font-bold text-brand">Your Current Snapshot</h2>
-                <p className="mt-3 text-sm text-slate-600">{loading ? "Gathering your snapshot…" : snapshotNarrative}</p>
+                <div className="flex items-center gap-2 text-brand">
+                  <Activity size={18} />
+                  <h2 className="text-xl font-semibold">Current Snapshot</h2>
+                </div>
+                <p className="mt-4 text-sm text-slate-600">
+                  {loading ? "Gathering your snapshot…" : snapshotNarrative}
+                </p>
+                <div className="mt-6">
+                  <PatternHighlights metrics={patternMetrics} />
+                </div>
                 {narrativeHighlights.length > 0 && (
-                  <div className="mt-4 grid gap-3 md:grid-cols-3">
+                  <div className="mt-6 grid gap-3 md:grid-cols-3">
                     {narrativeHighlights.slice(0, 3).map((highlight, idx) => (
                       <div
                         key={`${highlight}-${idx}`}
@@ -279,11 +323,13 @@ const HomeSnapshotHubPage = () => {
                   </div>
                 )}
               </Card>
-              <div className="grid grid-cols-3 gap-4 text-center text-xs uppercase tracking-[0.3em] text-slate-400">
-                <div>Context</div>
-                <div>Feelings</div>
-                <div>Impact</div>
-              </div>
+
+              {snapshot?.timeRangeSummary?.weekOverWeekDelta && (
+                <Card className="p-6">
+                  <h3 className="text-base font-semibold text-slate-700">Weekly Shift</h3>
+                  <p className="mt-2 text-slate-600">{snapshot.timeRangeSummary.weekOverWeekDelta}</p>
+                </Card>
+              )}
             </motion.div>
           )}
 
@@ -295,12 +341,20 @@ const HomeSnapshotHubPage = () => {
               exit={{ opacity: 0, y: -20 }}
               className="space-y-6"
             >
-              <div className="flex items-center gap-2">
-                <div className="h-1 w-8 rounded-full bg-indigo-500" />
-                <h3 className="text-xs font-bold uppercase tracking-[0.3em] text-indigo-900">My Emotional Weather</h3>
+              <div className="flex items-center gap-2 text-indigo-600">
+                <Heart size={20} />
+                <h3 className="text-xl font-semibold">My Emotional Weather</h3>
               </div>
-              <PatternCardGrid patterns={patterns} onSelect={() => {}} />
-              <RecentEmotionsPulse entries={entries} />
+
+              <Card className="p-6">
+                <h4 className="text-base font-semibold text-slate-700">Recent Emotions</h4>
+                <div className="mt-4">
+                  <RecentEmotionsPulse entries={entriesInRange} />
+                </div>
+              </Card>
+
+              <h4 className="text-base font-semibold text-slate-700">Detected Patterns</h4>
+              <PatternCardGrid patterns={patterns} />
             </motion.div>
           )}
 
@@ -312,19 +366,26 @@ const HomeSnapshotHubPage = () => {
               exit={{ opacity: 0, y: -20 }}
               className="space-y-6"
             >
-              <div className="flex items-center gap-2">
-                <div className="h-1 w-8 rounded-full bg-slate-500" />
-                <h3 className="text-xs font-bold uppercase tracking-[0.3em] text-slate-700">What's Influencing Me</h3>
+              <div className="flex items-center gap-2 text-slate-600">
+                <Brain size={20} />
+                <h3 className="text-xl font-semibold">Influences</h3>
               </div>
-              <InfluencesPanel influences={snapshotInfluences} />
-              <Card className="p-4">
-                <h4 className="text-sm font-semibold text-slate-700">Context categories</h4>
-                <div className="mt-3 space-y-2">
+
+              <InfluencesPanel influences={influencesForPanel} />
+
+              <Card className="p-6">
+                <h4 className="text-base font-semibold text-slate-700">Top Context Tags</h4>
+                <div className="mt-4 space-y-3">
                   {triggerBreakdown.length ? (
                     triggerBreakdown.map((trigger) => (
-                      <div key={trigger.label} className="flex items-center justify-between text-sm text-slate-600">
+                      <div key={trigger.label} className="flex items-center justify-between text-sm">
                         <span>{trigger.label}</span>
-                        <span className="font-mono text-xs text-slate-400">{trigger.percent}%</span>
+                        <div className="flex items-center gap-3">
+                          <div className="h-2 w-32 overflow-hidden rounded-full bg-slate-100">
+                            <div className="h-full bg-slate-400" style={{ width: `${trigger.percent}%` }} />
+                          </div>
+                          <span className="w-8 text-right font-mono text-slate-400">{trigger.percent}%</span>
+                        </div>
                       </div>
                     ))
                   ) : (
@@ -343,12 +404,18 @@ const HomeSnapshotHubPage = () => {
               exit={{ opacity: 0, y: -20 }}
               className="space-y-6"
             >
-              <div className="flex items-center gap-2">
-                <div className="h-1 w-8 rounded-full bg-orange-500" />
-                <h3 className="text-xs font-bold uppercase tracking-[0.3em] text-orange-800">Life Impact</h3>
+              <div className="flex items-center gap-2 text-orange-600">
+                <Briefcase size={20} />
+                <h3 className="text-xl font-semibold">Life Impact</h3>
               </div>
-              <LifeAreasImpactPanel areas={snapshotImpactAreas} />
-              <CopingStrategiesPanel strategies={{ userTagged: [], suggested: [] }} />
+
+              <LifeAreasImpactPanel areas={impactAreasForPanel} />
+
+              <Card className="p-6">
+                <WhatHelpedSummary highlights={snapshot?.whatHelped || []} />
+              </Card>
+
+              <TodayPromptCard prompts={snapshotQuestions.slice(0, 2)} />
             </motion.div>
           )}
         </AnimatePresence>
