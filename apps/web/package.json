@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@mindstorm/criteria-graph": "file:../../packages/criteria-graph",
     "@mindstorm/derived-spec": "file:../../packages/derived-spec",
     "@mindstorm/signal-schema": "file:../../packages/signal-schema",
     "@react-three/drei": "^9.122.0",
