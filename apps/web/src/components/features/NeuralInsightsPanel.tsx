@@ -25,6 +25,7 @@ type NeuralInsightsPanelProps = {
   edges: NeuralInsightEdge[];
   entries: JournalEntry[];
   rankedCycles?: Array<{ cycle: string[]; strength: number }>;
+  onSelectPattern?: (path: string[]) => void;
 };
 
 const pickEntryText = (entry: JournalEntry) => {
@@ -40,7 +41,14 @@ const buildNodeLabelMap = (nodes: NeuralCircuitNode[]) =>
     return acc;
   }, {});
 
-const NeuralInsightsPanel = ({ activePath, nodes, edges, entries, rankedCycles = [] }: NeuralInsightsPanelProps) => {
+const NeuralInsightsPanel = ({
+  activePath,
+  nodes,
+  edges,
+  entries,
+  rankedCycles = [],
+  onSelectPattern,
+}: NeuralInsightsPanelProps) => {
   const nodeLabels = useMemo(() => buildNodeLabelMap(nodes), [nodes]);
 
   const pathMetrics = useMemo(() => {
@@ -112,9 +120,11 @@ const NeuralInsightsPanel = ({ activePath, nodes, edges, entries, rankedCycles =
         ? `${nodeLabels[strongestEdge.from] ?? strongestEdge.from} → ${nodeLabels[strongestEdge.to] ?? strongestEdge.to}`
         : "—",
       topPathConfidence: strongestEdge ? Math.round((strongestEdge.confidence ?? 0) * 100) : 0,
+      topPathIds: strongestEdge ? [strongestEdge.from, strongestEdge.to] : [],
       topCycleLabel: topCycle
         ? topCycle.cycle.map((id) => nodeLabels[id] ?? id).join(" → ")
         : "—",
+      topCycleIds: topCycle?.cycle ?? [],
       avgLag,
       totalEdges: edges.length,
     };
@@ -133,20 +143,38 @@ const NeuralInsightsPanel = ({ activePath, nodes, edges, entries, rankedCycles =
           <div className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
             <div className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">Most common patterns</div>
             <div className="mt-3 space-y-3">
-              <div className="border-l-2 border-indigo-100 pl-3">
+              <button
+                type="button"
+                onClick={() => {
+                  if (globalStats?.topCycleIds?.length) {
+                    onSelectPattern?.(globalStats.topCycleIds);
+                  }
+                }}
+                disabled={!globalStats?.topCycleIds?.length}
+                className="w-full rounded-r-lg border-l-2 border-indigo-100 pl-3 text-left transition hover:border-indigo-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+              >
                 <div className="flex items-center gap-2 text-[11px] font-semibold text-slate-500">
                   <Repeat size={12} className="text-indigo-400" />
                   Recurring cycle
                 </div>
                 <div className="mt-1 text-sm font-semibold text-slate-800">{globalStats?.topCycleLabel ?? "—"}</div>
-              </div>
-              <div className="border-l-2 border-emerald-100 pl-3">
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (globalStats?.topPathIds?.length) {
+                    onSelectPattern?.(globalStats.topPathIds);
+                  }
+                }}
+                disabled={!globalStats?.topPathIds?.length}
+                className="w-full rounded-r-lg border-l-2 border-emerald-100 pl-3 text-left transition hover:border-emerald-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+              >
                 <div className="flex items-center gap-2 text-[11px] font-semibold text-slate-500">
                   <Zap size={12} className="text-emerald-500" />
                   Strongest link {globalStats?.topPathConfidence ? `(${globalStats.topPathConfidence}%)` : ""}
                 </div>
                 <div className="mt-1 text-sm font-semibold text-slate-800">{globalStats?.topPathLabel ?? "—"}</div>
-              </div>
+              </button>
             </div>
           </div>
 
