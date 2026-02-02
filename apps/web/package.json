@@ -12,6 +12,8 @@
     "@mindstorm/criteria-graph": "file:../../packages/criteria-graph",
     "@mindstorm/derived-spec": "file:../../packages/derived-spec",
     "@mindstorm/signal-schema": "file:../../packages/signal-schema",
+    "@react-spring/rafz": "^9.7.5",
+    "@react-spring/types": "^9.7.5",
     "@react-three/drei": "^9.122.0",
     "@react-three/fiber": "^8.18.0",
     "clsx": "^2.1.1",

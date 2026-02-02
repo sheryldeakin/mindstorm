@@ -7,13 +7,12 @@
     "backend"
   ],
   "scripts": {
+    "preinstall": "node scripts/check-platform-deps.js",
     "dev:web": "npm run dev --workspace apps/web",
     "dev:backend": "npm run dev --workspace backend",
     "dev": "concurrently -k \"npm run dev:web\" \"npm run dev:backend\""
   },
   "devDependencies": {
-    "@esbuild/darwin-arm64": "^0.25.12",
-    "@rollup/rollup-darwin-arm64": "^4.53.2",
     "concurrently": "^9.1.0"
   },
   "dependencies": {
