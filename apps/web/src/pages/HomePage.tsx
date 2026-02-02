@@ -476,7 +476,7 @@ const HomePage = () => {
       </section>
 
       <section id="features" className="relative px-6 py-32">
-        <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-16 lg:grid-cols-2">
+        <div className="page-container grid grid-cols-1 items-center gap-16 lg:grid-cols-2">
           <div className="order-2 relative lg:order-1">
             <div className="absolute inset-0 rounded-full bg-brand/5 blur-3xl" />
             <motion.div
@@ -518,7 +518,7 @@ const HomePage = () => {
       </section>
 
       <section className="relative px-6 pb-32">
-        <div className="mx-auto grid max-w-6xl grid-cols-1 items-start gap-12 lg:grid-cols-2">
+        <div className="page-container grid grid-cols-1 items-start gap-12 lg:grid-cols-2">
           <motion.div style={{ y: yFeature1 }}>
             <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-2xl bg-sky-50 text-sky-600">
               <LineChart size={24} />
@@ -561,7 +561,7 @@ const HomePage = () => {
       </section>
 
       <section className="relative bg-white/50 px-6 py-32">
-        <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-16 lg:grid-cols-2">
+        <div className="page-container grid grid-cols-1 items-center gap-16 lg:grid-cols-2">
           <div>
             <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-50 text-orange-600">
               <Brain size={24} />
@@ -592,7 +592,7 @@ const HomePage = () => {
       </section>
 
       <section className="relative px-6 py-32">
-        <div className="mx-auto max-w-6xl">
+        <div className="page-container">
           <div className="mb-12 text-center">
           <h2 className="text-4xl font-bold text-slate-900 tracking-tight font-display">Your weekly snapshot.</h2>
             <p className="mt-4 text-lg text-slate-600">
@@ -649,7 +649,7 @@ const HomePage = () => {
       </section>
 
       <section className="relative border-y border-slate-200 bg-white/80 px-6 py-32">
-        <div className="mx-auto max-w-6xl">
+        <div className="page-container">
           <div className="mb-12 text-center">
             <h2 className="text-4xl font-bold text-slate-900 tracking-tight font-display">
               One story. <span className="text-brandLight">Two languages.</span>
@@ -715,7 +715,7 @@ const HomePage = () => {
       </section>
 
       <section className="relative bg-slate-50 px-6 py-28 text-slate-900">
-        <div className="mx-auto max-w-6xl">
+        <div className="page-container">
           <div className="mx-auto max-w-3xl text-center">
             <h2 className="text-4xl font-bold tracking-tight font-display">Untangle overlapping symptoms.</h2>
             <p className="mt-4 text-lg text-slate-600">

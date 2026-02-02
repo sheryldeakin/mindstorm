@@ -12,6 +12,8 @@
     "dev": "concurrently -k \"npm run dev:web\" \"npm run dev:backend\""
   },
   "devDependencies": {
+    "@esbuild/darwin-arm64": "^0.25.12",
+    "@rollup/rollup-darwin-arm64": "^4.53.2",
     "concurrently": "^9.1.0"
   },
   "dependencies": {

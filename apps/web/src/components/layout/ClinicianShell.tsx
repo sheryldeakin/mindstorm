@@ -13,12 +13,12 @@ const ClinicianShell = () => {
   return (
     <div className="min-h-screen">
       <Navbar variant="clinician" />
-      <div className="mx-auto w-full max-w-6xl px-6">
+      <div className="page-container px-6">
         <div className="mt-4 rounded-2xl bg-amber-50/80 px-4 py-3 text-sm text-amber-900 backdrop-blur">
           Clinical decision support — criteria coverage, not diagnosis.
         </div>
       </div>
-      <main className="mx-auto w-full max-w-6xl px-6 py-10">
+      <main className="page-container px-6 py-10">
         <div className="flex gap-8">
           <div className="hidden flex-col gap-2 lg:flex">
             <button

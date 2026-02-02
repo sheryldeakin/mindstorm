@@ -3,7 +3,7 @@ import Button from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
 
 const PortalPage = () => (
-  <div className="mx-auto max-w-5xl space-y-8">
+  <div className="page-container space-y-8">
     <header className="space-y-3">
       <p className="text-xs uppercase tracking-[0.4em] text-brandLight">Portal</p>
       <h1 className="text-3xl font-semibold text-slate-900">Choose your view</h1>

@@ -14,7 +14,7 @@ const steps = [
 ];
 
 const HowItWorks = () => (
-  <section id="how-it-works" className="mx-auto max-w-6xl px-6 py-20">
+  <section id="how-it-works" className="page-container px-6 py-20">
     <p className="text-sm uppercase tracking-[0.4em] text-brandLight">How it works</p>
     <h2 className="mt-4 text-3xl font-semibold text-brand md:text-4xl">
       Designed for calm, session-ready reflections.

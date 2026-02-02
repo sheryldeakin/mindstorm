@@ -294,7 +294,7 @@ const HomeSnapshotHubPage = () => {
   return (
     <div className="relative min-h-screen pb-20">
       <div className="sticky top-0 z-50 overflow-hidden rounded-t-3xl border-b border-slate-200 bg-slate-50/80 backdrop-blur-md">
-        <div className="mx-auto max-w-5xl px-4 py-3">
+        <div className="page-container px-4 py-3">
           <PageHeader
             title="Interactive Dashboard"
             description="Explore your patterns in a reflective space."

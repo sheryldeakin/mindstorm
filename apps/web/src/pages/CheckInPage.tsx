@@ -249,7 +249,7 @@ const CheckInPage = () => {
   };
 
   return (
-    <div className="mx-auto max-w-2xl space-y-8 pb-16 text-slate-900">
+    <div className="w-full max-w-2xl space-y-8 pb-16 text-slate-900">
       <PageHeader
         pageId="check-in"
         title="Daily Pulse"

@@ -38,6 +38,10 @@ import ClinicianCriteriaPage from "./pages/ClinicianCriteriaPage";
 import ClinicianDifferentialPage from "./pages/ClinicianDifferentialPage";
 import ClinicianShell from "./components/layout/ClinicianShell";
 import ClinicianCasePage from "./pages/ClinicianCasePage";
+import ClinicianCaseHubPage from "./pages/ClinicianCaseHubPage";
+import ClinicianEntryDetailPage from "./pages/ClinicianEntryDetailPage";
+import ClinicianCockpitPage from "./pages/ClinicianCockpitPage";
+import ClinicalDashboardSamplePage from "./pages/ClinicalDashboardSamplePage";
 import ClinicianSettingsPage from "./pages/ClinicianSettingsPage";
 import ClinicianLogicGraphPage from "./pages/ClinicianLogicGraphPage";
 import ClinicianDifferentialEvaluationPage from "./pages/ClinicianDifferentialEvaluationPage";
@@ -133,6 +137,10 @@ const App = () => {
         >
           <Route index element={<ClinicianDashboardPage />} />
           <Route path="cases/:userId" element={<ClinicianCasePage />} />
+          <Route path="cases/:userId/hub" element={<ClinicianCaseHubPage />} />
+          <Route path="cases/:userId/cockpit" element={<ClinicianCockpitPage />} />
+          <Route path="cases/:userId/cockpit-sample" element={<ClinicalDashboardSamplePage />} />
+          <Route path="cases/:caseId/entries/:entryId" element={<ClinicianEntryDetailPage />} />
           <Route path="criteria" element={<ClinicianCriteriaPage />} />
           <Route path="differential" element={<ClinicianDifferentialPage />} />
           <Route path="logic-graph" element={<ClinicianLogicGraphPage />} />

@@ -109,6 +109,12 @@ const Navbar = ({ variant = "landing" }: NavbarProps) => {
 
   const navLinks = variant === "clinician" ? clinicianLinks : appLinks;
   const isClinician = variant === "clinician";
+  const caseMatch = pathname.match(/^\/clinician\/cases\/([^/]+)/);
+  const caseId = caseMatch?.[1];
+  const resolvedNavLinks =
+    isClinician && caseId
+      ? [...clinicianLinks, { label: "Patient Hub", to: `/clinician/cases/${caseId}/hub` }]
+      : navLinks;
   const isHomeActive = (linkTo: string) => {
     if (linkTo === "/patient/home") {
       return pathname === "/patient/home" || pathname === "/patient/dashboard";
@@ -125,7 +131,7 @@ const Navbar = ({ variant = "landing" }: NavbarProps) => {
 
   return (
     <header className="ms-card ms-card-flat ms-elev-1 sticky top-0 z-50">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
+      <div className="page-container flex items-center justify-between px-4 py-3">
         <Link to="/" className="flex items-center gap-3 text-lg font-semibold tracking-tight text-brand">
           <span className="inline-flex h-14 w-14 items-center justify-center">
             <img src={logoMark} alt="MindStorm logo" className="h-12 w-auto object-contain" />
@@ -146,7 +152,7 @@ const Navbar = ({ variant = "landing" }: NavbarProps) => {
             : (
               <>
                 <div className="flex items-center gap-6 md:flex lg:hidden">
-                  {navLinks
+                  {resolvedNavLinks
                     .filter((link) => link.to === (isClinician ? "/clinician" : "/patient/home"))
                     .map((link) => (
                       <NavLink
@@ -166,7 +172,7 @@ const Navbar = ({ variant = "landing" }: NavbarProps) => {
                     ))}
                 </div>
                 <div className="hidden items-center gap-6 lg:flex">
-                  {navLinks.map((link) => (
+                  {resolvedNavLinks.map((link) => (
                     <NavLink
                       key={link.label}
                       to={link.to}

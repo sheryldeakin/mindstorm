@@ -15,7 +15,7 @@ const AppShell = () => {
   return (
     <div className="min-h-screen">
       <Navbar variant="app" />
-      <main className="mx-auto flex w-full max-w-6xl gap-10 px-6 py-12">
+      <main className="page-container flex gap-10 px-6 py-12">
         <div className="hidden flex-col gap-2 lg:flex">
           <button
             type="button"

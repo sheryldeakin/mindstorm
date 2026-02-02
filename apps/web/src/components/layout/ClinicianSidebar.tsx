@@ -1,6 +1,6 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import clsx from "clsx";
-import { ClipboardList, FileSpreadsheet, Network, Scale, Stethoscope } from "lucide-react";
+import { ClipboardList, FileSpreadsheet, Network, Scale, Stethoscope, Sparkles } from "lucide-react";
 
 const clinicianNav = [
   { label: "Active Cases", to: "/clinician", icon: ClipboardList },
@@ -16,12 +16,24 @@ type ClinicianSidebarProps = {
 };
 
 const ClinicianSidebar = ({ collapsed = false }: ClinicianSidebarProps) => {
+  const { pathname } = useLocation();
+  const caseMatch = pathname.match(/^\/clinician\/cases\/([^/]+)/);
+  const caseId = caseMatch?.[1];
+  const navItems = caseId
+    ? [
+        ...clinicianNav,
+        { label: "Patient Hub", to: `/clinician/cases/${caseId}/hub`, icon: Sparkles },
+        { label: "Therapist Cockpit", to: `/clinician/cases/${caseId}/cockpit`, icon: Sparkles },
+        { label: "Therapist Cockpit Sample", to: `/clinician/cases/${caseId}/cockpit-sample`, icon: Sparkles },
+      ]
+    : clinicianNav;
+
   return (
     <aside className={clsx("hidden flex-col gap-2 lg:flex", collapsed ? "w-16" : "w-60")}>
       <div className={clsx("ms-card ms-elev-1 p-4", collapsed && "px-2")}>
         <p className={clsx("small-label text-brand/70", collapsed && "sr-only")}>Clinician</p>
         <div className="mt-4 flex flex-col gap-1">
-          {clinicianNav.map(({ label, to, icon: Icon }) => (
+          {navItems.map(({ label, to, icon: Icon }) => (
             <NavLink key={to} to={to}>
               {({ isActive }) => (
                 <span

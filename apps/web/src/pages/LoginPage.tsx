@@ -107,7 +107,7 @@ const LoginPage = () => {
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-white via-white to-brand/5 text-slate-900">
-      <section className="mx-auto max-w-6xl px-6 py-16">
+      <section className="page-container px-6 py-16">
         <div className="grid gap-10 lg:grid-cols-2 lg:items-start">
           <div className="space-y-6">
             <p className="text-sm uppercase tracking-[0.4em] text-brandLight">Log in</p>

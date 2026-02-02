@@ -12,7 +12,7 @@ const testimonials = [
 ];
 
 const Testimonials = () => (
-  <section id="stories" className="mx-auto max-w-6xl px-6 py-20">
+  <section id="stories" className="page-container px-6 py-20">
     <div className="grid gap-6 md:grid-cols-2">
       {testimonials.map((testimonial) => (
         <div

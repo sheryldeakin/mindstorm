@@ -14,7 +14,7 @@ const useCases = [
 ];
 
 const UseCaseGrid = () => (
-  <section id="use-cases" className="mx-auto max-w-6xl px-6 py-20">
+  <section id="use-cases" className="page-container px-6 py-20">
     <div className="rounded-[40px] border border-brand/15 bg-white p-10 shadow-lg shadow-brand/10">
       <div className="grid gap-10 md:grid-cols-3">
         {useCases.map((useCase) => (

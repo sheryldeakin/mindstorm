@@ -8,7 +8,7 @@ const footerLinks = [
 const Footer = () => {
   return (
     <footer className="ms-card ms-elev-1 mt-10">
-      <div className="mx-auto flex max-w-6xl flex-col gap-6 px-6 py-10 md:flex-row md:items-center md:justify-between">
+      <div className="page-container flex flex-col gap-6 px-6 py-10 md:flex-row md:items-center md:justify-between">
         <div>
           <p className="text-lg font-semibold text-brand">MindStorm</p>
           <p className="text-sm text-brand/70">"Where your mind becomes the solution, not the storm."</p>

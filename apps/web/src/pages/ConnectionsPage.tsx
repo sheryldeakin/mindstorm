@@ -113,7 +113,7 @@ const ConnectionsPage = () => {
   const selectedEdge = cleanEdges.find((edge) => edge.id === selectedEdgeId);
 
   return (
-    <div className="max-w-5xl mx-auto p-6 space-y-8 pb-24">
+    <div className="page-container p-6 space-y-8 pb-24">
       <PageHeader
         pageId="connections"
         title="Connections"

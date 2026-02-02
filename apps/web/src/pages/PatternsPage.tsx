@@ -308,7 +308,7 @@ const PatternsPage = () => {
   }, [availableTabs, detailTab]);
 
   return (
-    <div className="max-w-6xl mx-auto p-6 space-y-8">
+    <div className="page-container p-6 space-y-8">
       <PageHeader
         pageId="patterns"
         title="Emotional Weather"
